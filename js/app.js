@@ -139,7 +139,10 @@
     r.setProperty("--c1", t.c1); r.setProperty("--c2", t.c2); r.setProperty("--accent", t.accent);
     r.setProperty("--deep", t.deep); r.setProperty("--glow", t.glow);
   }
-  const DEFAULT_THEME = { c1: "#6a8bff", c2: "#a06bff", accent: "#7c6bff", deep: "#241a5c", glow: "rgba(124,107,255,.55)" };
+  const DEFAULT_THEME = { c1: "#ff5a3c", c2: "#ff5a3c", accent: "#ff5a3c", deep: "#14304a", glow: "rgba(255,90,60,.30)" };
+
+  // Couleurs de la carte (thème « atlas » clair)
+  const MAP = { ink: "#14304a", land: "#e6dcc6", landFaint: "#efe7d4", landStroke: "#c3b795", gold: "#f2b01e", reveal: "#9db0be", bad: "#e23d3d" };
 
   /* ---------- Navigation ---------- */
   let currentContinent = null, currentSub = null;
@@ -290,8 +293,8 @@
   function styleFor(feature) {
     const active = game && game.activeSet.has(feature.id);
     const t = REG.continents[currentContinent].theme;
-    if (active) return { fillColor: t.accent, fillOpacity: 0.55, color: "#ffffff", weight: 1, opacity: 0.85 };
-    return { fillColor: "#243056", fillOpacity: feature.properties.region ? 0.32 : 0.18, color: "#3a4780", weight: 0.5, opacity: 0.5 };
+    if (active) return { fillColor: t.accent, fillOpacity: 0.85, color: MAP.ink, weight: 1.3, opacity: 1 };
+    return { fillColor: feature.properties.region ? MAP.land : MAP.landFaint, fillOpacity: 1, color: MAP.landStroke, weight: 0.7, opacity: 1 };
   }
 
   function startRegion(subKey) {
@@ -325,7 +328,7 @@
     for (const id of active) {
       const c = GEO.countries[id];
       if (c.area < SMALL_AREA) {
-        const dot = L.circleMarker([c.lat, c.lng], { radius: 6, color: "#ffffff", weight: 1.5, fillColor: th.accent, fillOpacity: 0.95, interactive: false, className: "dot-pulse" }).addTo(map);
+        const dot = L.circleMarker([c.lat, c.lng], { radius: 6, color: MAP.ink, weight: 2, fillColor: th.accent, fillOpacity: 1, interactive: false, className: "dot-pulse" }).addTo(map);
         dotByCca3[id] = dot; dots.push(dot);
       }
     }
@@ -396,8 +399,8 @@
 
   function markFound(id, kind) {
     const layer = layerByCca3[id]; if (!layer) return;
-    const col = kind === "reveal" ? "#ffcf4d" : "#2ed573";
-    layer.setStyle({ fillColor: col, fillOpacity: 0.8, color: "#ffffff", weight: 1.4, opacity: 1 });
+    const col = kind === "reveal" ? MAP.reveal : MAP.gold;
+    layer.setStyle({ fillColor: col, fillOpacity: 1, color: MAP.ink, weight: 1.5, opacity: 1 });
     layer.bindTooltip(GEO.countries[id].name, { permanent: true, direction: "center", className: "country-label" }).openTooltip();
     if (layer.bringToFront) layer.bringToFront();
     if (dotByCca3[id]) dotByCca3[id].setStyle({ fillColor: col, fillOpacity: 1 });
@@ -439,7 +442,7 @@
     const layer = layerByCca3[clickedId];
     if (layer) {
       const prev = styleFor({ id: clickedId, properties: {} });
-      layer.setStyle({ fillColor: "#ff4757", fillOpacity: 0.85, color: "#fff", weight: 1.4 });
+      layer.setStyle({ fillColor: MAP.bad, fillOpacity: 0.9, color: MAP.ink, weight: 1.5 });
       setTimeout(() => { if (game && game.activeSet.has(clickedId) && !masteredSet.has(clickedId)) layer.setStyle(prev); }, 700);
     }
     $("#hudStreak").textContent = "0 🔥";
