@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0b0f2a" />
+  <title>GéoQuest — Explore le monde</title>
+  <meta name="description" content="Le jeu de géo ultra addictif : situe tous les pays du monde, continent par continent." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="vendor/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌍%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- Décor de fond animé -->
+  <div class="bg-scene" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="stars"></div>
+  </div>
+
+  <!-- Barre supérieure (profil) -->
+  <header class="topbar" id="topbar">
+    <button class="brand" id="brand" aria-label="Accueil">
+      <span class="brand-globe">🌍</span>
+      <span class="brand-name">Géo<span>Quest</span></span>
+    </button>
+    <div class="profile" id="profile">
+      <div class="lvl">
+        <div class="lvl-badge" id="lvlBadge">1</div>
+        <div class="lvl-info">
+          <div class="lvl-row"><span id="lvlLabel">Explorateur·rice</span><span class="xp-txt" id="xpTxt">0 / 100 XP</span></div>
+          <div class="xp-bar"><i id="xpFill"></i></div>
+        </div>
+      </div>
+      <button class="icon-btn" id="soundBtn" title="Son" aria-label="Activer/couper le son">🔊</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- ÉCRAN ACCUEIL -->
+    <section class="screen active" id="screen-home">
+      <div class="hero">
+        <div class="hero-badge">🌍 193 pays à conquérir</div>
+        <h1 class="hero-title">Deviens le <span class="grad-text">maître du monde</span></h1>
+        <p class="hero-sub">Situe chaque pays sur la carte, continent par continent. Gagne des étoiles, enchaîne les séries, monte de niveau.</p>
+        <div class="hero-stats" id="heroStats"></div>
+      </div>
+
+      <h2 class="section-title"><span>Choisis ton continent</span></h2>
+      <div class="continent-grid" id="continentGrid"></div>
+
+      <div class="badges-block" id="badgesBlock">
+        <h2 class="section-title"><span>Tes trophées</span></h2>
+        <div class="badge-grid" id="badgeGrid"></div>
+      </div>
+
+      <footer class="site-foot">
+        <span>Fait avec ❤️ pour les explorateur·rice·s.</span>
+        <span class="foot-credit">Frontières © Natural Earth · Données pays : world-countries</span>
+      </footer>
+    </section>
+
+    <!-- ÉCRAN CONTINENT -->
+    <section class="screen" id="screen-continent">
+      <button class="back-btn" data-nav="home">← Accueil</button>
+      <div class="continent-head" id="continentHead"></div>
+      <div class="subregion-grid" id="subregionGrid"></div>
+    </section>
+
+    <!-- ÉCRAN JEU -->
+    <section class="screen screen-game" id="screen-game">
+      <div class="game-hud">
+        <button class="hud-back" data-nav="continent" aria-label="Quitter">✕</button>
+        <div class="hud-hearts" id="hudHearts"></div>
+        <div class="hud-spacer"></div>
+        <div class="hud-stat"><span class="hud-lbl">Score</span><b id="hudScore">0</b></div>
+        <div class="hud-stat"><span class="hud-lbl">Série</span><b id="hudStreak">0 🔥</b></div>
+        <div class="hud-stat hud-prog"><span class="hud-lbl">Pays</span><b id="hudProg">0/0</b></div>
+      </div>
+
+      <div class="prompt-bar" id="promptBar">
+        <div class="prompt-label">Trouve</div>
+        <div class="prompt-country">
+          <span class="prompt-flag" id="promptFlag">🏳️</span>
+          <span class="prompt-name" id="promptName">…</span>
+        </div>
+        <div class="prompt-hint" id="promptHint"></div>
+        <div class="prompt-timer"><i id="timerFill"></i></div>
+      </div>
+
+      <div id="map" class="map"></div>
+
+      <div class="game-controls">
+        <button class="mini-btn" id="skipBtn">🤷 Je ne sais pas</button>
+      </div>
+
+      <div class="toast" id="toast"></div>
+      <div class="combo-pop" id="comboPop"></div>
+    </section>
+
+    <!-- ÉCRAN RÉSULTATS -->
+    <section class="screen" id="screen-result">
+      <div class="result-card" id="resultCard">
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <h2 class="result-title" id="resultTitle">Région terminée !</h2>
+        <div class="result-sub" id="resultSub"></div>
+        <div class="stars" id="resultStars"><i>★</i><i>★</i><i>★</i></div>
+        <div class="result-stats" id="resultStats"></div>
+        <div class="result-actions">
+          <button class="btn btn-ghost" data-nav="continent">Régions</button>
+          <button class="btn btn-ghost" id="replayBtn">↻ Rejouer</button>
+          <button class="btn btn-primary" id="nextBtn">Suivant →</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <canvas id="fx" class="fx-canvas" aria-hidden="true"></canvas>
+
+  <!-- Scripts (tout en local, aucune dépendance réseau) -->
+  <script src="vendor/leaflet.js"></script>
+  <script src="data/geo-data.js"></script>
+  <script src="js/regions.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
