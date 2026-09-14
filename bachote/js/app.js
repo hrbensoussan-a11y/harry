@@ -97,24 +97,28 @@
   /* ============================================================
      Réglages : thème et sons
      ============================================================ */
+  function prefersDark() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+
+  /* Thème réellement affiché : un choix explicite, sinon ce que dit le système. */
+  function effectiveTheme() {
+    return document.documentElement.getAttribute("data-theme") || (prefersDark() ? "dark" : "light");
+  }
+
   function applyTheme(mode) {
+    // Sans choix enregistré on ne TOUCHE PAS à l'attribut : il peut avoir été
+    // posé par la page hôte. L'effacer ferait basculer le site en clair.
     if (mode === "dark" || mode === "light") {
       document.documentElement.setAttribute("data-theme", mode);
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-      mode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
-    $("#themeIcon").textContent = mode === "dark" ? "☀️" : "🌙";
+    $("#themeIcon").textContent = effectiveTheme() === "dark" ? "☀️" : "🌙";
   }
 
   function initSettings() {
     applyTheme(S.setting("theme"));
     $("#themeBtn").addEventListener("click", function () {
-      var cur = document.documentElement.getAttribute("data-theme");
-      if (!cur) {
-        cur = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      }
-      var next = cur === "dark" ? "light" : "dark";
+      var next = effectiveTheme() === "dark" ? "light" : "dark";
       S.setting("theme", next);
       applyTheme(next);
       Sfx.play("click");
