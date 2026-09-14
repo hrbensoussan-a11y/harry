@@ -94,6 +94,21 @@ b { font-weight: 700; }
 .icon-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
 .icon-btn.off { color: var(--ink-dim); }
 
+/* Sélecteur de langue */
+.lang-wrap { position: relative; }
+.lang-menu {
+  position: absolute; top: 52px; right: 0; z-index: 90; min-width: 180px;
+  display: flex; flex-direction: column; gap: 4px; padding: 8px;
+  background: var(--paper); border: var(--border); border-radius: 14px; box-shadow: var(--shadow-lg);
+}
+.lang-opt {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px;
+  font-weight: 700; font-size: 14px; text-align: left; color: var(--ink); transition: background .15s;
+}
+.lang-opt span { font-size: 18px; }
+.lang-opt:hover { background: var(--ocean); }
+.lang-opt.on { background: var(--accent); color: #fff; }
+
 /* ---------- Layout ---------- */
 main { max-width: 1180px; margin: 0 auto; padding: clamp(16px, 3vw, 32px); }
 .screen { display: none; animation: fadeUp .35s ease; }

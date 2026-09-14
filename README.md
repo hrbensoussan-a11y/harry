@@ -24,6 +24,14 @@ Conçu pour les jeunes : graphismes soignés (dégradés animés, glassmorphism,
 
 **193 pays souverains** répartis sur **24 sous-régions**.
 
+## 🌐 Langues
+
+Le site est traduit en **5 langues** : 🇫🇷 français (par défaut), 🇬🇧 anglais, 🇪🇸 espagnol,
+🇮🇹 italien et 🇷🇺 russe. Le sélecteur de langue est dans la barre du haut ; le choix est
+mémorisé. L'interface, les continents/régions, les **noms de pays** et les **capitales**
+sont traduits (noms de pays issus de `world-countries` ; quelques capitales rares restent
+sous leur forme internationale en russe).
+
 ## 🚀 Lancer le site
 
 Le site est **100 % statique et autonome** (aucune connexion internet nécessaire, tout est embarqué).

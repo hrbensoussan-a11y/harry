@@ -47,13 +47,39 @@
 
   /* ---------- Sauvegarde ---------- */
   const SAVE_KEY = "geoquest.v1";
-  const defaultSave = () => ({ totalXP: 0, best: {}, mastered: [], longestStreak: 0, regionsDone: [], badges: [], sound: true, timer: true, mode: "locate" });
+  const defaultSave = () => ({ totalXP: 0, best: {}, mastered: [], longestStreak: 0, regionsDone: [], badges: [], sound: true, timer: true, mode: "locate", lang: "fr" });
   let save = defaultSave();
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) save = Object.assign(defaultSave(), JSON.parse(raw)); } catch (e) {}
   const masteredSet = new Set(save.mastered);
   function persist() {
     save.mastered = Array.from(masteredSet);
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {}
+  }
+
+  /* ---------- Internationalisation ---------- */
+  const LANG_CODES = ["fr", "en", "es", "it", "ru"];
+  const curLang = () => (LANG_CODES.indexOf(save.lang) >= 0 ? save.lang : "fr");
+  function t(key, params) {
+    const e = window.I18N[key];
+    let s = e ? (e[curLang()] != null ? e[curLang()] : e.fr) : key;
+    if (params) for (const k in params) s = s.split("{" + k + "}").join(params[k]);
+    return s;
+  }
+  const tArr = (key) => { const e = window.I18N[key]; return e ? (e[curLang()] || e.fr) : []; };
+  // Noms de pays / capitales / régions dans la langue courante
+  const cName = (id) => { const c = GEO.countries[id]; return c ? (c.names[curLang()] || c.names.fr) : (featById[id] ? featById[id].properties.name : id); };
+  const cCap = (id) => { const c = GEO.countries[id]; return c ? (c.caps[curLang()] || c.caps.fr) : ""; };
+  const contName = (k) => REG.continents[k].names[curLang()] || REG.continents[k].names.fr;
+  const contTag = (k) => REG.continents[k].taglines[curLang()] || REG.continents[k].taglines.fr;
+  // Pluriels corrects (pays / régions) dans les 5 langues
+  function plRu(n, forms) { const m = n % 100, d = n % 10; if (d === 1 && m !== 11) return forms[0]; if (d >= 2 && d <= 4 && !(m >= 12 && m <= 14)) return forms[1]; return forms[2]; }
+  function cWord(n) { const l = curLang(); if (l === "en") return n === 1 ? "country" : "countries"; if (l === "es") return n === 1 ? "país" : "países"; if (l === "it") return n === 1 ? "paese" : "paesi"; if (l === "ru") return plRu(n, ["страна", "страны", "стран"]); return "pays"; }
+  function rWord(n) { const l = curLang(); if (l === "en") return n === 1 ? "region" : "regions"; if (l === "es") return n === 1 ? "región" : "regiones"; if (l === "it") return n === 1 ? "regione" : "regioni"; if (l === "ru") return plRu(n, ["регион", "региона", "регионов"]); return n === 1 ? "région" : "régions"; }
+  const nCountries = (n) => n + " " + cWord(n);
+  const nRegions = (n) => n + " " + rWord(n);
+  function applyI18n() {
+    document.documentElement.lang = curLang();
+    $$("[data-i18n]").forEach(el => { const pre = el.getAttribute("data-i18n-prefix") || ""; el.textContent = pre + t(el.getAttribute("data-i18n")); });
   }
 
   /* ---------- Niveaux / XP ---------- */
@@ -63,13 +89,8 @@
     return { level: lvl, into: xp - floor, need };
   }
   function levelTitle(l) {
-    if (l >= 18) return "Légende vivante";
-    if (l >= 13) return "Maître du monde";
-    if (l >= 10) return "Globe-trotter";
-    if (l >= 7) return "Cartographe";
-    if (l >= 5) return "Navigateur·rice";
-    if (l >= 3) return "Aventurier·ère";
-    return "Explorateur·rice";
+    const key = l >= 18 ? "lvl_legend" : l >= 13 ? "lvl_master" : l >= 10 ? "lvl_globetrotter" : l >= 7 ? "lvl_cartographer" : l >= 5 ? "lvl_navigator" : l >= 3 ? "lvl_adventurer" : "lvl_explorer";
+    return t(key);
   }
 
   /* ---------- Son (Web Audio) ---------- */
@@ -107,18 +128,19 @@
 
   /* ---------- Modes de jeu ---------- */
   const MODES = {
-    locate: { label: "Localiser", ic: "🗺️", verb: "Trouve" },
-    flags: { label: "Drapeaux", ic: "🚩", verb: "Trouve le drapeau de" },
-    capitals: { label: "Capitales", ic: "🏛️", verb: "Trouve la capitale de" },
+    locate: { ic: "🗺️", labelKey: "mode_locate", verbKey: "verb_locate" },
+    flags: { ic: "🚩", labelKey: "mode_flags", verbKey: "verb_flags" },
+    capitals: { ic: "🏛️", labelKey: "mode_capitals", verbKey: "verb_capitals" },
   };
   const MODE_ORDER = ["locate", "flags", "capitals"];
   const curMode = () => (MODES[save.mode] ? save.mode : "locate");
+  const modeLabel = (m) => t(MODES[m].labelKey);
   // Clé de record : mode locate garde la clé simple (rétro-compatible), les autres sont préfixés.
   const bestKey = (mode, sub) => (mode === "locate" ? "" : mode + ":") + sub;
   function renderModeBar(el) {
     if (!el) return;
     el.className = "mode-bar";
-    el.innerHTML = MODE_ORDER.map(m => `<button class="mode-pill${curMode() === m ? " on" : ""}" data-mode="${m}"><span class="mp-ic">${MODES[m].ic}</span> ${MODES[m].label}</button>`).join("");
+    el.innerHTML = MODE_ORDER.map(m => `<button class="mode-pill${curMode() === m ? " on" : ""}" data-mode="${m}"><span class="mp-ic">${MODES[m].ic}</span> ${modeLabel(m)}</button>`).join("");
     $$(".mode-pill", el).forEach(b => b.addEventListener("click", () => {
       if (curMode() === b.dataset.mode) return;
       save.mode = b.dataset.mode; persist(); Sound.click();
@@ -179,7 +201,7 @@
   }
 
   /* ---------- Helpers meta (dépendants du mode sélectionné) ---------- */
-  const subFR = (k) => REG.subregions[k] ? REG.subregions[k].name : k;
+  const subFR = (k) => REG.subregions[k] ? (REG.subregions[k].names[curLang()] || REG.subregions[k].names.fr) : k;
   function subBest(k) { return save.best[bestKey(curMode(), k)]; }
   function starsForSub(k) { const b = subBest(k); return b ? b.stars : 0; }
   function continentStars(contKey) {
@@ -211,12 +233,14 @@
     $("#soundBtn").textContent = Sound.isOn() ? "🔊" : "🔇";
     $("#soundBtn").classList.toggle("off", !Sound.isOn());
     const tb = $("#timerBtn");
-    if (tb) { tb.textContent = timerOn() ? "⏱️" : "⏱"; tb.classList.toggle("off", !timerOn()); tb.title = timerOn() ? "Chrono activé" : "Chrono coupé"; }
+    if (tb) { tb.textContent = timerOn() ? "⏱️" : "⏱"; tb.classList.toggle("off", !timerOn()); tb.title = timerOn() ? t("timer_on") : t("timer_off"); }
+    const lb = $("#langBtn"); if (lb) { const cur = window.LANGS.find(x => x.code === curLang()); lb.textContent = cur ? cur.flag : "🌐"; lb.title = t("lang_label"); }
   }
 
   /* ---------- Accueil ---------- */
   function renderHome() {
     applyTheme(DEFAULT_THEME);
+    const ht = $("#heroTitle"); if (ht) ht.innerHTML = t("hero_before") + '<span class="grad-text">' + t("hero_high") + "</span>";
 
     // Anneau : % du monde maîtrisé
     const pct = Math.round((masteredSet.size / TOTAL_COUNTRIES) * 100);
@@ -228,34 +252,34 @@
       </svg>
       <div class="ring-center">
         <div class="ring-pct">${pct}%</div>
-        <div class="ring-lbl">du monde</div>
-        <div class="ring-sub">${masteredSet.size} / ${TOTAL_COUNTRIES} pays</div>
+        <div class="ring-lbl">${t("ring_world")}</div>
+        <div class="ring-sub">${masteredSet.size} / ${nCountries(TOTAL_COUNTRIES)}</div>
       </div>
     </div>`;
     requestAnimationFrame(() => { const f = $("#heroRing .ring-fill"); if (f) f.style.strokeDashoffset = (C * (1 - pct / 100)).toFixed(1); });
 
     // Boutons d'action du héros : choix du mode + tour du monde
     $("#heroCtas").innerHTML = `
-      <div class="cta-lbl">Mode de jeu</div>
+      <div class="cta-lbl">${t("sec_mode")}</div>
       <div id="modeBar"></div>
-      <button class="btn btn-primary" id="ctaWorld">🌐 Tour du monde</button>`;
+      <button class="btn btn-primary" id="ctaWorld">🌐 ${t("world_title")}</button>`;
     renderModeBar($("#modeBar"));
     $("#ctaWorld").onclick = () => { Sound.click(); startWorld(); };
 
     renderProgress();
 
     $("#continentGrid").innerHTML = REG.order.map(key => {
-      const c = REG.continents[key], t = c.theme;
+      const c = REG.continents[key], th = c.theme;
       const count = c.subOrder.reduce((a, k) => a + (bySub[k] ? bySub[k].length : 0), 0);
       const s = continentStars(key), max = continentMax(key);
-      return `<button class="cont-card" data-cont="${key}" style="--cc1:${t.c1};--cc2:${t.c2};--ccg:${t.glow}">
+      return `<button class="cont-card" data-cont="${key}" style="--cc1:${th.c1};--cc2:${th.c2};--ccg:${th.glow}">
         <span class="cont-ghost" aria-hidden="true" style="position:absolute;right:-14px;top:-24px;font-size:150px;opacity:.14;z-index:-1;pointer-events:none">${c.emoji}</span>
         <div class="cont-emoji">${c.emoji}</div>
-        <div class="cont-name">${c.name}</div>
-        <div class="cont-tag">${c.tagline}</div>
+        <div class="cont-name">${contName(key)}</div>
+        <div class="cont-tag">${contTag(key)}</div>
         <div class="cont-meta">
-          <span class="cont-pill">${count} pays</span>
-          <span class="cont-pill">${c.subOrder.length} régions</span>
+          <span class="cont-pill">${nCountries(count)}</span>
+          <span class="cont-pill">${nRegions(c.subOrder.length)}</span>
           <span class="cont-stars">⭐ ${s}/${max}</span>
         </div>
       </button>`;
@@ -265,11 +289,11 @@
     // Défi du monde
     const wc = $("#worldChallenge");
     if (wc) {
-      const wb = save.best["WORLD"];
+      const wb = save.best[bestKey(curMode(), "WORLD")];
       wc.innerHTML = `<button class="mode-banner mode-world" id="worldBtn">
         <span class="mb-ic">🌐</span>
-        <span class="mb-tx"><b>Tour du monde</b><span>Les <span class="mb-hl">193 pays</span> du monde en une seule partie. ${wb ? "Record : " + wb.score + " " + starStr(wb.stars) : "Le défi ultime."}</span></span>
-        <span class="mb-go">Jouer ▸</span>
+        <span class="mb-tx"><b>${t("world_title")}</b><span>${t("world_desc", { n: TOTAL_COUNTRIES })} ${wb ? t("stat_record") + " : " + wb.score + " " + starStr(wb.stars) : t("world_ultimate")}</span></span>
+        <span class="mb-go">${t("play")}</span>
       </button>`;
       $("#worldBtn").onclick = () => { Sound.click(); startWorld(); };
     }
@@ -292,7 +316,7 @@
       const total = c.subOrder.reduce((a, s) => a + (bySub[s] ? bySub[s].length : 0), 0);
       const done = mByCont[k] || 0, p = total ? Math.round(done / total * 100) : 0;
       return `<div class="cprog"><span class="cp-ic">${c.emoji}</span><div class="cp-body">
-        <div class="cp-row"><span>${c.name}</span><span>${done}/${total}</span></div>
+        <div class="cp-row"><span>${contName(k)}</span><span>${done}/${total}</span></div>
         <div class="cp-bar"><i data-w="${p}" style="width:0;background:${c.theme.accent}"></i></div>
       </div></div>`;
     }).join("");
@@ -300,13 +324,13 @@
       <div class="pp-top">
         <div class="pp-badge">${lv.level}</div>
         <div class="pp-lvl">
-          <div class="pp-lvl-row"><b>Niveau ${lv.level} · ${levelTitle(lv.level)}</b><span>${lv.into} / ${lv.need} XP</span></div>
+          <div class="pp-lvl-row"><b>${t("level_word")} ${lv.level} · ${levelTitle(lv.level)}</b><span>${lv.into} / ${lv.need} XP</span></div>
           <div class="pp-xp"><i data-w="${clamp(lv.into / lv.need * 100, 3, 100).toFixed(0)}" style="width:0"></i></div>
         </div>
         <div class="pp-stats">
-          <div class="pp-stat"><b>${save.longestStreak}</b><span>Record 🔥</span></div>
-          <div class="pp-stat"><b>${totalStars}</b><span>${MODES[curMode()].ic} Étoiles</span></div>
-          <div class="pp-stat"><b>${regionsDoneCount()}</b><span>Régions</span></div>
+          <div class="pp-stat"><b>${save.longestStreak}</b><span>${t("stat_record")} 🔥</span></div>
+          <div class="pp-stat"><b>${totalStars}</b><span>${MODES[curMode()].ic} ${t("stat_stars")}</span></div>
+          <div class="pp-stat"><b>${regionsDoneCount()}</b><span>${t("stat_regions")}</span></div>
         </div>
       </div>
       <div class="pp-conts">${rows}</div>`;
@@ -315,19 +339,19 @@
 
   /* ---------- Trophées ---------- */
   const BADGES = [
-    { id: "first", ic: "🧭", name: "Premiers pas", desc: "Termine ta 1ʳᵉ région", has: () => save.regionsDone.length >= 1 },
-    { id: "perfect", ic: "💎", name: "Sans faute", desc: "Une région 3 étoiles", has: () => Object.values(save.best).some(b => b.stars === 3) },
-    { id: "streak10", ic: "🔥", name: "En feu", desc: "Série de 10", has: () => save.longestStreak >= 10 },
-    { id: "streak25", ic: "☄️", name: "Météore", desc: "Série de 25", has: () => save.longestStreak >= 25 },
-    { id: "c50", ic: "🎒", name: "Bourlingueur", desc: "50 pays maîtrisés", has: () => masteredSet.size >= 50 },
-    { id: "c100", ic: "💯", name: "Centenaire", desc: "100 pays maîtrisés", has: () => masteredSet.size >= 100 },
-    { id: "cont", ic: "👑", name: "Roi du continent", desc: "Un continent tout en or", has: () => REG.order.some(k => continentStars(k) === continentMax(k)) },
-    { id: "world", ic: "🌐", name: "Tour du monde", desc: "Les 193 pays", has: () => masteredSet.size >= TOTAL_COUNTRIES },
+    { id: "first", ic: "🧭", key: "b_first", has: () => save.regionsDone.length >= 1 },
+    { id: "perfect", ic: "💎", key: "b_perfect", has: () => Object.values(save.best).some(b => b.stars === 3) },
+    { id: "streak10", ic: "🔥", key: "b_streak10", has: () => save.longestStreak >= 10 },
+    { id: "streak25", ic: "☄️", key: "b_streak25", has: () => save.longestStreak >= 25 },
+    { id: "c50", ic: "🎒", key: "b_c50", has: () => masteredSet.size >= 50 },
+    { id: "c100", ic: "💯", key: "b_c100", has: () => masteredSet.size >= 100 },
+    { id: "cont", ic: "👑", key: "b_cont", has: () => REG.order.some(k => continentStars(k) === continentMax(k)) },
+    { id: "world", ic: "🌐", key: "b_world", has: () => masteredSet.size >= TOTAL_COUNTRIES },
   ];
   function renderBadges() {
     $("#badgeGrid").innerHTML = BADGES.map(b => {
       const has = b.has();
-      return `<div class="badge ${has ? "" : "locked"}"><div class="badge-ic">${has ? b.ic : "🔒"}</div><div class="badge-tx"><b>${b.name}</b><span>${b.desc}</span></div></div>`;
+      return `<div class="badge ${has ? "" : "locked"}"><div class="badge-ic">${has ? b.ic : "🔒"}</div><div class="badge-tx"><b>${t(b.key)}</b><span>${t(b.key + "_d")}</span></div></div>`;
     }).join("");
   }
   function checkBadges() {
@@ -344,8 +368,8 @@
     applyTheme(c.theme);
     $("#continentHead").innerHTML = `
       <div class="ch-emoji">${c.emoji}</div>
-      <div class="ch-text"><h2>${c.name}</h2><p>${c.tagline}</p></div>
-      <div class="ch-prog"><b>⭐ ${continentStars(key)}/${continentMax(key)}</b><span>étoiles gagnées</span></div>`;
+      <div class="ch-text"><h2>${contName(key)}</h2><p>${contTag(key)}</p></div>
+      <div class="ch-prog"><b>⭐ ${continentStars(key)}/${continentMax(key)}</b><span>${t("stars_earned")}</span></div>`;
 
     renderModeBar($("#modeBarC"));
 
@@ -356,8 +380,8 @@
       const cb = save.best[bestKey(curMode(), "CONT:" + key)];
       cc.innerHTML = `<button class="mode-banner mode-cont" id="contChalBtn" style="background:${c.theme.accent}">
         <span class="mb-ic">${c.emoji}</span>
-        <span class="mb-tx"><b>Défi ${c.name}</b><span>Les ${count} pays du continent en une partie · ${MODES[curMode()].label}. ${cb ? "Record : " + cb.score + " " + starStr(cb.stars) : ""}</span></span>
-        <span class="mb-go">Jouer ▸</span>
+        <span class="mb-tx"><b>${t("challenge_prefix")} ${contName(key)}</b><span>${t("challenge_desc", { n: count, mode: modeLabel(curMode()) })} ${cb ? t("stat_record") + " : " + cb.score + " " + starStr(cb.stars) : ""}</span></span>
+        <span class="mb-go">${t("play")}</span>
       </button>`;
       $("#contChalBtn").onclick = () => { Sound.click(); startContinent(key); };
     }
@@ -368,12 +392,12 @@
       const done = !!best;
       const starHtml = [1, 2, 3].map(n => `<i class="${n <= stars ? "on" : ""}">★</i>`).join("");
       return `<button class="sub-card" data-sub="${k}">
-        ${done ? '<div class="ribbon">FINI</div>' : ""}
+        ${done ? `<div class="ribbon">${t("fini")}</div>` : ""}
         <div class="sc-top"><div class="sc-emoji">${REG.subregions[k].emoji}</div>
-          <div><div class="sc-name">${subFR(k)}</div><div class="sc-count">${list.length} pays</div></div></div>
+          <div><div class="sc-name">${subFR(k)}</div><div class="sc-count">${nCountries(list.length)}</div></div></div>
         <div class="sc-foot">
           <div class="sc-stars">${starHtml}</div>
-          ${best ? `<span class="sc-best">🏆 ${best.score}</span>` : `<span class="sc-play">Jouer ▸</span>`}
+          ${best ? `<span class="sc-best">🏆 ${best.score}</span>` : `<span class="sc-play">${t("play")}</span>`}
         </div>
       </button>`;
     }).join("");
@@ -433,7 +457,7 @@
     const isMap = mode === "locate";
 
     let list = opts.countries.slice();
-    if (mode === "capitals") list = list.filter(id => GEO.countries[id] && GEO.countries[id].capital);
+    if (mode === "capitals") list = list.filter(id => GEO.countries[id] && GEO.countries[id].caps && GEO.countries[id].caps[curLang()]);
     const active = shuffle(list);
     game = {
       sub: opts.sub, kind: opts.kind, mode: mode, title: opts.title, continent: opts.continent || null,
@@ -518,10 +542,10 @@
     game.roundMisses = 0; game.roundActive = true; game.roundStart = performance.now();
     const c = GEO.countries[game.target];
     // Libellé + drapeau selon le mode (en mode Drapeaux, on cache le drapeau : c'est la réponse !)
-    $("#promptLabel").textContent = MODES[game.mode].verb;
+    $("#promptLabel").textContent = t(MODES[game.mode].verbKey);
     $("#promptFlag").hidden = (game.mode === "flags");
     $("#promptFlag").textContent = c.flag || "🏳️";
-    const nameEl = $("#promptName"); nameEl.textContent = c.name;
+    const nameEl = $("#promptName"); nameEl.textContent = cName(game.target);
     nameEl.classList.remove("pop"); void nameEl.offsetWidth; nameEl.classList.add("pop");
     $("#promptHint").textContent = "";
     // Barre de temps (seulement si le chrono est activé)
@@ -536,10 +560,10 @@
   function quizOptions() {
     const pool = Array.from(game.activeSet).filter(id => id !== game.target);
     let distract = shuffle(pool);
-    if (game.mode === "capitals") distract = distract.filter(id => GEO.countries[id].capital);
+    if (game.mode === "capitals") distract = distract.filter(id => cCap(id));
     // complète avec d'autres pays si la région est trop petite
     if (distract.length < 3) {
-      const extra = shuffle(Object.keys(GEO.countries)).filter(id => id !== game.target && !game.activeSet.has(id) && (game.mode !== "capitals" || GEO.countries[id].capital));
+      const extra = shuffle(Object.keys(GEO.countries)).filter(id => id !== game.target && !game.activeSet.has(id) && (game.mode !== "capitals" || cCap(id)));
       distract = distract.concat(extra);
     }
     return shuffle([game.target].concat(distract.slice(0, 3)));
@@ -551,7 +575,7 @@
       const c = GEO.countries[id];
       const inner = game.mode === "flags"
         ? `<span class="q-flag">${c.flag || "🏳️"}</span>`
-        : `<span class="q-cap">${c.capital}</span>`;
+        : `<span class="q-cap">${cCap(id)}</span>`;
       return `<button class="quiz-opt ${game.mode === "flags" ? "is-flag" : "is-cap"}" data-id="${id}">${inner}</button>`;
     }).join("");
     $("#quiz").innerHTML = `<div class="quiz-grid ${game.mode === "flags" ? "grid-flag" : "grid-cap"}">${html}</div>`;
@@ -575,17 +599,17 @@
       if (best) hit = best;
     }
 
-    if (!hit) { toast("Vise un pays 🌊", ""); return; }
+    if (!hit) { toast(t("toast_aim_land"), ""); return; }
     if (hit === game.target) { onCorrect(e.containerPoint); }
     else if (game.activeSet.has(hit)) { onWrong(hit); }
-    else { toast(`« ${GEO.countries[hit] ? GEO.countries[hit].name : (featById[hit] ? featById[hit].properties.name : "Ce pays")} » n'est pas dans cette zone`, ""); }
+    else { toast(t("not_in_zone", { name: cName(hit) }), ""); }
   }
 
   function markFound(id, kind) {
     const layer = layerByCca3[id]; if (!layer) return;
     const col = kind === "reveal" ? MAP.reveal : MAP.gold;
     layer.setStyle({ fillColor: col, fillOpacity: 1, color: MAP.ink, weight: 1.5, opacity: 1 });
-    layer.bindTooltip(GEO.countries[id].name, { permanent: true, direction: "center", className: "country-label" }).openTooltip();
+    layer.bindTooltip(cName(id), { permanent: true, direction: "center", className: "country-label" }).openTooltip();
     if (layer.bringToFront) layer.bringToFront();
     if (dotByCca3[id]) dotByCca3[id].setStyle({ fillColor: col, fillOpacity: 1 });
   }
@@ -609,7 +633,7 @@
     Sound.correct();
     if (burstPt) FX.burst(burstPt.x, burstPt.y, 22, themeColors(), 7);
     if (game.streak >= 3) comboPop(`+${pts}  🔥 x${game.streak}`);
-    else toast(first ? pick(["Bravo !", "Parfait !", "Nickel !", "Trouvé !"]) : "Bien rattrapé !", "good");
+    else toast(first ? pick(tArr("good")) : t("toast_recovered"), "good");
     persist();
   }
 
@@ -638,8 +662,7 @@
       btn.classList.add("wrong");
       if (correctBtn) correctBtn.classList.add("correct");
       Sound.wrong();
-      const nm = GEO.countries[game.target].name;
-      toast(`Non — ${game.mode === "flags" ? "le drapeau" : "la capitale"} de ${nm}`, "bad");
+      toast(t(game.mode === "flags" ? "wrong_flag" : "wrong_cap", { name: cName(game.target) }), "bad");
       shake($("#promptBar"));
       game.done += 1;
       $("#hudProg").textContent = game.done + "/" + game.total;
@@ -661,11 +684,10 @@
     }
     $("#hudStreak").textContent = "0 🔥";
     Sound.wrong();
-    const nm = GEO.countries[clickedId] ? GEO.countries[clickedId].name : "?";
-    toast(`Non ! Ça, c'est ${nm}`, "bad");
+    toast(t("wrong_map", { name: cName(clickedId) }), "bad");
     shake($("#promptBar"));
-    const cap = GEO.countries[game.target].capital;
-    if (cap) $("#promptHint").textContent = "Indice : capitale " + cap;
+    const cap = cCap(game.target);
+    if (cap) $("#promptHint").textContent = t("hint_capital", { cap: cap });
     if (game.lives <= 0) { game.roundActive = false; setTimeout(() => endRegion(false), 800); }
   }
 
@@ -675,14 +697,14 @@
     $("#hudStreak").textContent = "0 🔥";
     if (game.mode === "locate") {
       markFound(game.target, "reveal");
-      toast(`C'était ${GEO.countries[game.target].name}`, "");
+      toast(t("reveal_was", { name: cName(game.target) }), "");
     } else {
       const opts = $$("#quiz .quiz-opt");
       const correctBtn = opts.find(b => b.dataset.id === game.target);
       if (correctBtn) correctBtn.classList.add("reveal");
       opts.forEach(b => (b.disabled = true));
       const c = GEO.countries[game.target];
-      toast(game.mode === "flags" ? `Le drapeau de ${c.name} : ${c.flag}` : `${c.name} → ${c.capital}`, "");
+      toast(game.mode === "flags" ? t("skip_flag", { name: cName(game.target), flag: c.flag }) : cName(game.target) + " → " + cCap(game.target), "");
     }
     Sound.reveal();
     game.done += 1;
@@ -717,15 +739,20 @@
     showResult(win, g, stars, { levelUp: newLevel > oldLevel, newLevel, newBadges });
   }
 
+  let lastResult = null;
   function showResult(win, g, stars, extra) {
+    lastResult = { win: win, g: g, stars: stars, extra: extra };
     showScreen("result");
     const acc = Math.round((g.total ? g.firstTryCorrect / g.total : 0) * 100);
-    const doneWord = g.kind === "region" ? "Région terminée !" : (g.kind === "continent" ? "Continent conquis !" : "Monde conquis !");
+    const titleText = g.kind === "region" ? subFR(g.sub)
+      : g.kind === "continent" ? (t("challenge_prefix") + " " + contName(g.continent || currentContinent))
+      : t("world_title");
+    const doneWord = g.kind === "region" ? t("res_region_done") : (g.kind === "continent" ? t("res_continent_done") : t("res_world_done"));
     $("#resultEmoji").textContent = win ? (stars === 3 ? "🏆" : "🎉") : "💪";
-    $("#resultTitle").textContent = win ? (stars === 3 ? "Sans-faute légendaire !" : doneWord) : "Presque !";
+    $("#resultTitle").textContent = win ? (stars === 3 ? t("res_perfect") : doneWord) : t("res_almost");
     $("#resultSub").textContent = win
-      ? `${MODES[g.mode].ic} ${g.title} · ${g.firstTryCorrect}/${g.total} du premier coup`
-      : `${MODES[g.mode].ic} ${g.done}/${g.total} pays. Réessaie, tu vas y arriver !`;
+      ? `${MODES[g.mode].ic} ${titleText} · ${g.firstTryCorrect}/${g.total} ${t("res_first_try")}`
+      : `${MODES[g.mode].ic} ${g.done}/${nCountries(g.total)}. ${t("res_retry")}`;
 
     // Étoiles animées
     $$("#resultStars i").forEach((el, i) => {
@@ -734,9 +761,9 @@
     });
 
     $("#resultStats").innerHTML = [
-      ["Score", "+" + g.score],
-      ["Précision", acc + "%"],
-      ["Meilleure série", g.streakMax + ""],
+      [t("hud_score"), "+" + g.score],
+      [t("stat_precision"), acc + "%"],
+      [t("stat_beststreak"), g.streakMax + ""],
     ].map(s => `<div><b>${s[1]}</b><span>${s[0]}</span></div>`).join("");
 
     // Confettis
@@ -748,9 +775,9 @@
 
     // Montée de niveau / trophées
     setTimeout(() => {
-      if (extra.levelUp) { Sound.level(); toast(`⭐ Niveau ${extra.newLevel} — ${levelTitle(extra.newLevel)} !`, "good"); }
+      if (extra.levelUp) { Sound.level(); toast(t("levelup", { n: extra.newLevel, title: levelTitle(extra.newLevel) }), "good"); }
       if (extra.newBadges && extra.newBadges.length) {
-        extra.newBadges.forEach((b, i) => setTimeout(() => { toast(`${b.ic} Trophée : ${b.name} !`, "good"); Sound.star(); }, 900 + i * 1300));
+        extra.newBadges.forEach((b, i) => setTimeout(() => { toast(t("trophy", { ic: b.ic, name: t(b.key) }), "good"); Sound.star(); }, 900 + i * 1300));
       }
     }, 1100);
 
@@ -759,19 +786,20 @@
     nextBtn.hidden = false;
     const goHome = () => { Sound.click(); renderHome(); showScreen("home"); };
     if (g.kind === "region") {
-      backBtn.textContent = "Régions"; backBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); };
+      backBtn.textContent = t("sec_regions"); backBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); };
       const order = REG.continents[g.continent || currentContinent].subOrder;
       const pos = order.indexOf(g.sub);
       const nextSub = pos >= 0 && pos < order.length - 1 ? order[pos + 1] : null;
       if (nextSub) { nextBtn.textContent = subFR(nextSub) + " →"; nextBtn.onclick = () => { Sound.click(); startRegion(nextSub); }; }
-      else { nextBtn.textContent = "Continent ✓"; nextBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); }; }
+      else { nextBtn.textContent = t("btn_continent_done"); nextBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); }; }
     } else if (g.kind === "continent") {
-      backBtn.textContent = "Accueil"; backBtn.onclick = goHome;
-      nextBtn.textContent = "Régions →"; nextBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); };
+      backBtn.textContent = t("btn_home"); backBtn.onclick = goHome;
+      nextBtn.textContent = t("sec_regions") + " →"; nextBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); };
     } else { // world
-      backBtn.textContent = "Accueil"; backBtn.onclick = goHome;
+      backBtn.textContent = t("btn_home"); backBtn.onclick = goHome;
       nextBtn.hidden = true;
     }
+    $("#replayBtn").textContent = t("btn_replay");
     $("#replayBtn").onclick = () => { Sound.click(); replaySession(g); };
 
     renderProfile();
@@ -796,11 +824,40 @@
   st.textContent = "@keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}";
   document.head.appendChild(st);
 
+  /* ---------- Sélecteur de langue ---------- */
+  function renderLangMenu() {
+    const menu = $("#langMenu"); if (!menu) return;
+    menu.innerHTML = window.LANGS.map(l => `<button class="lang-opt${curLang() === l.code ? " on" : ""}" data-lang="${l.code}"><span>${l.flag}</span> ${l.label}</button>`).join("");
+    $$(".lang-opt", menu).forEach(b => b.addEventListener("click", () => { setLang(b.dataset.lang); menu.hidden = true; }));
+  }
+  function setLang(code) {
+    if (LANG_CODES.indexOf(code) < 0 || code === curLang()) { return; }
+    save.lang = code; persist(); Sound.click();
+    applyI18n(); renderProfile();
+    // rafraîchit l'écran courant
+    if ($("#screen-continent").classList.contains("active")) openContinent(currentContinent || REG.order[0]);
+    else if ($("#screen-game").classList.contains("active")) refreshGameTexts();
+    else if ($("#screen-result").classList.contains("active") && lastResult) { showResult(lastResult.win, lastResult.g, lastResult.stars, lastResult.extra); }
+    else renderHome();
+  }
+  function refreshGameTexts() { // met à jour l'invite et les options quiz dans la nouvelle langue
+    if (!game || !game.roundActive) return;
+    $("#promptLabel").textContent = t(MODES[game.mode].verbKey);
+    $("#promptName").textContent = cName(game.target);
+    if (game.mode !== "locate") renderQuizRound();
+  }
+
   /* ---------- Câblage global ---------- */
   document.addEventListener("click", () => Sound.unlock(), { once: true });
   $("#brand").addEventListener("click", () => { Sound.click(); renderHome(); showScreen("home"); });
   $("#soundBtn").addEventListener("click", () => { Sound.toggle(); renderProfile(); });
-  { const tb = $("#timerBtn"); if (tb) tb.addEventListener("click", () => { save.timer = !timerOn(); persist(); applyTimerClass(); renderProfile(); Sound.click(); toast(timerOn() ? "⏱️ Chrono activé" : "⏱️ Chrono coupé", ""); }); }
+  { const tb = $("#timerBtn"); if (tb) tb.addEventListener("click", () => { save.timer = !timerOn(); persist(); applyTimerClass(); renderProfile(); Sound.click(); toast(timerOn() ? t("timer_on") : t("timer_off"), ""); }); }
+  { const lb = $("#langBtn"), menu = $("#langMenu");
+    if (lb && menu) {
+      lb.addEventListener("click", (e) => { e.stopPropagation(); Sound.click(); renderLangMenu(); menu.hidden = !menu.hidden; });
+      document.addEventListener("click", (e) => { if (!menu.hidden && !menu.contains(e.target) && e.target !== lb) menu.hidden = true; });
+    }
+  }
   $("#skipBtn").addEventListener("click", () => { Sound.click(); onSkip(); });
   $$("[data-nav]").forEach(el => el.addEventListener("click", () => {
     Sound.click();
@@ -811,6 +868,7 @@
 
   /* ---------- Démarrage ---------- */
   applyTimerClass();
+  applyI18n();
   renderProfile();
   renderHome();
 

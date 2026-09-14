@@ -36,6 +36,10 @@
           <div class="xp-bar"><i id="xpFill"></i></div>
         </div>
       </div>
+      <div class="lang-wrap">
+        <button class="icon-btn" id="langBtn" aria-label="Langue">🇫🇷</button>
+        <div class="lang-menu" id="langMenu" hidden></div>
+      </div>
       <button class="icon-btn" id="timerBtn" title="Chrono" aria-label="Activer/couper le chrono">⏱️</button>
       <button class="icon-btn" id="soundBtn" title="Son" aria-label="Activer/couper le son">🔊</button>
     </div>
@@ -46,39 +50,39 @@
     <section class="screen active" id="screen-home">
       <section class="hero">
         <div class="hero-left">
-          <div class="hero-badge">🧭 Atlas de poche · 193 pays</div>
-          <h1 class="hero-title">Deviens le <span class="grad-text">maître du monde</span></h1>
-          <p class="hero-sub">Situe chaque pays sur la carte, continent par continent. Gagne des étoiles, enchaîne les séries, monte de niveau.</p>
+          <div class="hero-badge" data-i18n="hero_badge">🧭 Atlas de poche · 193 pays</div>
+          <h1 class="hero-title" id="heroTitle">Deviens le <span class="grad-text">maître du monde</span></h1>
+          <p class="hero-sub" data-i18n="hero_sub">Situe chaque pays sur la carte, continent par continent. Gagne des étoiles, enchaîne les séries, monte de niveau.</p>
           <div class="hero-ctas" id="heroCtas"></div>
         </div>
         <div class="hero-ring" id="heroRing"></div>
       </section>
 
-      <h2 class="section-title"><span>Ta progression</span></h2>
+      <h2 class="section-title"><span data-i18n="sec_progress">Ta progression</span></h2>
       <div id="progressPanel"></div>
 
-      <h2 class="section-title"><span>Choisis ton continent</span></h2>
+      <h2 class="section-title"><span data-i18n="sec_continent">Choisis ton continent</span></h2>
       <div class="continent-grid" id="continentGrid"></div>
 
-      <h2 class="section-title"><span>Ou relève le défi</span></h2>
+      <h2 class="section-title"><span data-i18n="sec_challenge">Ou relève le défi</span></h2>
       <div id="worldChallenge"></div>
 
-      <h2 class="section-title"><span>Tes trophées</span></h2>
+      <h2 class="section-title"><span data-i18n="sec_trophies">Tes trophées</span></h2>
       <div class="badge-grid" id="badgeGrid"></div>
 
       <footer class="site-foot">
-        <span>Fait avec ❤️ pour les explorateur·rice·s.</span>
-        <span class="foot-credit">Frontières © Natural Earth · Données pays : world-countries</span>
+        <span data-i18n="foot_made">Fait avec ❤️ pour les explorateur·rice·s.</span>
+        <span class="foot-credit" data-i18n="foot_credit">Frontières © Natural Earth · Données : world-countries</span>
       </footer>
     </section>
 
     <!-- ÉCRAN CONTINENT -->
     <section class="screen" id="screen-continent">
-      <button class="back-btn" data-nav="home">← Accueil</button>
+      <button class="back-btn" data-nav="home" data-i18n="btn_home" data-i18n-prefix="← ">← Accueil</button>
       <div class="continent-head" id="continentHead"></div>
       <div id="modeBarC" class="mode-bar-wrap"></div>
       <div id="continentChallenge"></div>
-      <h2 class="section-title"><span>Régions</span></h2>
+      <h2 class="section-title"><span data-i18n="sec_regions">Régions</span></h2>
       <div class="subregion-grid" id="subregionGrid"></div>
     </section>
 
@@ -88,9 +92,9 @@
         <button class="hud-back" data-nav="continent" aria-label="Quitter">✕</button>
         <div class="hud-hearts" id="hudHearts"></div>
         <div class="hud-spacer"></div>
-        <div class="hud-stat"><span class="hud-lbl">Score</span><b id="hudScore">0</b></div>
-        <div class="hud-stat"><span class="hud-lbl">Série</span><b id="hudStreak">0 🔥</b></div>
-        <div class="hud-stat hud-prog"><span class="hud-lbl">Pays</span><b id="hudProg">0/0</b></div>
+        <div class="hud-stat"><span class="hud-lbl" data-i18n="hud_score">Score</span><b id="hudScore">0</b></div>
+        <div class="hud-stat"><span class="hud-lbl" data-i18n="hud_streak">Série</span><b id="hudStreak">0 🔥</b></div>
+        <div class="hud-stat hud-prog"><span class="hud-lbl" data-i18n="hud_countries">Pays</span><b id="hudProg">0/0</b></div>
       </div>
 
       <div class="prompt-bar" id="promptBar">
@@ -107,7 +111,7 @@
       <div id="quiz" class="quiz" hidden></div>
 
       <div class="game-controls">
-        <button class="mini-btn" id="skipBtn">🤷 Je ne sais pas</button>
+        <button class="mini-btn" id="skipBtn" data-i18n="skip">🤷 Je ne sais pas</button>
       </div>
 
       <div class="toast" id="toast"></div>
@@ -136,6 +140,7 @@
   <!-- Scripts (tout en local, aucune dépendance réseau) -->
   <script src="vendor/leaflet.js"></script>
   <script src="data/geo-data.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/regions.js"></script>
   <script src="js/app.js"></script>
 </body>
