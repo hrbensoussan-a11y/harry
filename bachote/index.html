@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bachote — apprends tes définitions</title>
+<meta name="description" content="Colle ton cours, Bachote fabrique tes fiches. Flashcards, quiz, jeu d'association et révision intelligente. Gratuit, sans compte.">
+<meta name="theme-color" content="#1b2a4a">
+<meta property="og:title" content="Bachote — apprends tes définitions">
+<meta property="og:description" content="Colle ton cours, Bachote fabrique tes fiches. Flashcards, quiz et révision intelligente. Gratuit, sans compte.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%231b2a4a'/><rect x='22' y='20' width='56' height='60' rx='5' fill='%23fbfbf7'/><rect x='30' y='20' width='3' height='60' fill='%23d94f4f'/><rect x='40' y='34' width='28' height='5' fill='%23ffd43b'/><rect x='40' y='48' width='28' height='4' fill='%23c9d2e0'/><rect x='40' y='60' width='18' height='4' fill='%23c9d2e0'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="paper-grid" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#/" aria-label="Bachote, accueil">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 40 40" width="28" height="28"><rect x="4" y="3" width="32" height="34" rx="3" fill="currentColor"/><rect x="10" y="3" width="2" height="34" fill="#d94f4f"/><rect x="16" y="12" width="15" height="4" fill="#ffd43b"/><rect x="16" y="21" width="15" height="3" fill="#fff" opacity=".55"/><rect x="16" y="28" width="9" height="3" fill="#fff" opacity=".55"/></svg>
+    </span>
+    <span class="brand-text">Bachote</span>
+  </a>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" title="Sons"><span id="soundIcon">🔊</span></button>
+    <button class="icon-btn" id="themeBtn" type="button" title="Thème clair / sombre"><span id="themeIcon">🌙</span></button>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- ══════════ ACCUEIL ══════════ -->
+  <section class="screen" id="screen-home">
+    <div class="wrap">
+
+      <div class="hero">
+        <h1 class="hero-title">Colle ton cours.<br><mark class="hl">On fabrique tes fiches.</mark></h1>
+        <p class="hero-sub">Flashcards, quiz, jeu d'association et révision intelligente. Gratuit, sans compte, tes fiches restent sur ton appareil.</p>
+      </div>
+
+      <div class="due-card" id="dueCard" hidden>
+        <div class="due-left">
+          <span class="due-num" id="dueNum">0</span>
+          <span class="due-label" id="dueLabel">carte à réviser</span>
+        </div>
+        <div class="due-right">
+          <p class="due-hint">La révision intelligente te montre en priorité ce que tu es sur le point d'oublier.</p>
+          <button class="btn btn-primary" id="dueStart" type="button">Lancer la révision</button>
+        </div>
+      </div>
+
+      <div class="stats-strip" id="statsStrip"></div>
+
+      <div class="sec-head">
+        <h2 class="sec-title">Tes paquets</h2>
+        <button class="btn btn-ghost btn-sm" id="newDeckBtn" type="button">+ Nouveau paquet</button>
+      </div>
+
+      <div class="deck-grid" id="deckGrid"></div>
+
+      <div class="empty-note" id="emptyNote" hidden>
+        <p>Tu n'as pas encore de paquet. Crée le tien, ou essaie un des exemples ci-dessous.</p>
+      </div>
+
+      <div class="sec-head" id="samplesHead">
+        <h2 class="sec-title">Exemples prêts à l'emploi</h2>
+      </div>
+      <div class="deck-grid deck-grid-sample" id="sampleGrid"></div>
+
+    </div>
+  </section>
+
+  <!-- ══════════ PAQUET ══════════ -->
+  <section class="screen" id="screen-deck" hidden>
+    <div class="wrap">
+      <button class="back-link" type="button" data-nav="#/">← Tous les paquets</button>
+
+      <div class="deck-head">
+        <div class="deck-head-main">
+          <span class="tag" id="deckTag">Matière</span>
+          <h1 class="deck-title" id="deckTitle">Paquet</h1>
+          <p class="deck-meta" id="deckMeta">0 carte</p>
+        </div>
+        <div class="deck-head-actions">
+          <button class="btn btn-ghost btn-sm" id="editDeckBtn" type="button">Modifier</button>
+          <button class="btn btn-ghost btn-sm" id="shareDeckBtn" type="button">Partager</button>
+          <button class="btn btn-ghost btn-sm btn-danger" id="delDeckBtn" type="button">Supprimer</button>
+        </div>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-bar"><span id="deckProgFill"></span></div>
+        <p class="progress-legend" id="deckProgLegend"></p>
+      </div>
+
+      <h2 class="sec-title sec-title-tight">Comment veux-tu travailler ?</h2>
+      <div class="mode-grid" id="modeGrid">
+        <button class="mode-card mode-review" data-mode="review" type="button">
+          <span class="mode-emoji">🧠</span>
+          <span class="mode-name">Révision intelligente</span>
+          <span class="mode-desc">L'algorithme choisit quoi te montrer et quand. Le plus efficace.</span>
+          <span class="mode-badge" id="modeReviewBadge"></span>
+        </button>
+        <button class="mode-card" data-mode="flash" type="button">
+          <span class="mode-emoji">🗂️</span>
+          <span class="mode-name">Flashcards</span>
+          <span class="mode-desc">Tu retournes la carte, tu vérifies. Simple et rapide.</span>
+        </button>
+        <button class="mode-card" data-mode="match" type="button">
+          <span class="mode-emoji">🔗</span>
+          <span class="mode-name">Associer</span>
+          <span class="mode-desc">Relie chaque mot à sa définition, le plus vite possible.</span>
+        </button>
+        <button class="mode-card" data-mode="mcq" type="button">
+          <span class="mode-emoji">📋</span>
+          <span class="mode-name">QCM</span>
+          <span class="mode-desc">Quatre propositions, une bonne réponse.</span>
+        </button>
+        <button class="mode-card" data-mode="write" type="button">
+          <span class="mode-emoji">✍️</span>
+          <span class="mode-name">Écrire</span>
+          <span class="mode-desc">Retrouve le mot à partir de la définition. Le plus exigeant.</span>
+        </button>
+      </div>
+
+      <div class="sec-head">
+        <h2 class="sec-title">Les cartes</h2>
+        <span class="muted-count" id="cardCount"></span>
+      </div>
+      <ul class="card-list" id="cardList"></ul>
+    </div>
+  </section>
+
+  <!-- ══════════ ÉDITEUR ══════════ -->
+  <section class="screen" id="screen-edit" hidden>
+    <div class="wrap wrap-narrow">
+      <button class="back-link" type="button" id="editBack">← Annuler</button>
+      <h1 class="edit-title" id="editHeading">Nouveau paquet</h1>
+
+      <div class="field">
+        <label class="lbl" for="deckNameInput">Nom du paquet</label>
+        <input class="inp" id="deckNameInput" type="text" placeholder="ex. SVT — La cellule" maxlength="70" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="deckSubjectInput">Matière</label>
+        <div class="subject-row" id="subjectRow"></div>
+        <input type="hidden" id="deckSubjectInput">
+      </div>
+
+      <details class="paste-box" id="pasteBox">
+        <summary class="paste-summary">
+          <span class="paste-title">⚡ Coller mon cours d'un coup</span>
+          <span class="paste-hint">La façon la plus rapide de remplir un paquet</span>
+        </summary>
+        <div class="paste-body">
+          <p class="paste-help">Colle tes lignes, une par carte. Bachote détecte tout seul le séparateur entre le mot et sa définition.</p>
+          <textarea class="inp inp-area" id="pasteArea" rows="7" placeholder="mitose : division cellulaire qui produit deux cellules identiques&#10;méiose : division qui produit quatre cellules à n chromosomes&#10;chromosome — molécule d'ADN condensée portant les gènes"></textarea>
+          <div class="paste-controls">
+            <label class="lbl lbl-inline" for="sepSelect">Séparateur</label>
+            <select class="inp inp-select" id="sepSelect">
+              <option value="auto">Détection automatique</option>
+              <option value="tab">Tabulation</option>
+              <option value=":">Deux-points :</option>
+              <option value="-">Tiret -</option>
+              <option value="=">Égal =</option>
+            </select>
+            <button class="btn btn-primary btn-sm" id="pasteApply" type="button">Créer les cartes</button>
+          </div>
+          <p class="paste-preview" id="pastePreview"></p>
+        </div>
+      </details>
+
+      <div class="sec-head">
+        <h2 class="sec-title">Cartes</h2>
+        <span class="muted-count" id="editCount"></span>
+      </div>
+
+      <ul class="edit-list" id="editList"></ul>
+      <button class="btn btn-ghost btn-wide" id="addCardBtn" type="button">+ Ajouter une carte</button>
+
+      <div class="edit-actions">
+        <button class="btn btn-primary btn-wide" id="saveDeckBtn" type="button">Enregistrer le paquet</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ ÉTUDE ══════════ -->
+  <section class="screen screen-study" id="screen-study" hidden>
+    <div class="study-bar">
+      <button class="icon-btn" id="quitStudy" type="button" title="Quitter">✕</button>
+      <div class="study-prog"><span id="studyProgFill"></span></div>
+      <span class="study-count" id="studyCount">0 / 0</span>
+    </div>
+
+    <div class="study-body">
+      <!-- Flashcard / révision -->
+      <div class="pane" id="pane-flash" hidden>
+        <div class="flip" id="flip">
+          <div class="flip-in" id="flipIn">
+            <div class="flip-face flip-front">
+              <span class="face-label">Terme</span>
+              <p class="face-text" id="flashFront"></p>
+              <span class="face-hint">Appuie sur la carte ou <kbd>Espace</kbd> pour retourner</span>
+            </div>
+            <div class="flip-face flip-back">
+              <span class="face-label">Définition</span>
+              <p class="face-text face-text-def" id="flashBack"></p>
+            </div>
+          </div>
+        </div>
+        <div class="grade-row" id="gradeRow" hidden>
+          <button class="btn-grade g-again" data-q="1" type="button"><b>Encore</b><i>&lt; 1 min</i></button>
+          <button class="btn-grade g-hard" data-q="3" type="button"><b>Difficile</b><i id="gHard"></i></button>
+          <button class="btn-grade g-good" data-q="4" type="button"><b>Bien</b><i id="gGood"></i></button>
+          <button class="btn-grade g-easy" data-q="5" type="button"><b>Facile</b><i id="gEasy"></i></button>
+        </div>
+        <div class="grade-row grade-row-simple" id="simpleRow" hidden>
+          <button class="btn btn-ghost" id="flashPrev" type="button">← Précédent</button>
+          <button class="btn btn-primary" id="flashNext" type="button">Suivant →</button>
+        </div>
+      </div>
+
+      <!-- QCM -->
+      <div class="pane" id="pane-mcq" hidden>
+        <div class="prompt-card">
+          <span class="face-label" id="mcqLabel">Quelle est la définition de</span>
+          <p class="prompt-text" id="mcqPrompt"></p>
+        </div>
+        <div class="opt-grid" id="mcqOpts"></div>
+      </div>
+
+      <!-- Écrire -->
+      <div class="pane" id="pane-write" hidden>
+        <div class="prompt-card">
+          <span class="face-label">Quel mot correspond à cette définition ?</span>
+          <p class="prompt-text prompt-text-def" id="writePrompt"></p>
+        </div>
+        <form class="write-form" id="writeForm" autocomplete="off">
+          <input class="inp inp-write" id="writeInput" type="text" placeholder="Écris le mot…" autocomplete="off" autocorrect="off" spellcheck="false">
+          <button class="btn btn-primary" type="submit" id="writeSubmit">Valider</button>
+        </form>
+        <div class="write-feedback" id="writeFeedback" hidden></div>
+        <button class="btn btn-ghost btn-sm" id="writeSkip" type="button">Je ne sais pas</button>
+      </div>
+
+      <!-- Associer -->
+      <div class="pane pane-match" id="pane-match" hidden>
+        <p class="match-help">Clique un mot, puis sa définition.</p>
+        <div class="match-grid" id="matchGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ RÉSULTAT ══════════ -->
+  <section class="screen" id="screen-result" hidden>
+    <div class="wrap wrap-narrow">
+      <div class="result-card">
+        <span class="result-emoji" id="resultEmoji">🎉</span>
+        <h1 class="result-title" id="resultTitle">Terminé !</h1>
+        <p class="result-sub" id="resultSub"></p>
+        <div class="result-stats" id="resultStats"></div>
+        <div class="result-actions">
+          <button class="btn btn-primary" id="againBtn" type="button">Recommencer</button>
+          <button class="btn btn-ghost" id="backDeckBtn" type="button">Retour au paquet</button>
+        </div>
+        <div class="result-missed" id="resultMissed" hidden>
+          <h2 class="sec-title sec-title-tight">À retravailler</h2>
+          <ul class="missed-list" id="missedList"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Bachote — tes fiches sont enregistrées dans ton navigateur, rien n'est envoyé nulle part.</p>
+</footer>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/store.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/samples.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
