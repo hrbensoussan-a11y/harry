@@ -93,32 +93,82 @@
     return t(key);
   }
 
-  /* ---------- Son (Web Audio) ---------- */
+  /* ---------- Son (Web Audio, synthétisé, sans fichier) ---------- */
   const Sound = (() => {
-    let ctx = null, on = save.sound !== false;
-    const ensure = () => { if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ctx && ctx.state === "suspended") ctx.resume(); };
-    function tone(freq, start, dur, type, vol) {
-      if (!ctx) return;
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = type || "sine"; o.frequency.value = freq;
-      const t = ctx.currentTime + start;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(vol || 0.18, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g).connect(ctx.destination);
-      o.start(t); o.stop(t + dur + 0.03);
+    let ctx = null, master = null, noiseBuf = null, on = save.sound !== false;
+    function build() {
+      if (ctx) return;
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+      master = ctx.createGain(); master.gain.value = 0.85;
+      const comp = ctx.createDynamicsCompressor(); // limiteur : garde le son propre, jamais saturé
+      comp.threshold.value = -14; comp.knee.value = 24; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.18;
+      master.connect(comp).connect(ctx.destination);
+      const n = Math.floor(ctx.sampleRate * 0.3); noiseBuf = ctx.createBuffer(1, n, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     }
-    const seq = (notes) => { ensure(); if (!on || !ctx) return; notes.forEach(n => tone(n[0], n[1], n[2], n[3], n[4])); };
+    const ensure = () => { build(); if (ctx && ctx.state === "suspended") ctx.resume(); };
+    // Une voix : oscillateur + enveloppe douce (attaque/déclin) + filtre optionnel
+    function voice(o) {
+      const t0 = ctx.currentTime + (o.start || 0);
+      const osc = ctx.createOscillator(); osc.type = o.type || "sine";
+      osc.frequency.setValueAtTime(o.freq, t0);
+      if (o.glide) osc.frequency.exponentialRampToValueAtTime(o.glide, t0 + o.dur);
+      if (o.detune) osc.detune.value = o.detune;
+      let node = osc;
+      if (o.cutoff) { const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = o.cutoff; osc.connect(f); node = f; }
+      const g = ctx.createGain(); const a = o.attack == null ? 0.008 : o.attack;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(o.vol || 0.2, t0 + a);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.dur);
+      node.connect(g).connect(master);
+      osc.start(t0); osc.stop(t0 + o.dur + 0.05);
+    }
+    function noise(o) {
+      const t0 = ctx.currentTime + (o.start || 0);
+      const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+      const f = ctx.createBiquadFilter(); f.type = o.hp ? "highpass" : "lowpass"; f.frequency.value = o.cutoff || 1000;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(o.vol || 0.12, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.dur);
+      src.connect(f).connect(g).connect(master); src.start(t0); src.stop(t0 + o.dur + 0.02);
+    }
+    const play = (fn) => { ensure(); if (!on || !ctx) return; fn(); };
     return {
       isOn: () => on,
       toggle() { on = !on; save.sound = on; persist(); if (on) { ensure(); this.click(); } return on; },
       unlock: ensure,
-      correct() { seq([[660, 0, .12, "triangle", .2], [880, .09, .16, "triangle", .2]]); },
-      wrong() { seq([[220, 0, .18, "sawtooth", .16], [160, .1, .22, "sawtooth", .14]]); },
-      reveal() { seq([[420, 0, .14, "sine", .16], [520, .1, .16, "sine", .14]]); },
-      star() { seq([[720, 0, .1, "triangle", .2], [900, .09, .1, "triangle", .2], [1180, .18, .22, "triangle", .2]]); },
-      level() { seq([[523, 0, .12, "triangle", .2], [659, .12, .12, "triangle", .2], [784, .24, .12, "triangle", .2], [1046, .36, .3, "triangle", .22]]); },
-      click() { seq([[520, 0, .05, "square", .08]]); },
+      // Bonne réponse : petit accord clair qui MONTE avec la série 🔥
+      correct(streak) {
+        play(() => {
+          const semi = Math.min(Math.max((streak || 1) - 1, 0), 10);
+          const base = 523.25 * Math.pow(2, semi / 12);
+          voice({ freq: base, dur: .18, type: "triangle", vol: .22, attack: .005 });
+          voice({ freq: base, dur: .18, type: "sine", vol: .12, detune: 7 });
+          voice({ freq: base * 1.5, start: .085, dur: .24, type: "triangle", vol: .22, attack: .005 });
+          voice({ freq: base * 3, start: .09, dur: .12, type: "sine", vol: .05 });
+        });
+      },
+      // Erreur : « bloup » descendant doux (pas agressif) + petit choc feutré
+      wrong() {
+        play(() => {
+          voice({ freq: 300, glide: 150, dur: .22, type: "sine", vol: .22, cutoff: 900 });
+          voice({ freq: 150, glide: 90, start: .02, dur: .24, type: "triangle", vol: .12, cutoff: 700 });
+          noise({ dur: .09, vol: .05, cutoff: 500 });
+        });
+      },
+      reveal() { play(() => { voice({ freq: 440, glide: 640, dur: .16, type: "sine", vol: .18, attack: .01 }); }); },
+      // Étoile : cascade scintillante ascendante
+      star() { play(() => { [880, 1174.66, 1567.98, 2093].forEach((f, i) => voice({ freq: f, start: i * .06, dur: .2, type: "triangle", vol: .15, attack: .003 })); }); },
+      // Niveau : petite fanfare (arpège majeur + accord tenu)
+      level() {
+        play(() => {
+          [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => voice({ freq: f, start: i * .1, dur: .22, type: "triangle", vol: .2, attack: .006 }));
+          [523.25, 659.25, 783.99, 1046.5].forEach(f => voice({ freq: f, start: .44, dur: .7, type: "triangle", vol: .11, attack: .02 }));
+          voice({ freq: 261.63, start: .44, dur: .7, type: "sine", vol: .12 });
+        });
+      },
+      // Départ de partie : petit whoosh ascendant
+      start() { play(() => { voice({ freq: 320, glide: 660, dur: .2, type: "sine", vol: .13, attack: .02 }); noise({ dur: .18, vol: .04, cutoff: 1400, hp: true }); }); },
+      click() { play(() => { voice({ freq: 680, dur: .05, type: "sine", vol: .09, cutoff: 2200 }); }); },
     };
   })();
 
@@ -505,6 +555,7 @@
     $("#hudStreak").textContent = "0 🔥";
     $("#hudProg").textContent = "0/" + game.total;
     renderHearts();
+    Sound.start();
     nextRound();
   }
 
@@ -630,7 +681,7 @@
     animateNumber($("#hudScore"), game.score);
     $("#hudStreak").textContent = game.streak + " 🔥";
     $("#hudProg").textContent = game.done + "/" + game.total;
-    Sound.correct();
+    Sound.correct(game.streak);
     if (burstPt) FX.burst(burstPt.x, burstPt.y, 22, themeColors(), 7);
     if (game.streak >= 3) comboPop(`+${pts}  🔥 x${game.streak}`);
     else toast(first ? pick(tArr("good")) : t("toast_recovered"), "good");
@@ -874,6 +925,6 @@
 
   // Hook de test/debug (activé uniquement avec ?debug dans l'URL)
   if (location.search.indexOf("debug") >= 0) {
-    window.__gq = { getMap: () => map, getGame: () => game, GEO, startRegion, startContinent, startWorld, openContinent };
+    window.__gq = { getMap: () => map, getGame: () => game, GEO, startRegion, startContinent, startWorld, openContinent, Sound };
   }
 })();
