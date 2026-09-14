@@ -47,7 +47,7 @@
 
   /* ---------- Sauvegarde ---------- */
   const SAVE_KEY = "geoquest.v1";
-  const defaultSave = () => ({ totalXP: 0, best: {}, mastered: [], longestStreak: 0, regionsDone: [], badges: [], sound: true, timer: true });
+  const defaultSave = () => ({ totalXP: 0, best: {}, mastered: [], longestStreak: 0, regionsDone: [], badges: [], sound: true, timer: true, daily: null });
   let save = defaultSave();
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) save = Object.assign(defaultSave(), JSON.parse(raw)); } catch (e) {}
   const masteredSet = new Set(save.mastered);
@@ -104,6 +104,13 @@
   /* ---------- Chrono (optionnel) ---------- */
   const timerOn = () => save.timer !== false;
   function applyTimerClass() { document.body.classList.toggle("timer-off", !timerOn()); }
+
+  /* ---------- Défi du jour ---------- */
+  function dayStr(offset) { const d = new Date(); if (offset) d.setDate(d.getDate() + offset); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  const todayStr = () => dayStr(0);
+  function dailySubToday() { const d = new Date(); const key = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); const keys = Object.keys(REG.subregions); return keys[key % keys.length]; }
+  function dailyStreak() { if (!save.daily) return 0; if (save.daily.date === todayStr() || save.daily.date === dayStr(-1)) return save.daily.streak; return 0; }
+  const dailyDoneToday = () => !!(save.daily && save.daily.date === todayStr());
 
   /* ---------- Effets : confettis ---------- */
   const FX = (() => {
@@ -190,16 +197,32 @@
   /* ---------- Accueil ---------- */
   function renderHome() {
     applyTheme(DEFAULT_THEME);
-    const lv = levelFromXP(save.totalXP);
-    const totalStars = Object.keys(REG.continents).reduce((a, c) => a + continentStars(c), 0);
-    const stats = [
-      ["Niveau", lv.level],
-      ["Pays maîtrisés", masteredSet.size + "/" + TOTAL_COUNTRIES],
-      ["Record de série", save.longestStreak + " 🔥"],
-      ["Régions finies", save.regionsDone.length + "/" + TOTAL_SUBS],
-      ["Étoiles", totalStars + "/" + TOTAL_STARS],
-    ];
-    $("#heroStats").innerHTML = stats.map(s => `<div class="hero-stat"><b>${s[1]}</b><span>${s[0]}</span></div>`).join("");
+
+    // Anneau : % du monde maîtrisé
+    const pct = Math.round((masteredSet.size / TOTAL_COUNTRIES) * 100);
+    const R = 52, C = 2 * Math.PI * R;
+    $("#heroRing").innerHTML = `<div class="ring-wrap">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="ring-track" cx="60" cy="60" r="${R}"></circle>
+        <circle class="ring-fill" cx="60" cy="60" r="${R}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}"></circle>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-pct">${pct}%</div>
+        <div class="ring-lbl">du monde</div>
+        <div class="ring-sub">${masteredSet.size} / ${TOTAL_COUNTRIES} pays</div>
+      </div>
+    </div>`;
+    requestAnimationFrame(() => { const f = $("#heroRing .ring-fill"); if (f) f.style.strokeDashoffset = (C * (1 - pct / 100)).toFixed(1); });
+
+    // Boutons d'action du héros
+    $("#heroCtas").innerHTML = `
+      <button class="btn btn-primary" id="ctaDaily">Défi du jour ▸</button>
+      <button class="btn btn-ghost" id="ctaWorld">🌐 Tour du monde</button>`;
+    $("#ctaDaily").onclick = () => { Sound.click(); startRegion(dailySubToday()); };
+    $("#ctaWorld").onclick = () => { Sound.click(); startWorld(); };
+
+    renderDaily();
+    renderProgress();
 
     $("#continentGrid").innerHTML = REG.order.map(key => {
       const c = REG.continents[key], t = c.theme;
@@ -234,6 +257,58 @@
     renderBadges();
   }
   const starStr = (n) => "★★★".slice(0, n) + "☆☆☆".slice(0, 3 - n);
+
+  // Anime les barres [data-w] de 0 → largeur cible (effet de remplissage)
+  function fillBars(scope) { requestAnimationFrame(() => { $$("[data-w]", scope).forEach(i => { i.style.width = i.dataset.w + "%"; }); }); }
+
+  function renderDaily() {
+    const el = $("#dailyChallenge"); if (!el) return;
+    const sub = dailySubToday(), meta = REG.subregions[sub], cont = REG.continents[meta.region];
+    const done = dailyDoneToday(), streak = dailyStreak();
+    const streakTxt = streak > 0 ? `${streak} jour${streak > 1 ? "s" : ""}` : "nouvelle série";
+    el.innerHTML = `<button class="daily${done ? " done" : ""}" id="dailyBtn" ${done ? "" : `style="background:${cont.theme.accent}"`}>
+      <span class="d-ic">${meta.emoji}</span>
+      <span class="d-tx">
+        <span class="d-eyebrow">🗓️ Défi du jour · ${cont.name}</span>
+        <span class="d-name">${subFR(sub)}</span>
+      </span>
+      <span class="d-streak">🔥 ${streakTxt}</span>
+      <span class="d-go">${done ? "✓ Réussi — rejouer" : "Jouer ▸"}</span>
+    </button>`;
+    $("#dailyBtn").onclick = () => { Sound.click(); startRegion(sub); };
+  }
+
+  function renderProgress() {
+    const el = $("#progressPanel"); if (!el) return;
+    const lv = levelFromXP(save.totalXP);
+    const totalStars = Object.keys(REG.continents).reduce((a, c) => a + continentStars(c), 0);
+    const mByCont = {};
+    for (const id of masteredSet) { const r = GEO.countries[id] && GEO.countries[id].region; if (r) mByCont[r] = (mByCont[r] || 0) + 1; }
+    const rows = REG.order.map(k => {
+      const c = REG.continents[k];
+      const total = c.subOrder.reduce((a, s) => a + (bySub[s] ? bySub[s].length : 0), 0);
+      const done = mByCont[k] || 0, p = total ? Math.round(done / total * 100) : 0;
+      return `<div class="cprog"><span class="cp-ic">${c.emoji}</span><div class="cp-body">
+        <div class="cp-row"><span>${c.name}</span><span>${done}/${total}</span></div>
+        <div class="cp-bar"><i data-w="${p}" style="width:0;background:${c.theme.accent}"></i></div>
+      </div></div>`;
+    }).join("");
+    el.innerHTML = `
+      <div class="pp-top">
+        <div class="pp-badge">${lv.level}</div>
+        <div class="pp-lvl">
+          <div class="pp-lvl-row"><b>Niveau ${lv.level} · ${levelTitle(lv.level)}</b><span>${lv.into} / ${lv.need} XP</span></div>
+          <div class="pp-xp"><i data-w="${clamp(lv.into / lv.need * 100, 3, 100).toFixed(0)}" style="width:0"></i></div>
+        </div>
+        <div class="pp-stats">
+          <div class="pp-stat"><b>${save.longestStreak}</b><span>Record 🔥</span></div>
+          <div class="pp-stat"><b>${totalStars}</b><span>Étoiles</span></div>
+          <div class="pp-stat"><b>${save.regionsDone.length}</b><span>Régions</span></div>
+        </div>
+      </div>
+      <div class="pp-conts">${rows}</div>`;
+    fillBars(el);
+  }
 
   /* ---------- Trophées ---------- */
   const BADGES = [
@@ -556,10 +631,17 @@
       accuracy: Math.max(prev.accuracy || 0, Math.round(acc * 100)),
     };
     if (win && g.kind === "region" && !save.regionsDone.includes(g.sub)) save.regionsDone.push(g.sub);
+
+    // Défi du jour : réussi ?
+    let dailyStreakNow = 0;
+    if (win && g.kind === "region" && g.sub === dailySubToday() && !dailyDoneToday()) {
+      save.daily = { date: todayStr(), streak: (save.daily && save.daily.date === dayStr(-1)) ? save.daily.streak + 1 : 1 };
+      dailyStreakNow = save.daily.streak;
+    }
     persist();
     const newBadges = checkBadges();
 
-    showResult(win, g, stars, { levelUp: newLevel > oldLevel, newLevel, newBadges });
+    showResult(win, g, stars, { levelUp: newLevel > oldLevel, newLevel, newBadges, dailyStreak: dailyStreakNow });
   }
 
   function showResult(win, g, stars, extra) {
@@ -591,9 +673,10 @@
       if (stars === 3) { setTimeout(() => FX.burst(cx - 120, innerHeight * 0.4, 40, cols, 9), 500); setTimeout(() => FX.burst(cx + 120, innerHeight * 0.4, 40, cols, 9), 750); }
     }
 
-    // Montée de niveau / trophées
+    // Montée de niveau / trophées / défi du jour
     setTimeout(() => {
-      if (extra.levelUp) { Sound.level(); toast(`⭐ Niveau ${extra.newLevel} — ${levelTitle(extra.newLevel)} !`, "good"); }
+      if (extra.dailyStreak) { Sound.star(); toast(`🗓️ Défi du jour réussi ! Série : ${extra.dailyStreak} jour${extra.dailyStreak > 1 ? "s" : ""} 🔥`, "good"); }
+      if (extra.levelUp) { setTimeout(() => { Sound.level(); toast(`⭐ Niveau ${extra.newLevel} — ${levelTitle(extra.newLevel)} !`, "good"); }, extra.dailyStreak ? 1400 : 0); }
       if (extra.newBadges && extra.newBadges.length) {
         extra.newBadges.forEach((b, i) => setTimeout(() => { toast(`${b.ic} Trophée : ${b.name} !`, "good"); Sound.star(); }, 900 + i * 1300));
       }

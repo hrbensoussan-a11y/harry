@@ -44,12 +44,20 @@
   <main id="app">
     <!-- ÉCRAN ACCUEIL -->
     <section class="screen active" id="screen-home">
-      <div class="hero">
-        <div class="hero-badge">🌍 193 pays à conquérir</div>
-        <h1 class="hero-title">Deviens le <span class="grad-text">maître du monde</span></h1>
-        <p class="hero-sub">Situe chaque pays sur la carte, continent par continent. Gagne des étoiles, enchaîne les séries, monte de niveau.</p>
-        <div class="hero-stats" id="heroStats"></div>
-      </div>
+      <section class="hero">
+        <div class="hero-left">
+          <div class="hero-badge">🧭 Atlas de poche · 193 pays</div>
+          <h1 class="hero-title">Deviens le <span class="grad-text">maître du monde</span></h1>
+          <p class="hero-sub">Situe chaque pays sur la carte, continent par continent. Gagne des étoiles, enchaîne les séries, monte de niveau.</p>
+          <div class="hero-ctas" id="heroCtas"></div>
+        </div>
+        <div class="hero-ring" id="heroRing"></div>
+      </section>
+
+      <div id="dailyChallenge"></div>
+
+      <h2 class="section-title"><span>Ta progression</span></h2>
+      <div id="progressPanel"></div>
 
       <h2 class="section-title"><span>Choisis ton continent</span></h2>
       <div class="continent-grid" id="continentGrid"></div>
@@ -57,10 +65,8 @@
       <h2 class="section-title"><span>Ou relève le défi</span></h2>
       <div id="worldChallenge"></div>
 
-      <div class="badges-block" id="badgesBlock">
-        <h2 class="section-title"><span>Tes trophées</span></h2>
-        <div class="badge-grid" id="badgeGrid"></div>
-      </div>
+      <h2 class="section-title"><span>Tes trophées</span></h2>
+      <div class="badge-grid" id="badgeGrid"></div>
 
       <footer class="site-foot">
         <span>Fait avec ❤️ pour les explorateur·rice·s.</span>
