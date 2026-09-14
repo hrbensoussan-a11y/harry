@@ -47,7 +47,7 @@
 
   /* ---------- Sauvegarde ---------- */
   const SAVE_KEY = "geoquest.v1";
-  const defaultSave = () => ({ totalXP: 0, best: {}, mastered: [], longestStreak: 0, regionsDone: [], badges: [], sound: true });
+  const defaultSave = () => ({ totalXP: 0, best: {}, mastered: [], longestStreak: 0, regionsDone: [], badges: [], sound: true, timer: true });
   let save = defaultSave();
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) save = Object.assign(defaultSave(), JSON.parse(raw)); } catch (e) {}
   const masteredSet = new Set(save.mastered);
@@ -100,6 +100,10 @@
       click() { seq([[520, 0, .05, "square", .08]]); },
     };
   })();
+
+  /* ---------- Chrono (optionnel) ---------- */
+  const timerOn = () => save.timer !== false;
+  function applyTimerClass() { document.body.classList.toggle("timer-off", !timerOn()); }
 
   /* ---------- Effets : confettis ---------- */
   const FX = (() => {
@@ -179,6 +183,8 @@
     $("#xpFill").style.width = clamp((lv.into / lv.need) * 100, 3, 100) + "%";
     $("#soundBtn").textContent = Sound.isOn() ? "🔊" : "🔇";
     $("#soundBtn").classList.toggle("off", !Sound.isOn());
+    const tb = $("#timerBtn");
+    if (tb) { tb.textContent = timerOn() ? "⏱️" : "⏱"; tb.classList.toggle("off", !timerOn()); tb.title = timerOn() ? "Chrono activé" : "Chrono coupé"; }
   }
 
   /* ---------- Accueil ---------- */
@@ -213,8 +219,21 @@
     }).join("");
     $$(".cont-card").forEach(el => el.addEventListener("click", () => { Sound.click(); openContinent(el.dataset.cont); }));
 
+    // Défi du monde
+    const wc = $("#worldChallenge");
+    if (wc) {
+      const wb = save.best["WORLD"];
+      wc.innerHTML = `<button class="mode-banner mode-world" id="worldBtn">
+        <span class="mb-ic">🌐</span>
+        <span class="mb-tx"><b>Tour du monde</b><span>Les <span class="mb-hl">193 pays</span> du monde en une seule partie. ${wb ? "Record : " + wb.score + " " + starStr(wb.stars) : "Le défi ultime."}</span></span>
+        <span class="mb-go">Jouer ▸</span>
+      </button>`;
+      $("#worldBtn").onclick = () => { Sound.click(); startWorld(); };
+    }
+
     renderBadges();
   }
+  const starStr = (n) => "★★★".slice(0, n) + "☆☆☆".slice(0, 3 - n);
 
   /* ---------- Trophées ---------- */
   const BADGES = [
@@ -249,6 +268,19 @@
       <div class="ch-emoji">${c.emoji}</div>
       <div class="ch-text"><h2>${c.name}</h2><p>${c.tagline}</p></div>
       <div class="ch-prog"><b>⭐ ${continentStars(key)}/${continentMax(key)}</b><span>étoiles gagnées</span></div>`;
+
+    // Défi continent (toutes les régions d'un coup)
+    const cc = $("#continentChallenge");
+    if (cc) {
+      const count = c.subOrder.reduce((a, k) => a + (bySub[k] ? bySub[k].length : 0), 0);
+      const cb = save.best["CONT:" + key];
+      cc.innerHTML = `<button class="mode-banner mode-cont" id="contChalBtn" style="background:${c.theme.accent}">
+        <span class="mb-ic">${c.emoji}</span>
+        <span class="mb-tx"><b>Défi ${c.name}</b><span>Les ${count} pays du continent en une partie. ${cb ? "Record : " + cb.score + " " + starStr(cb.stars) : ""}</span></span>
+        <span class="mb-go">Jouer ▸</span>
+      </button>`;
+      $("#contChalBtn").onclick = () => { Sound.click(); startContinent(key); };
+    }
 
     $("#subregionGrid").innerHTML = c.subOrder.map(k => {
       const list = bySub[k] || [], best = save.best[k];
@@ -290,25 +322,42 @@
     addEventListener("resize", () => { if (map) map.invalidateSize(); });
   }
 
+  // Couleur d'un pays actif : sa couleur de continent en mode monde, sinon celle du continent courant
+  function countryColor(id) {
+    if (game && game.colorByContinent) {
+      const r = GEO.countries[id] && GEO.countries[id].region;
+      return REG.continents[r] ? REG.continents[r].theme.accent : DEFAULT_THEME.accent;
+    }
+    return REG.continents[currentContinent].theme.accent;
+  }
+
   function styleFor(feature) {
     const active = game && game.activeSet.has(feature.id);
-    const t = REG.continents[currentContinent].theme;
-    if (active) return { fillColor: t.accent, fillOpacity: 0.85, color: MAP.ink, weight: 1.3, opacity: 1 };
+    if (active) return { fillColor: countryColor(feature.id), fillOpacity: 0.85, color: MAP.ink, weight: 1.3, opacity: 1 };
     return { fillColor: feature.properties.region ? MAP.land : MAP.landFaint, fillOpacity: 1, color: MAP.landStroke, weight: 0.7, opacity: 1 };
   }
 
-  function startRegion(subKey) {
-    currentSub = subKey;
-    if (!currentContinent) currentContinent = REG.subregions[subKey].region;
-    applyTheme(REG.continents[currentContinent].theme);
+  function livesFor(kind, n) {
+    if (kind === "world") return clamp(Math.ceil(n / 12), 12, 20);
+    if (kind === "continent") return clamp(Math.ceil(n / 5), 6, 14);
+    return clamp(Math.ceil(n / 3), 3, 6);
+  }
+
+  // Point d'entrée générique : une partie = une liste de pays
+  function startSession(opts) {
+    currentSub = opts.sub;
+    currentContinent = opts.continent || currentContinent;
+    applyTheme(opts.kind === "world" ? DEFAULT_THEME : REG.continents[opts.continent || currentContinent].theme);
     showScreen("game");
     ensureMap();
 
-    const active = shuffle(bySub[subKey] || []);
+    const active = shuffle(opts.countries.slice());
     game = {
-      sub: subKey, activeSet: new Set(active), queue: active.slice(), idx: 0,
+      sub: opts.sub, kind: opts.kind, title: opts.title, continent: opts.continent || null,
+      colorByContinent: opts.kind === "world",
+      activeSet: new Set(active), queue: active.slice(), idx: 0,
       total: active.length, done: 0, score: 0, streak: 0,
-      lives: clamp(Math.ceil(active.length / 3), 3, 8),
+      lives: livesFor(opts.kind, active.length),
       firstTryCorrect: 0, roundMisses: 0, roundActive: false, roundStart: 0, target: null,
       maxLives: 0, streakMax: 0,
     };
@@ -324,25 +373,21 @@
     }).addTo(map);
 
     // Points lumineux pour les tout petits pays (îles, micro-États) : visibles et faciles à viser
-    const th = REG.continents[currentContinent].theme;
     for (const id of active) {
       const c = GEO.countries[id];
       if (c.area < SMALL_AREA) {
-        const dot = L.circleMarker([c.lat, c.lng], { radius: 6, color: MAP.ink, weight: 2, fillColor: th.accent, fillOpacity: 1, interactive: false, className: "dot-pulse" }).addTo(map);
+        const dot = L.circleMarker([c.lat, c.lng], { radius: 6, color: MAP.ink, weight: 2, fillColor: countryColor(id), fillOpacity: 1, interactive: false, className: "dot-pulse" }).addTo(map);
         dotByCca3[id] = dot; dots.push(dot);
       }
     }
 
-    // Cadrage sur la région (centroïdes + marge — évite les soucis d'antiméridien)
+    // Cadrage sur la zone (centroïdes + marge — évite les soucis d'antiméridien)
     const lats = active.map(id => GEO.countries[id].lat), lngs = active.map(id => GEO.countries[id].lng);
     const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
     const pLat = Math.max(3, (maxLat - minLat) * 0.4), pLng = Math.max(3, (maxLng - minLng) * 0.4);
     const bounds = [[minLat - pLat, minLng - pLng], [maxLat + pLat, maxLng + pLng]];
-    map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false }); // cadrage immédiat
-    setTimeout(() => { // recadrage après affichage (taille du conteneur correcte)
-      map.invalidateSize();
-      map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false });
-    }, 60);
+    map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false });
+    setTimeout(() => { map.invalidateSize(); map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false }); }, 60);
 
     // HUD
     $("#hudScore").textContent = "0";
@@ -352,10 +397,32 @@
     nextRound();
   }
 
+  function startRegion(subKey) {
+    startSession({ countries: bySub[subKey] || [], kind: "region", continent: REG.subregions[subKey].region, sub: subKey, title: subFR(subKey) });
+  }
+  function startContinent(contKey) {
+    const list = [];
+    for (const sk of REG.continents[contKey].subOrder) if (bySub[sk]) list.push.apply(list, bySub[sk]);
+    startSession({ countries: list, kind: "continent", continent: contKey, sub: "CONT:" + contKey, title: "Défi " + REG.continents[contKey].name });
+  }
+  function startWorld() {
+    startSession({ countries: Object.keys(GEO.countries), kind: "world", continent: null, sub: "WORLD", title: "Tour du monde" });
+  }
+  function replaySession(g) {
+    if (g.kind === "world") startWorld();
+    else if (g.kind === "continent") startContinent(g.continent || currentContinent);
+    else startRegion(g.sub);
+  }
+
   function renderHearts() {
+    const el = $("#hudHearts");
+    if (game.maxLives > 7) { // trop de vies pour des cœurs : affichage compact
+      el.innerHTML = `<span class="heart-compact">❤️ <b>${game.lives}</b><i>/${game.maxLives}</i></span>`;
+      return;
+    }
     let h = "";
     for (let i = 0; i < game.maxLives; i++) h += `<span class="heart ${i < game.lives ? "" : "lost"}">❤️</span>`;
-    $("#hudHearts").innerHTML = h;
+    el.innerHTML = h;
   }
 
   function nextRound() {
@@ -367,10 +434,10 @@
     const nameEl = $("#promptName"); nameEl.textContent = c.name;
     nameEl.classList.remove("pop"); void nameEl.offsetWidth; nameEl.classList.add("pop");
     $("#promptHint").textContent = "";
-    // Barre de temps
+    // Barre de temps (seulement si le chrono est activé)
     const tf = $("#timerFill");
     tf.style.transition = "none"; tf.style.transform = "scaleX(1)"; void tf.offsetWidth;
-    tf.style.transition = `transform ${ROUND_TIME}ms linear`; tf.style.transform = "scaleX(0)";
+    if (timerOn()) { tf.style.transition = `transform ${ROUND_TIME}ms linear`; tf.style.transform = "scaleX(0)"; }
     $("#hudProg").textContent = game.done + "/" + game.total;
   }
 
@@ -410,7 +477,7 @@
     game.roundActive = false;
     const first = game.roundMisses === 0;
     const elapsed = performance.now() - game.roundStart;
-    const speed = Math.round(50 * clamp(1 - elapsed / ROUND_TIME, 0, 1));
+    const speed = timerOn() ? Math.round(50 * clamp(1 - elapsed / ROUND_TIME, 0, 1)) : 0;
     const streakBonus = Math.min(game.streak * 10, 120);
     const base = first ? 100 : 40;
     const pts = first ? base + streakBonus + speed : base;
@@ -486,7 +553,7 @@
       score: Math.max(prev.score, g.score),
       accuracy: Math.max(prev.accuracy || 0, Math.round(acc * 100)),
     };
-    if (win && !save.regionsDone.includes(g.sub)) save.regionsDone.push(g.sub);
+    if (win && g.kind === "region" && !save.regionsDone.includes(g.sub)) save.regionsDone.push(g.sub);
     persist();
     const newBadges = checkBadges();
 
@@ -496,10 +563,11 @@
   function showResult(win, g, stars, extra) {
     showScreen("result");
     const acc = Math.round((g.total ? g.firstTryCorrect / g.total : 0) * 100);
+    const doneWord = g.kind === "region" ? "Région terminée !" : (g.kind === "continent" ? "Continent conquis !" : "Monde conquis !");
     $("#resultEmoji").textContent = win ? (stars === 3 ? "🏆" : "🎉") : "💪";
-    $("#resultTitle").textContent = win ? (stars === 3 ? "Sans-faute légendaire !" : "Région terminée !") : "Presque !";
+    $("#resultTitle").textContent = win ? (stars === 3 ? "Sans-faute légendaire !" : doneWord) : "Presque !";
     $("#resultSub").textContent = win
-      ? `${subFR(g.sub)} · ${g.firstTryCorrect}/${g.total} du premier coup`
+      ? `${g.title} · ${g.firstTryCorrect}/${g.total} du premier coup`
       : `Tu as trouvé ${g.done}/${g.total} pays. Réessaie, tu vas y arriver !`;
 
     // Étoiles animées
@@ -529,14 +597,25 @@
       }
     }, 1100);
 
-    // Bouton suivant : région suivante du continent, sinon retour continent
-    const order = REG.continents[currentContinent].subOrder;
-    const pos = order.indexOf(g.sub);
-    const nextSub = pos >= 0 && pos < order.length - 1 ? order[pos + 1] : null;
-    const nextBtn = $("#nextBtn");
-    if (nextSub) { nextBtn.textContent = subFR(nextSub) + " →"; nextBtn.onclick = () => { Sound.click(); startRegion(nextSub); }; }
-    else { nextBtn.textContent = "Continent ✓"; nextBtn.onclick = () => { Sound.click(); openContinent(currentContinent); }; }
-    $("#replayBtn").onclick = () => { Sound.click(); startRegion(g.sub); };
+    // Boutons selon le mode
+    const backBtn = $("#resultBackBtn"), nextBtn = $("#nextBtn");
+    nextBtn.hidden = false;
+    const goHome = () => { Sound.click(); renderHome(); showScreen("home"); };
+    if (g.kind === "region") {
+      backBtn.textContent = "Régions"; backBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); };
+      const order = REG.continents[g.continent || currentContinent].subOrder;
+      const pos = order.indexOf(g.sub);
+      const nextSub = pos >= 0 && pos < order.length - 1 ? order[pos + 1] : null;
+      if (nextSub) { nextBtn.textContent = subFR(nextSub) + " →"; nextBtn.onclick = () => { Sound.click(); startRegion(nextSub); }; }
+      else { nextBtn.textContent = "Continent ✓"; nextBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); }; }
+    } else if (g.kind === "continent") {
+      backBtn.textContent = "Accueil"; backBtn.onclick = goHome;
+      nextBtn.textContent = "Régions →"; nextBtn.onclick = () => { Sound.click(); openContinent(g.continent || currentContinent); };
+    } else { // world
+      backBtn.textContent = "Accueil"; backBtn.onclick = goHome;
+      nextBtn.hidden = true;
+    }
+    $("#replayBtn").onclick = () => { Sound.click(); replaySession(g); };
 
     renderProfile();
   }
@@ -564,6 +643,7 @@
   document.addEventListener("click", () => Sound.unlock(), { once: true });
   $("#brand").addEventListener("click", () => { Sound.click(); renderHome(); showScreen("home"); });
   $("#soundBtn").addEventListener("click", () => { Sound.toggle(); renderProfile(); });
+  { const tb = $("#timerBtn"); if (tb) tb.addEventListener("click", () => { save.timer = !timerOn(); persist(); applyTimerClass(); renderProfile(); Sound.click(); toast(timerOn() ? "⏱️ Chrono activé" : "⏱️ Chrono coupé", ""); }); }
   $("#skipBtn").addEventListener("click", () => { Sound.click(); onSkip(); });
   $$("[data-nav]").forEach(el => el.addEventListener("click", () => {
     Sound.click();
@@ -573,11 +653,12 @@
   }));
 
   /* ---------- Démarrage ---------- */
+  applyTimerClass();
   renderProfile();
   renderHome();
 
   // Hook de test/debug (activé uniquement avec ?debug dans l'URL)
   if (location.search.indexOf("debug") >= 0) {
-    window.__gq = { getMap: () => map, getGame: () => game, GEO, startRegion, openContinent };
+    window.__gq = { getMap: () => map, getGame: () => game, GEO, startRegion, startContinent, startWorld, openContinent };
   }
 })();

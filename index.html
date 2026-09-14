@@ -36,6 +36,7 @@
           <div class="xp-bar"><i id="xpFill"></i></div>
         </div>
       </div>
+      <button class="icon-btn" id="timerBtn" title="Chrono" aria-label="Activer/couper le chrono">⏱️</button>
       <button class="icon-btn" id="soundBtn" title="Son" aria-label="Activer/couper le son">🔊</button>
     </div>
   </header>
@@ -53,6 +54,9 @@
       <h2 class="section-title"><span>Choisis ton continent</span></h2>
       <div class="continent-grid" id="continentGrid"></div>
 
+      <h2 class="section-title"><span>Ou relève le défi</span></h2>
+      <div id="worldChallenge"></div>
+
       <div class="badges-block" id="badgesBlock">
         <h2 class="section-title"><span>Tes trophées</span></h2>
         <div class="badge-grid" id="badgeGrid"></div>
@@ -68,6 +72,8 @@
     <section class="screen" id="screen-continent">
       <button class="back-btn" data-nav="home">← Accueil</button>
       <div class="continent-head" id="continentHead"></div>
+      <div id="continentChallenge"></div>
+      <h2 class="section-title"><span>Régions</span></h2>
       <div class="subregion-grid" id="subregionGrid"></div>
     </section>
 
@@ -111,7 +117,7 @@
         <div class="stars" id="resultStars"><i>★</i><i>★</i><i>★</i></div>
         <div class="result-stats" id="resultStats"></div>
         <div class="result-actions">
-          <button class="btn btn-ghost" data-nav="continent">Régions</button>
+          <button class="btn btn-ghost" id="resultBackBtn">Régions</button>
           <button class="btn btn-ghost" id="replayBtn">↻ Rejouer</button>
           <button class="btn btn-primary" id="nextBtn">Suivant →</button>
         </div>
