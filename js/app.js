@@ -384,7 +384,9 @@
     // Cadrage sur la zone (centroïdes + marge — évite les soucis d'antiméridien)
     const lats = active.map(id => GEO.countries[id].lat), lngs = active.map(id => GEO.countries[id].lng);
     const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-    const pLat = Math.max(3, (maxLat - minLat) * 0.4), pLng = Math.max(3, (maxLng - minLng) * 0.4);
+    const big = game.kind === "world" || game.kind === "continent"; // cadrage plus serré pour les grandes cartes
+    const sc = big ? 0.12 : 0.4, capLat = big ? 8 : 999, capLng = big ? 10 : 999;
+    const pLat = clamp((maxLat - minLat) * sc, 3, capLat), pLng = clamp((maxLng - minLng) * sc, 3, capLng);
     const bounds = [[minLat - pLat, minLng - pLng], [maxLat + pLat, maxLng + pLng]];
     map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false });
     setTimeout(() => { map.invalidateSize(); map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false }); }, 60);

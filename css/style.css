@@ -249,6 +249,7 @@ main { max-width: 1180px; margin: 0 auto; padding: clamp(16px, 3vw, 32px); }
 
 .map {
   flex: 1; min-height: 300px; border-radius: var(--radius); overflow: hidden;
+  isolation: isolate; /* garde les couches Leaflet sous les toasts/confettis */
   border: var(--border); box-shadow: var(--shadow-lg);
   background-color: var(--ocean-map);
   background-image:
