@@ -47,7 +47,7 @@
 
   /* ---------- Sauvegarde ---------- */
   const SAVE_KEY = "geoquest.v1";
-  const defaultSave = () => ({ totalXP: 0, best: {}, mastered: [], longestStreak: 0, regionsDone: [], badges: [], sound: true, timer: true, daily: null });
+  const defaultSave = () => ({ totalXP: 0, best: {}, mastered: [], longestStreak: 0, regionsDone: [], badges: [], sound: true, timer: true, mode: "locate" });
   let save = defaultSave();
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) save = Object.assign(defaultSave(), JSON.parse(raw)); } catch (e) {}
   const masteredSet = new Set(save.mastered);
@@ -105,12 +105,27 @@
   const timerOn = () => save.timer !== false;
   function applyTimerClass() { document.body.classList.toggle("timer-off", !timerOn()); }
 
-  /* ---------- Défi du jour ---------- */
-  function dayStr(offset) { const d = new Date(); if (offset) d.setDate(d.getDate() + offset); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
-  const todayStr = () => dayStr(0);
-  function dailySubToday() { const d = new Date(); const key = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); const keys = Object.keys(REG.subregions); return keys[key % keys.length]; }
-  function dailyStreak() { if (!save.daily) return 0; if (save.daily.date === todayStr() || save.daily.date === dayStr(-1)) return save.daily.streak; return 0; }
-  const dailyDoneToday = () => !!(save.daily && save.daily.date === todayStr());
+  /* ---------- Modes de jeu ---------- */
+  const MODES = {
+    locate: { label: "Localiser", ic: "🗺️", verb: "Trouve" },
+    flags: { label: "Drapeaux", ic: "🚩", verb: "Trouve le drapeau de" },
+    capitals: { label: "Capitales", ic: "🏛️", verb: "Trouve la capitale de" },
+  };
+  const MODE_ORDER = ["locate", "flags", "capitals"];
+  const curMode = () => (MODES[save.mode] ? save.mode : "locate");
+  // Clé de record : mode locate garde la clé simple (rétro-compatible), les autres sont préfixés.
+  const bestKey = (mode, sub) => (mode === "locate" ? "" : mode + ":") + sub;
+  function renderModeBar(el) {
+    if (!el) return;
+    el.className = "mode-bar";
+    el.innerHTML = MODE_ORDER.map(m => `<button class="mode-pill${curMode() === m ? " on" : ""}" data-mode="${m}"><span class="mp-ic">${MODES[m].ic}</span> ${MODES[m].label}</button>`).join("");
+    $$(".mode-pill", el).forEach(b => b.addEventListener("click", () => {
+      if (curMode() === b.dataset.mode) return;
+      save.mode = b.dataset.mode; persist(); Sound.click();
+      if ($("#screen-continent").classList.contains("active")) openContinent(currentContinent || REG.order[0]);
+      else { renderHome(); }
+    }));
+  }
 
   /* ---------- Effets : confettis ---------- */
   const FX = (() => {
@@ -163,13 +178,18 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  /* ---------- Helpers meta ---------- */
+  /* ---------- Helpers meta (dépendants du mode sélectionné) ---------- */
   const subFR = (k) => REG.subregions[k] ? REG.subregions[k].name : k;
-  function starsForSub(k) { const b = save.best[k]; return b ? b.stars : 0; }
+  function subBest(k) { return save.best[bestKey(curMode(), k)]; }
+  function starsForSub(k) { const b = subBest(k); return b ? b.stars : 0; }
   function continentStars(contKey) {
     let s = 0; for (const k of REG.continents[contKey].subOrder) s += starsForSub(k); return s;
   }
   function continentMax(contKey) { return REG.continents[contKey].subOrder.length * 3; }
+  function regionsDoneCount() {
+    const m = curMode();
+    return save.regionsDone.filter(k => (k.indexOf(":") < 0 ? "locate" : k.split(":")[0]) === m).length;
+  }
   function animateNumber(el, to, dur) {
     const from = parseInt((el.textContent || "0").replace(/\D/g, ""), 10) || 0;
     const suffix = /🔥/.test(el.textContent) ? " 🔥" : "";
@@ -214,14 +234,14 @@
     </div>`;
     requestAnimationFrame(() => { const f = $("#heroRing .ring-fill"); if (f) f.style.strokeDashoffset = (C * (1 - pct / 100)).toFixed(1); });
 
-    // Boutons d'action du héros
+    // Boutons d'action du héros : choix du mode + tour du monde
     $("#heroCtas").innerHTML = `
-      <button class="btn btn-primary" id="ctaDaily">Défi du jour ▸</button>
-      <button class="btn btn-ghost" id="ctaWorld">🌐 Tour du monde</button>`;
-    $("#ctaDaily").onclick = () => { Sound.click(); startRegion(dailySubToday()); };
+      <div class="cta-lbl">Mode de jeu</div>
+      <div id="modeBar"></div>
+      <button class="btn btn-primary" id="ctaWorld">🌐 Tour du monde</button>`;
+    renderModeBar($("#modeBar"));
     $("#ctaWorld").onclick = () => { Sound.click(); startWorld(); };
 
-    renderDaily();
     renderProgress();
 
     $("#continentGrid").innerHTML = REG.order.map(key => {
@@ -261,23 +281,6 @@
   // Anime les barres [data-w] de 0 → largeur cible (effet de remplissage)
   function fillBars(scope) { requestAnimationFrame(() => { $$("[data-w]", scope).forEach(i => { i.style.width = i.dataset.w + "%"; }); }); }
 
-  function renderDaily() {
-    const el = $("#dailyChallenge"); if (!el) return;
-    const sub = dailySubToday(), meta = REG.subregions[sub], cont = REG.continents[meta.region];
-    const done = dailyDoneToday(), streak = dailyStreak();
-    const streakTxt = streak > 0 ? `${streak} jour${streak > 1 ? "s" : ""}` : "nouvelle série";
-    el.innerHTML = `<button class="daily${done ? " done" : ""}" id="dailyBtn" ${done ? "" : `style="background:${cont.theme.accent}"`}>
-      <span class="d-ic">${meta.emoji}</span>
-      <span class="d-tx">
-        <span class="d-eyebrow">🗓️ Défi du jour · ${cont.name}</span>
-        <span class="d-name">${subFR(sub)}</span>
-      </span>
-      <span class="d-streak">🔥 ${streakTxt}</span>
-      <span class="d-go">${done ? "✓ Réussi — rejouer" : "Jouer ▸"}</span>
-    </button>`;
-    $("#dailyBtn").onclick = () => { Sound.click(); startRegion(sub); };
-  }
-
   function renderProgress() {
     const el = $("#progressPanel"); if (!el) return;
     const lv = levelFromXP(save.totalXP);
@@ -302,8 +305,8 @@
         </div>
         <div class="pp-stats">
           <div class="pp-stat"><b>${save.longestStreak}</b><span>Record 🔥</span></div>
-          <div class="pp-stat"><b>${totalStars}</b><span>Étoiles</span></div>
-          <div class="pp-stat"><b>${save.regionsDone.length}</b><span>Régions</span></div>
+          <div class="pp-stat"><b>${totalStars}</b><span>${MODES[curMode()].ic} Étoiles</span></div>
+          <div class="pp-stat"><b>${regionsDoneCount()}</b><span>Régions</span></div>
         </div>
       </div>
       <div class="pp-conts">${rows}</div>`;
@@ -344,23 +347,25 @@
       <div class="ch-text"><h2>${c.name}</h2><p>${c.tagline}</p></div>
       <div class="ch-prog"><b>⭐ ${continentStars(key)}/${continentMax(key)}</b><span>étoiles gagnées</span></div>`;
 
-    // Défi continent (toutes les régions d'un coup)
+    renderModeBar($("#modeBarC"));
+
+    // Défi continent (toutes les régions d'un coup, dans le mode sélectionné)
     const cc = $("#continentChallenge");
     if (cc) {
       const count = c.subOrder.reduce((a, k) => a + (bySub[k] ? bySub[k].length : 0), 0);
-      const cb = save.best["CONT:" + key];
+      const cb = save.best[bestKey(curMode(), "CONT:" + key)];
       cc.innerHTML = `<button class="mode-banner mode-cont" id="contChalBtn" style="background:${c.theme.accent}">
         <span class="mb-ic">${c.emoji}</span>
-        <span class="mb-tx"><b>Défi ${c.name}</b><span>Les ${count} pays du continent en une partie. ${cb ? "Record : " + cb.score + " " + starStr(cb.stars) : ""}</span></span>
+        <span class="mb-tx"><b>Défi ${c.name}</b><span>Les ${count} pays du continent en une partie · ${MODES[curMode()].label}. ${cb ? "Record : " + cb.score + " " + starStr(cb.stars) : ""}</span></span>
         <span class="mb-go">Jouer ▸</span>
       </button>`;
       $("#contChalBtn").onclick = () => { Sound.click(); startContinent(key); };
     }
 
     $("#subregionGrid").innerHTML = c.subOrder.map(k => {
-      const list = bySub[k] || [], best = save.best[k];
+      const list = bySub[k] || [], best = subBest(k);
       const stars = best ? best.stars : 0;
-      const done = save.regionsDone.includes(k);
+      const done = !!best;
       const starHtml = [1, 2, 3].map(n => `<i class="${n <= stars ? "on" : ""}">★</i>`).join("");
       return `<button class="sub-card" data-sub="${k}">
         ${done ? '<div class="ribbon">FINI</div>' : ""}
@@ -418,17 +423,20 @@
     return clamp(Math.ceil(n / 3), 3, 6);
   }
 
-  // Point d'entrée générique : une partie = une liste de pays
+  // Point d'entrée générique : une partie = une liste de pays, dans un mode
   function startSession(opts) {
     currentSub = opts.sub;
     currentContinent = opts.continent || currentContinent;
+    const mode = MODES[opts.mode] ? opts.mode : "locate";
     applyTheme(opts.kind === "world" ? DEFAULT_THEME : REG.continents[opts.continent || currentContinent].theme);
     showScreen("game");
-    ensureMap();
+    const isMap = mode === "locate";
 
-    const active = shuffle(opts.countries.slice());
+    let list = opts.countries.slice();
+    if (mode === "capitals") list = list.filter(id => GEO.countries[id] && GEO.countries[id].capital);
+    const active = shuffle(list);
     game = {
-      sub: opts.sub, kind: opts.kind, title: opts.title, continent: opts.continent || null,
+      sub: opts.sub, kind: opts.kind, mode: mode, title: opts.title, continent: opts.continent || null,
       colorByContinent: opts.kind === "world",
       activeSet: new Set(active), queue: active.slice(), idx: 0,
       total: active.length, done: 0, score: 0, streak: 0,
@@ -438,33 +446,35 @@
     };
     game.maxLives = game.lives;
 
-    // (Re)construction de la couche carte
-    if (worldLayer) { map.removeLayer(worldLayer); worldLayer = null; }
-    dots.forEach(d => map.removeLayer(d)); dots = []; dotByCca3 = {};
-    layerByCca3 = {};
-    worldLayer = L.geoJSON(GEO.world, {
-      style: styleFor,
-      onEachFeature: (f, layer) => { if (f.id) layerByCca3[f.id] = layer; },
-    }).addTo(map);
+    // Bascule carte / quiz
+    $("#map").hidden = !isMap;
+    $("#quiz").hidden = isMap;
 
-    // Points lumineux pour les tout petits pays (îles, micro-États) : visibles et faciles à viser
-    for (const id of active) {
-      const c = GEO.countries[id];
-      if (c.area < SMALL_AREA) {
-        const dot = L.circleMarker([c.lat, c.lng], { radius: 6, color: MAP.ink, weight: 2, fillColor: countryColor(id), fillOpacity: 1, interactive: false, className: "dot-pulse" }).addTo(map);
-        dotByCca3[id] = dot; dots.push(dot);
+    if (isMap) {
+      ensureMap();
+      if (worldLayer) { map.removeLayer(worldLayer); worldLayer = null; }
+      dots.forEach(d => map.removeLayer(d)); dots = []; dotByCca3 = {};
+      layerByCca3 = {};
+      worldLayer = L.geoJSON(GEO.world, {
+        style: styleFor,
+        onEachFeature: (f, layer) => { if (f.id) layerByCca3[f.id] = layer; },
+      }).addTo(map);
+      for (const id of active) {
+        const c = GEO.countries[id];
+        if (c.area < SMALL_AREA) {
+          const dot = L.circleMarker([c.lat, c.lng], { radius: 6, color: MAP.ink, weight: 2, fillColor: countryColor(id), fillOpacity: 1, interactive: false, className: "dot-pulse" }).addTo(map);
+          dotByCca3[id] = dot; dots.push(dot);
+        }
       }
+      const lats = active.map(id => GEO.countries[id].lat), lngs = active.map(id => GEO.countries[id].lng);
+      const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+      const big = game.kind === "world" || game.kind === "continent";
+      const sc = big ? 0.12 : 0.4, capLat = big ? 8 : 999, capLng = big ? 10 : 999;
+      const pLat = clamp((maxLat - minLat) * sc, 3, capLat), pLng = clamp((maxLng - minLng) * sc, 3, capLng);
+      const bounds = [[minLat - pLat, minLng - pLng], [maxLat + pLat, maxLng + pLng]];
+      map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false });
+      setTimeout(() => { map.invalidateSize(); map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false }); }, 60);
     }
-
-    // Cadrage sur la zone (centroïdes + marge — évite les soucis d'antiméridien)
-    const lats = active.map(id => GEO.countries[id].lat), lngs = active.map(id => GEO.countries[id].lng);
-    const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-    const big = game.kind === "world" || game.kind === "continent"; // cadrage plus serré pour les grandes cartes
-    const sc = big ? 0.12 : 0.4, capLat = big ? 8 : 999, capLng = big ? 10 : 999;
-    const pLat = clamp((maxLat - minLat) * sc, 3, capLat), pLng = clamp((maxLng - minLng) * sc, 3, capLng);
-    const bounds = [[minLat - pLat, minLng - pLng], [maxLat + pLat, maxLng + pLng]];
-    map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false });
-    setTimeout(() => { map.invalidateSize(); map.fitBounds(bounds, { padding: [20, 20], maxZoom: 6, animate: false }); }, 60);
 
     // HUD
     $("#hudScore").textContent = "0";
@@ -474,21 +484,21 @@
     nextRound();
   }
 
-  function startRegion(subKey) {
-    startSession({ countries: bySub[subKey] || [], kind: "region", continent: REG.subregions[subKey].region, sub: subKey, title: subFR(subKey) });
+  function startRegion(subKey, mode) {
+    startSession({ countries: bySub[subKey] || [], kind: "region", continent: REG.subregions[subKey].region, sub: subKey, title: subFR(subKey), mode: mode || curMode() });
   }
-  function startContinent(contKey) {
+  function startContinent(contKey, mode) {
     const list = [];
     for (const sk of REG.continents[contKey].subOrder) if (bySub[sk]) list.push.apply(list, bySub[sk]);
-    startSession({ countries: list, kind: "continent", continent: contKey, sub: "CONT:" + contKey, title: "Défi " + REG.continents[contKey].name });
+    startSession({ countries: list, kind: "continent", continent: contKey, sub: "CONT:" + contKey, title: "Défi " + REG.continents[contKey].name, mode: mode || curMode() });
   }
-  function startWorld() {
-    startSession({ countries: Object.keys(GEO.countries), kind: "world", continent: null, sub: "WORLD", title: "Tour du monde" });
+  function startWorld(mode) {
+    startSession({ countries: Object.keys(GEO.countries), kind: "world", continent: null, sub: "WORLD", title: "Tour du monde", mode: mode || curMode() });
   }
   function replaySession(g) {
-    if (g.kind === "world") startWorld();
-    else if (g.kind === "continent") startContinent(g.continent || currentContinent);
-    else startRegion(g.sub);
+    if (g.kind === "world") startWorld(g.mode);
+    else if (g.kind === "continent") startContinent(g.continent || currentContinent, g.mode);
+    else startRegion(g.sub, g.mode);
   }
 
   function renderHearts() {
@@ -507,6 +517,9 @@
     game.target = game.queue[game.idx];
     game.roundMisses = 0; game.roundActive = true; game.roundStart = performance.now();
     const c = GEO.countries[game.target];
+    // Libellé + drapeau selon le mode (en mode Drapeaux, on cache le drapeau : c'est la réponse !)
+    $("#promptLabel").textContent = MODES[game.mode].verb;
+    $("#promptFlag").hidden = (game.mode === "flags");
     $("#promptFlag").textContent = c.flag || "🏳️";
     const nameEl = $("#promptName"); nameEl.textContent = c.name;
     nameEl.classList.remove("pop"); void nameEl.offsetWidth; nameEl.classList.add("pop");
@@ -516,6 +529,33 @@
     tf.style.transition = "none"; tf.style.transform = "scaleX(1)"; void tf.offsetWidth;
     if (timerOn()) { tf.style.transition = `transform ${ROUND_TIME}ms linear`; tf.style.transform = "scaleX(0)"; }
     $("#hudProg").textContent = game.done + "/" + game.total;
+    if (game.mode !== "locate") renderQuizRound();
+  }
+
+  // Construit 4 options (bonne réponse + 3 leurres) pour les modes drapeaux/capitales
+  function quizOptions() {
+    const pool = Array.from(game.activeSet).filter(id => id !== game.target);
+    let distract = shuffle(pool);
+    if (game.mode === "capitals") distract = distract.filter(id => GEO.countries[id].capital);
+    // complète avec d'autres pays si la région est trop petite
+    if (distract.length < 3) {
+      const extra = shuffle(Object.keys(GEO.countries)).filter(id => id !== game.target && !game.activeSet.has(id) && (game.mode !== "capitals" || GEO.countries[id].capital));
+      distract = distract.concat(extra);
+    }
+    return shuffle([game.target].concat(distract.slice(0, 3)));
+  }
+
+  function renderQuizRound() {
+    const opts = quizOptions();
+    const html = opts.map(id => {
+      const c = GEO.countries[id];
+      const inner = game.mode === "flags"
+        ? `<span class="q-flag">${c.flag || "🏳️"}</span>`
+        : `<span class="q-cap">${c.capital}</span>`;
+      return `<button class="quiz-opt ${game.mode === "flags" ? "is-flag" : "is-cap"}" data-id="${id}">${inner}</button>`;
+    }).join("");
+    $("#quiz").innerHTML = `<div class="quiz-grid ${game.mode === "flags" ? "grid-flag" : "grid-cap"}">${html}</div>`;
+    $$("#quiz .quiz-opt").forEach(b => b.addEventListener("click", () => onQuizPick(b.dataset.id, b)));
   }
 
   function centroidPx(id) { return map.latLngToContainerPoint([GEO.countries[id].lat, GEO.countries[id].lng]); }
@@ -550,14 +590,12 @@
     if (dotByCca3[id]) dotByCca3[id].setStyle({ fillColor: col, fillOpacity: 1 });
   }
 
-  function onCorrect(pt) {
-    game.roundActive = false;
-    const first = game.roundMisses === 0;
+  // Scoring commun (localiser + quiz)
+  function awardCorrect(first, burstPt) {
     const elapsed = performance.now() - game.roundStart;
     const speed = timerOn() ? Math.round(50 * clamp(1 - elapsed / ROUND_TIME, 0, 1)) : 0;
     const streakBonus = Math.min(game.streak * 10, 120);
-    const base = first ? 100 : 40;
-    const pts = first ? base + streakBonus + speed : base;
+    const pts = first ? 100 + streakBonus + speed : 40;
     game.score += pts;
     game.streak += 1;
     if (game.streak > game.streakMax) game.streakMax = game.streak;
@@ -565,19 +603,51 @@
     if (first) game.firstTryCorrect += 1;
     game.done += 1;
     masteredSet.add(game.target);
-
-    markFound(game.target, "found");
     animateNumber($("#hudScore"), game.score);
     $("#hudStreak").textContent = game.streak + " 🔥";
     $("#hudProg").textContent = game.done + "/" + game.total;
-
     Sound.correct();
-    FX.burst(pt.x + $("#map").getBoundingClientRect().left, pt.y + $("#map").getBoundingClientRect().top, 22, themeColors(), 7);
+    if (burstPt) FX.burst(burstPt.x, burstPt.y, 22, themeColors(), 7);
     if (game.streak >= 3) comboPop(`+${pts}  🔥 x${game.streak}`);
     else toast(first ? pick(["Bravo !", "Parfait !", "Nickel !", "Trouvé !"]) : "Bien rattrapé !", "good");
-
     persist();
+  }
+
+  function onCorrect(pt) {
+    game.roundActive = false;
+    const first = game.roundMisses === 0;
+    markFound(game.target, "found");
+    const rect = $("#map").getBoundingClientRect();
+    awardCorrect(first, { x: pt.x + rect.left, y: pt.y + rect.top });
     setTimeout(() => { game.idx += 1; nextRound(); }, 650);
+  }
+
+  // Choix dans un quiz (drapeaux / capitales) — une seule tentative, puis on avance
+  function onQuizPick(pickedId, btn) {
+    if (!game || !game.roundActive) return;
+    game.roundActive = false;
+    const opts = $$("#quiz .quiz-opt");
+    const correctBtn = opts.find(b => b.dataset.id === game.target);
+    if (pickedId === game.target) {
+      btn.classList.add("correct");
+      const r = btn.getBoundingClientRect();
+      awardCorrect(true, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    } else {
+      game.lives -= 1; game.streak = 0; renderHearts();
+      $("#hudStreak").textContent = "0 🔥";
+      btn.classList.add("wrong");
+      if (correctBtn) correctBtn.classList.add("correct");
+      Sound.wrong();
+      const nm = GEO.countries[game.target].name;
+      toast(`Non — ${game.mode === "flags" ? "le drapeau" : "la capitale"} de ${nm}`, "bad");
+      shake($("#promptBar"));
+      game.done += 1;
+      $("#hudProg").textContent = game.done + "/" + game.total;
+      persist();
+    }
+    opts.forEach(b => (b.disabled = true));
+    if (game.lives <= 0) { setTimeout(() => endRegion(false), 900); return; }
+    setTimeout(() => { game.idx += 1; nextRound(); }, game.roundMisses === 0 && pickedId === game.target ? 650 : 1050);
   }
 
   function onWrong(clickedId) {
@@ -603,13 +673,22 @@
     if (!game || !game.roundActive) return;
     game.roundActive = false; game.streak = 0;
     $("#hudStreak").textContent = "0 🔥";
-    markFound(game.target, "reveal");
+    if (game.mode === "locate") {
+      markFound(game.target, "reveal");
+      toast(`C'était ${GEO.countries[game.target].name}`, "");
+    } else {
+      const opts = $$("#quiz .quiz-opt");
+      const correctBtn = opts.find(b => b.dataset.id === game.target);
+      if (correctBtn) correctBtn.classList.add("reveal");
+      opts.forEach(b => (b.disabled = true));
+      const c = GEO.countries[game.target];
+      toast(game.mode === "flags" ? `Le drapeau de ${c.name} : ${c.flag}` : `${c.name} → ${c.capital}`, "");
+    }
     Sound.reveal();
-    toast(`C'était ${GEO.countries[game.target].name}`, "");
     game.done += 1;
     $("#hudProg").textContent = game.done + "/" + game.total;
     persist();
-    setTimeout(() => { game.idx += 1; nextRound(); }, 950);
+    setTimeout(() => { game.idx += 1; nextRound(); }, 1050);
   }
 
   /* ---------- Fin de région ---------- */
@@ -624,24 +703,18 @@
     save.totalXP += g.score;
     const newLevel = levelFromXP(save.totalXP).level;
 
-    const prev = save.best[g.sub] || { stars: 0, score: 0, accuracy: 0 };
-    save.best[g.sub] = {
+    const key = bestKey(g.mode, g.sub);
+    const prev = save.best[key] || { stars: 0, score: 0, accuracy: 0 };
+    save.best[key] = {
       stars: Math.max(prev.stars, stars),
       score: Math.max(prev.score, g.score),
       accuracy: Math.max(prev.accuracy || 0, Math.round(acc * 100)),
     };
-    if (win && g.kind === "region" && !save.regionsDone.includes(g.sub)) save.regionsDone.push(g.sub);
-
-    // Défi du jour : réussi ?
-    let dailyStreakNow = 0;
-    if (win && g.kind === "region" && g.sub === dailySubToday() && !dailyDoneToday()) {
-      save.daily = { date: todayStr(), streak: (save.daily && save.daily.date === dayStr(-1)) ? save.daily.streak + 1 : 1 };
-      dailyStreakNow = save.daily.streak;
-    }
+    if (win && g.kind === "region" && !save.regionsDone.includes(key)) save.regionsDone.push(key);
     persist();
     const newBadges = checkBadges();
 
-    showResult(win, g, stars, { levelUp: newLevel > oldLevel, newLevel, newBadges, dailyStreak: dailyStreakNow });
+    showResult(win, g, stars, { levelUp: newLevel > oldLevel, newLevel, newBadges });
   }
 
   function showResult(win, g, stars, extra) {
@@ -651,8 +724,8 @@
     $("#resultEmoji").textContent = win ? (stars === 3 ? "🏆" : "🎉") : "💪";
     $("#resultTitle").textContent = win ? (stars === 3 ? "Sans-faute légendaire !" : doneWord) : "Presque !";
     $("#resultSub").textContent = win
-      ? `${g.title} · ${g.firstTryCorrect}/${g.total} du premier coup`
-      : `Tu as trouvé ${g.done}/${g.total} pays. Réessaie, tu vas y arriver !`;
+      ? `${MODES[g.mode].ic} ${g.title} · ${g.firstTryCorrect}/${g.total} du premier coup`
+      : `${MODES[g.mode].ic} ${g.done}/${g.total} pays. Réessaie, tu vas y arriver !`;
 
     // Étoiles animées
     $$("#resultStars i").forEach((el, i) => {
@@ -673,10 +746,9 @@
       if (stars === 3) { setTimeout(() => FX.burst(cx - 120, innerHeight * 0.4, 40, cols, 9), 500); setTimeout(() => FX.burst(cx + 120, innerHeight * 0.4, 40, cols, 9), 750); }
     }
 
-    // Montée de niveau / trophées / défi du jour
+    // Montée de niveau / trophées
     setTimeout(() => {
-      if (extra.dailyStreak) { Sound.star(); toast(`🗓️ Défi du jour réussi ! Série : ${extra.dailyStreak} jour${extra.dailyStreak > 1 ? "s" : ""} 🔥`, "good"); }
-      if (extra.levelUp) { setTimeout(() => { Sound.level(); toast(`⭐ Niveau ${extra.newLevel} — ${levelTitle(extra.newLevel)} !`, "good"); }, extra.dailyStreak ? 1400 : 0); }
+      if (extra.levelUp) { Sound.level(); toast(`⭐ Niveau ${extra.newLevel} — ${levelTitle(extra.newLevel)} !`, "good"); }
       if (extra.newBadges && extra.newBadges.length) {
         extra.newBadges.forEach((b, i) => setTimeout(() => { toast(`${b.ic} Trophée : ${b.name} !`, "good"); Sound.star(); }, 900 + i * 1300));
       }

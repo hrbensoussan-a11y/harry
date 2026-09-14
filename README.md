@@ -6,9 +6,14 @@ Conçu pour les jeunes : graphismes soignés (dégradés animés, glassmorphism,
 
 ## 🎮 Le principe
 
-1. Choisis un **continent** (Europe, Afrique, Asie, Amériques, Océanie).
-2. Choisis une **sous-région** (Europe de l'Ouest, Afrique du Nord, Asie du Sud-Est, Caraïbes…).
-3. Un pays s'affiche → **clique dessus sur la carte**. Le plus vite et le plus juste possible !
+1. Choisis un **mode de jeu** :
+   - 🗺️ **Localiser** — clique le pays sur la carte.
+   - 🚩 **Drapeaux** — retrouve le drapeau du pays (4 choix).
+   - 🏛️ **Capitales** — retrouve la capitale du pays (4 choix).
+2. Choisis un **continent** (Europe, Afrique, Asie, Amériques, Océanie).
+3. Choisis une **sous-région** (Europe de l'Ouest, Afrique du Nord, Asie du Sud-Est, Caraïbes…),
+   ou lance un **Défi continent** / le **Tour du monde**.
+4. Réponds le plus vite et le plus juste possible ! Chaque mode a sa propre progression.
 
 - ❤️ Des **vies** : chaque erreur en coûte une.
 - 🔥 Une **série** (combo) qui fait grimper le score.

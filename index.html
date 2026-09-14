@@ -54,8 +54,6 @@
         <div class="hero-ring" id="heroRing"></div>
       </section>
 
-      <div id="dailyChallenge"></div>
-
       <h2 class="section-title"><span>Ta progression</span></h2>
       <div id="progressPanel"></div>
 
@@ -78,6 +76,7 @@
     <section class="screen" id="screen-continent">
       <button class="back-btn" data-nav="home">← Accueil</button>
       <div class="continent-head" id="continentHead"></div>
+      <div id="modeBarC" class="mode-bar-wrap"></div>
       <div id="continentChallenge"></div>
       <h2 class="section-title"><span>Régions</span></h2>
       <div class="subregion-grid" id="subregionGrid"></div>
@@ -95,7 +94,7 @@
       </div>
 
       <div class="prompt-bar" id="promptBar">
-        <div class="prompt-label">Trouve</div>
+        <div class="prompt-label" id="promptLabel">Trouve</div>
         <div class="prompt-country">
           <span class="prompt-flag" id="promptFlag">🏳️</span>
           <span class="prompt-name" id="promptName">…</span>
@@ -105,6 +104,7 @@
       </div>
 
       <div id="map" class="map"></div>
+      <div id="quiz" class="quiz" hidden></div>
 
       <div class="game-controls">
         <button class="mini-btn" id="skipBtn">🤷 Je ne sais pas</button>
