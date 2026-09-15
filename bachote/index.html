@@ -127,6 +127,16 @@
           <span class="mode-name" data-i18n="mode_write_name">Écrire</span>
           <span class="mode-desc" data-i18n="mode_write_desc">Retrouve le mot à partir de la définition. Le plus exigeant.</span>
         </button>
+        <button class="mode-card" data-mode="truefalse" type="button">
+          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h9M4 8l2.5-2.5M4 8l2.5 2.5"/><path d="M20 16h-9M20 16l-2.5-2.5M20 16l-2.5 2.5"/></svg></span>
+          <span class="mode-name" data-i18n="mode_tf_name">Vrai ou faux</span>
+          <span class="mode-desc" data-i18n="mode_tf_desc">La définition correspond-elle au mot ? Réponds le plus vite possible.</span>
+        </button>
+        <button class="mode-card" data-mode="sheet" type="button">
+          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+          <span class="mode-name" data-i18n="mode_sheet_name">Fiche</span>
+          <span class="mode-desc" data-i18n="mode_sheet_desc">Lis tout d'un coup, comme une fiche de révision. Masque les définitions pour t'interroger.</span>
+        </button>
       </div>
 
       <div class="sec-head">
@@ -254,6 +264,28 @@
       <div class="pane pane-match" id="pane-match" hidden>
         <p class="match-help" data-i18n="match_help">Clique un mot, puis sa définition.</p>
         <div class="match-grid" id="matchGrid"></div>
+      </div>
+
+      <!-- Vrai ou faux -->
+      <div class="pane" id="pane-tf" hidden>
+        <div class="prompt-card">
+          <span class="face-label" id="tfTerm"></span>
+          <p class="prompt-text prompt-text-def" id="tfDef"></p>
+          <span class="tf-q" data-i18n="tf_q">Cette définition correspond-elle au mot ?</span>
+        </div>
+        <div class="tf-row">
+          <button class="btn tf-btn tf-true" id="tfTrue" type="button"><span data-i18n="tf_true">Vrai</span></button>
+          <button class="btn tf-btn tf-false" id="tfFalse" type="button"><span data-i18n="tf_false">Faux</span></button>
+        </div>
+      </div>
+
+      <!-- Fiche de révision -->
+      <div class="pane pane-sheet" id="pane-sheet" hidden>
+        <div class="sheet-bar">
+          <button class="btn btn-ghost btn-sm" id="sheetToggle" type="button" data-i18n="sheet_hide">Masquer les définitions</button>
+          <span class="sheet-hint" id="sheetHint" hidden data-i18n="sheet_reveal">Touche une ligne pour révéler sa définition.</span>
+        </div>
+        <ul class="sheet-list" id="sheetList"></ul>
       </div>
     </div>
   </section>

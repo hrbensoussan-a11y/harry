@@ -899,3 +899,51 @@ kbd {
 .lang-opt .lang-flag { font-size: 1.15rem; }
 .lang-opt:hover { background: var(--paper-2); }
 .lang-opt[aria-current="true"] { background: var(--blue-soft); }
+
+/* ══════════════ Vrai ou faux ══════════════ */
+.tf-q {
+  font-family: var(--f-mono); font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3);
+  margin-top: 4px;
+}
+.tf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tf-btn {
+  font-family: var(--f-display); font-weight: 800; font-size: 1.15rem;
+  padding: 20px 12px; justify-content: center;
+}
+.tf-true { background: var(--green-soft); }
+.tf-false { background: var(--red-soft); }
+.tf-btn.good { border-color: var(--green); box-shadow: 3px 3px 0 var(--green); background: var(--green-soft); }
+.tf-btn.bad  { border-color: var(--red); box-shadow: 3px 3px 0 var(--red); background: var(--red-soft); }
+.tf-btn:disabled { opacity: 1; }
+
+/* ══════════════ Fiche de révision ══════════════ */
+.pane-sheet { max-width: 760px; }
+#screen-study.is-sheet .study-prog, #screen-study.is-sheet .study-count { visibility: hidden; }
+.sheet-bar {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.sheet-hint { font-size: .84rem; color: var(--ink-3); }
+.sheet-list { list-style: none; margin: 0; padding: 0; }
+.sheet-row {
+  display: flex; gap: 16px; align-items: baseline;
+  padding: 13px 15px; margin-bottom: 8px;
+  background: var(--card); border: var(--bd-thin); border-radius: var(--r-sm);
+  border-left: 4px solid var(--rule);
+}
+.sheet-term { font-family: var(--f-display); font-weight: 700; flex: 0 0 min(36%, 220px); }
+.sheet-def { color: var(--ink-2); flex: 1; transition: filter .15s, color .15s; }
+/* Mode « masqué » : les définitions sont floutées jusqu'au clic sur la ligne. */
+.sheet-list.masked .sheet-row { cursor: pointer; }
+.sheet-list.masked .sheet-def {
+  filter: blur(6px); color: var(--ink-3); user-select: none;
+}
+.sheet-list.masked .sheet-row.revealed .sheet-def { filter: none; color: var(--ink-2); user-select: text; }
+.sheet-list.masked .sheet-row:hover { border-left-color: var(--gold); }
+
+@media (max-width: 620px) {
+  .sheet-row { flex-direction: column; gap: 3px; }
+  .sheet-term { flex: none; }
+  .tf-btn { font-size: 1.05rem; padding: 18px 10px; }
+}

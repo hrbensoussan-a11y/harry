@@ -700,7 +700,7 @@
   var sess = null;
 
   function paneOnly(name) {
-    ["flash", "mcq", "write", "match"].forEach(function (p) {
+    ["flash", "mcq", "write", "match", "tf", "sheet"].forEach(function (p) {
       $("#pane-" + p).hidden = (p !== name);
     });
   }
@@ -737,6 +737,11 @@
       go("#/d/" + deckId);
       return;
     }
+    if (mode === "truefalse" && items.length < 2) {
+      toast(tr("t_need_more"));
+      go("#/d/" + deckId);
+      return;
+    }
 
     sess = {
       mode: mode,
@@ -753,10 +758,14 @@
     };
 
     screen("study");
+    // En mode Fiche (lecture), on masque la progression mais on garde le bouton Quitter.
+    $("#screen-study").classList.toggle("is-sheet", mode === "sheet");
     if (mode === "review" || mode === "flash") startFlash();
     else if (mode === "mcq") startMcq();
     else if (mode === "write") startWrite();
     else if (mode === "match") startMatch();
+    else if (mode === "truefalse") startTF();
+    else if (mode === "sheet") startSheet();
   }
 
   function endStudy() {
@@ -1113,6 +1122,89 @@
     sess.pending = null;
   }
 
+  /* ---------- Vrai ou faux ---------- */
+  function startTF() { paneOnly("tf"); renderTF(); }
+
+  function renderTF() {
+    if (sess.i >= sess.queue.length) { endStudy(); return; }
+    sess.answered = false;
+    var c = sess.queue[sess.i];
+    var deck = S.getDeck(sess.deckId);
+    // Une fois sur deux : on montre la vraie définition ; sinon celle d'une autre carte.
+    var showTrue = Math.random() < 0.5;
+    var shownDef = c.d;
+    if (!showTrue) {
+      var others = deck.cards.filter(function (x) { return x.id !== c.id && x.d && x.d !== c.d; });
+      if (!others.length) { showTrue = true; }
+      else { shownDef = shuffle(others)[0].d; }
+    }
+    sess.tfTruth = showTrue;
+    $("#tfTerm").textContent = c.t;
+    $("#tfDef").textContent = shownDef;
+    $("#tfTrue").disabled = false;
+    $("#tfFalse").disabled = false;
+    $("#tfTrue").classList.remove("good", "bad");
+    $("#tfFalse").classList.remove("good", "bad");
+    studyProgress();
+  }
+
+  function answerTF(saidTrue) {
+    if (!sess || sess.answered) return;
+    sess.answered = true;
+    var c = sess.queue[sess.i];
+    var correct = (saidTrue === sess.tfTruth);
+    $("#tfTrue").disabled = true;
+    $("#tfFalse").disabled = true;
+    // On marque en vert le bon choix (Vrai/Faux), en rouge l'erreur.
+    $(sess.tfTruth ? "#tfTrue" : "#tfFalse").classList.add("good");
+    if (!correct) $(saidTrue ? "#tfTrue" : "#tfFalse").classList.add("bad");
+    if (correct) { sess.right++; S.grade(c, 4); Sfx.play("good"); }
+    else { sess.wrong++; sess.missed.push(c); S.grade(c, 1); Sfx.play("bad"); }
+    setTimeout(function () { if (!sess) return; sess.i++; renderTF(); }, correct ? 640 : 1300);
+  }
+
+  function initTF() {
+    $("#tfTrue").addEventListener("click", function () { answerTF(true); });
+    $("#tfFalse").addEventListener("click", function () { answerTF(false); });
+  }
+
+  /* ---------- Fiche de révision (lecture) ---------- */
+  function startSheet() {
+    paneOnly("sheet");
+    sess.hidden = false;
+    var list = $("#sheetList");
+    list.innerHTML = "";
+    sess.queue.forEach(function (c) {
+      var li = el("li", "sheet-row");
+      li.appendChild(el("span", "sheet-term", c.t));
+      var def = el("span", "sheet-def", c.d);
+      li.appendChild(def);
+      // Quand les définitions sont masquées, un clic révèle celle de la ligne.
+      li.addEventListener("click", function () {
+        if (sess.hidden) li.classList.toggle("revealed");
+      });
+      list.appendChild(li);
+    });
+    updateSheetToggle();
+  }
+
+  function updateSheetToggle() {
+    var list = $("#sheetList");
+    list.classList.toggle("masked", sess.hidden);
+    $$(".sheet-row.revealed", list).forEach(function (r) { r.classList.remove("revealed"); });
+    $("#sheetToggle").textContent = t(sess.hidden ? "sheet_show" : "sheet_hide");
+    $("#sheetHint").hidden = !sess.hidden;
+  }
+
+  function initSheet() {
+    $("#sheetToggle").addEventListener("click", function () {
+      if (!sess) return;
+      sess.hidden = !sess.hidden;
+      updateSheetToggle();
+      Sfx.play("click");
+    });
+  }
+
   /* ============================================================
      CLAVIER
      ============================================================ */
@@ -1152,6 +1244,11 @@
         var opts = $$("#mcqOpts .opt");
         var b = opts[parseInt(e.key, 10) - 1];
         if (b && !b.disabled) b.click();
+      }
+
+      if (sess.mode === "truefalse") {
+        if (e.key === "ArrowLeft" || e.key.toLowerCase() === "v") { e.preventDefault(); if (!$("#tfTrue").disabled) $("#tfTrue").click(); }
+        else if (e.key === "ArrowRight" || e.key.toLowerCase() === "f") { e.preventDefault(); if (!$("#tfFalse").disabled) $("#tfFalse").click(); }
       }
     });
   }
@@ -1242,6 +1339,8 @@
     initEditor();
     initFlash();
     initWrite();
+    initTF();
+    initSheet();
     initKeys();
 
     $("#newDeckBtn").addEventListener("click", function () { go("#/new"); });
