@@ -148,9 +148,30 @@
   /* ============================================================
      ACCUEIL
      ============================================================ */
+  var STAR = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="fill:var(--gold,#f2b01e);stroke:var(--ink);stroke-width:1.5"><path d="m12 3 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9 6.8 19l1-5.8L3.6 9.1l5.8-.8Z"/></svg>';
+
   function deckCard(deck) {
     var b = el("button", "deck-card");
     b.type = "button";
+    if (deck.fav) b.classList.add("is-fav");
+
+    // Bouton menu (⋯) — clic gauche ou clic droit ouvrent le même menu.
+    var menuBtn = el("button", "card-menu");
+    menuBtn.type = "button";
+    menuBtn.setAttribute("aria-label", "Options du paquet");
+    menuBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>';
+    menuBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var r = menuBtn.getBoundingClientRect();
+      openCtxMenu(deck.id, r.right, r.bottom);
+    });
+    b.appendChild(menuBtn);
+
+    if (deck.fav) {
+      var st = el("span", "fav-star");
+      st.innerHTML = STAR;
+      b.appendChild(st);
+    }
 
     var tag = el("span", "tag tag-" + (deck.subject || "autre"), window.SUBJECT_LABEL(deck.subject));
     b.appendChild(tag);
@@ -171,7 +192,94 @@
     b.appendChild(foot2);
 
     b.addEventListener("click", function () { go("#/d/" + deck.id); });
+    b.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      openCtxMenu(deck.id, e.clientX, e.clientY);
+    });
     return b;
+  }
+
+  /* ---------- tuiles de matières (points de départ, sans contenu imposé) ---------- */
+  function renderSubjectTiles() {
+    var grid = $("#subjectGrid");
+    grid.innerHTML = "";
+    window.SUBJECTS.forEach(function (subj) {
+      if (subj.k === "autre") return; // "Autre" est proposé dans l'éditeur, pas ici
+      var t = el("button", "subject-tile");
+      t.type = "button";
+      t.setAttribute("data-subj", subj.k);
+      var tag = el("span", "tag tag-" + subj.k, subj.label);
+      t.appendChild(tag);
+      t.appendChild(el("span", "subject-plus", "+ Créer un paquet"));
+      t.addEventListener("click", function () { go("#/new/" + subj.k); });
+      grid.appendChild(t);
+    });
+    // Tuile "vierge" pour une matière libre
+    var blank = el("button", "subject-tile subject-blank");
+    blank.type = "button";
+    blank.innerHTML = '<span class="subject-plus"><b>+</b> Paquet vierge</span>';
+    blank.addEventListener("click", function () { go("#/new"); });
+    grid.appendChild(blank);
+  }
+
+  /* ============================================================
+     MENU CONTEXTUEL (clic droit / bouton ⋯) sur un paquet
+     ============================================================ */
+  var ctxOpenId = null;
+
+  function closeCtxMenu() {
+    var m = $("#ctxMenu");
+    m.hidden = true;
+    m.innerHTML = "";
+    ctxOpenId = null;
+  }
+
+  function openCtxMenu(deckId, x, y) {
+    var deck = S.getDeck(deckId);
+    if (!deck) return;
+    var m = $("#ctxMenu");
+    m.innerHTML = "";
+    ctxOpenId = deckId;
+
+    function item(label, iconSvg, cls, onClick) {
+      var it = el("button", "ctx-item" + (cls ? " " + cls : ""));
+      it.type = "button";
+      it.setAttribute("role", "menuitem");
+      it.innerHTML = iconSvg + "<span>" + label + "</span>";
+      it.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeCtxMenu();
+        onClick();
+      });
+      m.appendChild(it);
+    }
+
+    var starIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9 6.8 19l1-5.8L3.6 9.1l5.8-.8Z"/></svg>';
+    var shareIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M8.1 10.9 15.9 6.1M8.1 13.1l7.8 4.8"/></svg>';
+    var trashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>';
+
+    item(deck.fav ? "Retirer des favoris" : "Mettre en favori", starIcon, "", function () {
+      var nowFav = S.toggleFav(deckId);
+      Sfx.play(nowFav ? "good" : "click");
+      toast(nowFav ? "Ajouté aux favoris." : "Retiré des favoris.");
+      renderHome();
+    });
+    item("Partager", shareIcon, "", function () { shareDeck(deckId); });
+    item("Supprimer", trashIcon, "ctx-danger", function () {
+      if (window.confirm("Supprimer définitivement « " + deck.name + " » et ses " + deck.cards.length + " cartes ?")) {
+        S.deleteDeck(deckId);
+        toast("Paquet supprimé.");
+        renderHome();
+      }
+    });
+
+    // Positionnement : on garde le menu dans la fenêtre.
+    m.hidden = false;
+    var mw = m.offsetWidth, mh = m.offsetHeight;
+    var px = Math.min(x, window.innerWidth - mw - 8);
+    var py = Math.min(y, window.innerHeight - mh - 8);
+    m.style.left = Math.max(8, px) + "px";
+    m.style.top = Math.max(8, py) + "px";
   }
 
   function renderHome() {
@@ -179,10 +287,11 @@
     var grid = $("#deckGrid");
     var empty = decks.length === 0;
 
-    // Aucun paquet : grande invitation à créer le sien, on cache la grille.
-    $("#welcome").hidden = !empty;
+    // La grille et son en-tête n'apparaissent qu'une fois un paquet créé.
     $("#decksHead").hidden = empty;
     grid.hidden = empty;
+    // Le titre de la section matières s'adapte à l'état.
+    $("#subjectHead").textContent = empty ? "Commence par une matière" : "Créer un nouveau paquet";
 
     grid.innerHTML = "";
     if (!empty) {
@@ -225,6 +334,7 @@
       dueCard.hidden = true;
     }
 
+    renderSubjectTiles();
     screen("home");
   }
 
@@ -314,7 +424,7 @@
     });
   }
 
-  function renderEdit(id) {
+  function renderEdit(id, initialSubject) {
     editState.id = id || null;
     var list = $("#editList");
     list.innerHTML = "";
@@ -330,7 +440,7 @@
     } else {
       $("#editHeading").textContent = "Nouveau paquet";
       $("#deckNameInput").value = "";
-      renderSubjectPills("autre");
+      renderSubjectPills(initialSubject || "autre");
       for (var i = 0; i < 3; i++) list.appendChild(editRow("", ""));
       $("#pasteBox").open = true;
     }
@@ -967,7 +1077,7 @@
 
     if (parts[0] === "" || parts[0] === undefined) { renderHome(); return; }
     if (parts[0] === "d" && parts[1]) { renderDeck(parts[1]); return; }
-    if (parts[0] === "new") { renderEdit(null); return; }
+    if (parts[0] === "new") { renderEdit(null, parts[1] || null); return; }
     if (parts[0] === "edit" && parts[1]) { renderEdit(parts[1]); return; }
     if (parts[0] === "study" && parts[1] && parts[2]) { startStudy(parts[1], parts[2]); return; }
     if (parts[0] === "review") { startStudy("all", "review"); return; }
@@ -986,7 +1096,6 @@
     initKeys();
 
     $("#newDeckBtn").addEventListener("click", function () { go("#/new"); });
-    $("#welcomeBtn").addEventListener("click", function () { go("#/new"); });
     $("#dueStart").addEventListener("click", function () { go("#/review"); });
     $("#quitStudy").addEventListener("click", quitStudy);
 
@@ -1024,7 +1133,13 @@
       go(id ? "#/d/" + id : "#/");
     });
 
-    window.addEventListener("hashchange", route);
+    document.addEventListener("click", function (e) {
+      if (ctxOpenId && !e.target.closest("#ctxMenu")) closeCtxMenu();
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeCtxMenu(); });
+    window.addEventListener("scroll", closeCtxMenu, true);
+    window.addEventListener("resize", closeCtxMenu);
+    window.addEventListener("hashchange", function () { closeCtxMenu(); route(); });
     route();
 
     if (location.search.indexOf("debug") >= 0) {

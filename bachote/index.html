@@ -56,18 +56,18 @@
 
       <div class="stats-strip" id="statsStrip"></div>
 
-      <div class="welcome" id="welcome" hidden>
-        <h2 class="welcome-title">Crée ton premier paquet</h2>
-        <p class="welcome-sub">Choisis tes mots, ou colle ton cours et on en fait des cartes automatiquement. À toi de jouer.</p>
-        <button class="btn btn-primary" id="welcomeBtn" type="button">Créer un paquet</button>
-      </div>
-
       <div class="sec-head" id="decksHead" hidden>
         <h2 class="sec-title">Tes paquets</h2>
         <button class="btn btn-ghost btn-sm" id="newDeckBtn" type="button">+ Nouveau paquet</button>
       </div>
 
       <div class="deck-grid" id="deckGrid"></div>
+
+      <div class="sec-head">
+        <h2 class="sec-title" id="subjectHead">Commence par une matière</h2>
+      </div>
+      <p class="sec-note" id="subjectNote">Choisis une matière et remplis-la avec tes propres mots — ou colle ton cours.</p>
+      <div class="subject-grid" id="subjectGrid"></div>
 
     </div>
   </section>
@@ -281,6 +281,8 @@
 </footer>
 
 <div class="toast" id="toast" hidden></div>
+
+<div class="ctx-menu" id="ctxMenu" role="menu" hidden></div>
 
 <script src="js/store.js"></script>
 <script src="js/sound.js"></script>

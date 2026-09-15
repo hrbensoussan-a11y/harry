@@ -8,10 +8,13 @@
 
   window.SUBJECTS = [
     { k: "svt",   label: "SVT" },
+    { k: "phys",  label: "Physique-Chimie" },
+    { k: "math",  label: "Maths" },
     { k: "hist",  label: "Histoire-Géo" },
-    { k: "philo", label: "Philo" },
     { k: "ses",   label: "SES" },
-    { k: "lang",  label: "Français / Langues" },
+    { k: "philo", label: "Philo" },
+    { k: "lang",  label: "Français" },
+    { k: "angl",  label: "Anglais" },
     { k: "autre", label: "Autre" }
   ];
 

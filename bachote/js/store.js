@@ -86,6 +86,7 @@
       id: uid("d"),
       name: String(name || "Sans titre").trim().slice(0, 70) || "Sans titre",
       subject: subject || "autre",
+      fav: false,
       created: Date.now(),
       updated: Date.now(),
       cards: (pairs || []).map(function (p) { return newCard(p[0], p[1]); })
@@ -104,7 +105,19 @@
   function allDecks() {
     return Object.keys(state.decks)
       .map(function (k) { return getDeck(k); })
-      .sort(function (a, b) { return (b.updated || 0) - (a.updated || 0); });
+      .sort(function (a, b) {
+        // Les favoris remontent en tête, puis les plus récemment modifiés.
+        if (!!b.fav !== !!a.fav) return b.fav ? 1 : -1;
+        return (b.updated || 0) - (a.updated || 0);
+      });
+  }
+
+  function toggleFav(id) {
+    var d = state.decks[id];
+    if (!d) return false;
+    d.fav = !d.fav;
+    save();
+    return d.fav;
   }
 
   function updateDeck(id, patch) {
@@ -376,6 +389,7 @@
     allDecks: allDecks,
     updateDeck: updateDeck,
     deleteDeck: deleteDeck,
+    toggleFav: toggleFav,
     grade: grade,
     previewInterval: previewInterval,
     dueCards: dueCards,
