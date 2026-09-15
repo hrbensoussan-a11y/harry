@@ -27,8 +27,8 @@
     <span class="brand-text">Bachote</span>
   </a>
   <div class="topbar-actions">
-    <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" title="Sons"><span id="soundIcon">🔊</span></button>
-    <button class="icon-btn" id="themeBtn" type="button" title="Thème clair / sombre"><span id="themeIcon">🌙</span></button>
+    <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" title="Activer / couper les sons"><span class="i-ic" id="soundIcon"></span></button>
+    <button class="icon-btn" id="themeBtn" type="button" title="Thème clair / sombre"><span class="i-ic" id="themeIcon"></span></button>
   </div>
 </header>
 
@@ -101,28 +101,28 @@
       <h2 class="sec-title sec-title-tight">Comment veux-tu travailler ?</h2>
       <div class="mode-grid" id="modeGrid">
         <button class="mode-card mode-review" data-mode="review" type="button">
-          <span class="mode-emoji">🧠</span>
+          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg></span>
           <span class="mode-name">Révision intelligente</span>
           <span class="mode-desc">L'algorithme choisit quoi te montrer et quand. Le plus efficace.</span>
           <span class="mode-badge" id="modeReviewBadge"></span>
         </button>
         <button class="mode-card" data-mode="flash" type="button">
-          <span class="mode-emoji">🗂️</span>
+          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="7" width="14" height="11" rx="2"/><path d="M4 9v9a2 2 0 0 0 2 2h10"/><path d="M10 12.5h6"/></svg></span>
           <span class="mode-name">Flashcards</span>
           <span class="mode-desc">Tu retournes la carte, tu vérifies. Simple et rapide.</span>
         </button>
         <button class="mode-card" data-mode="match" type="button">
-          <span class="mode-emoji">🔗</span>
+          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="8" r="2.6"/><circle cx="17" cy="16" r="2.6"/><path d="M9.4 9.3 14.6 14.7"/></svg></span>
           <span class="mode-name">Associer</span>
           <span class="mode-desc">Relie chaque mot à sa définition, le plus vite possible.</span>
         </button>
         <button class="mode-card" data-mode="mcq" type="button">
-          <span class="mode-emoji">📋</span>
+          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9.5h8M8 14.5h5"/><path d="M14.5 15.5l1.6 1.6 2.4-2.8" stroke="var(--green)"/></svg></span>
           <span class="mode-name">QCM</span>
           <span class="mode-desc">Quatre propositions, une bonne réponse.</span>
         </button>
         <button class="mode-card" data-mode="write" type="button">
-          <span class="mode-emoji">✍️</span>
+          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 5.5 18.5 8.5"/><path d="M5 19l1-4L16.5 4.5a1.5 1.5 0 0 1 2.1 0l.9.9a1.5 1.5 0 0 1 0 2.1L9 18l-4 1Z"/></svg></span>
           <span class="mode-name">Écrire</span>
           <span class="mode-desc">Retrouve le mot à partir de la définition. Le plus exigeant.</span>
         </button>

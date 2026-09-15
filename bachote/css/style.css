@@ -44,7 +44,6 @@
   --btn-pri-bd: var(--ink);
   --sel-fg:     var(--ink);
   --prog-fill:  var(--ink);
-  --tape:       color-mix(in srgb, var(--yellow) 65%, transparent);
   --tag-svt-bg: #e3f5ec;   --tag-svt-fg: #1d6b4c;
   --tag-hist-bg: #fbe9e0;  --tag-hist-fg: #8a4a26;
   --tag-philo-bg: #ece6f8; --tag-philo-fg: #5a3f8c;
@@ -80,7 +79,6 @@
   --btn-pri-bd: #ffd84d;
   --sel-fg:     #1a1a1a;
   --prog-fill:  #ffd84d;
-  --tape:       color-mix(in srgb, #ffd84d 55%, transparent);
   --tag-svt-bg: #17342a;   --tag-svt-fg: #6fd7a8;
   --tag-hist-bg: #3a2318;  --tag-hist-fg: #e0a37a;
   --tag-philo-bg: #291f3d; --tag-philo-fg: #b49ce8;
@@ -118,7 +116,6 @@
     --btn-pri-bd: #ffd84d;
     --sel-fg:     #1a1a1a;
     --prog-fill:  #ffd84d;
-    --tape:       color-mix(in srgb, #ffd84d 55%, transparent);
     --tag-svt-bg: #17342a;   --tag-svt-fg: #6fd7a8;
     --tag-hist-bg: #3a2318;  --tag-hist-fg: #e0a37a;
     --tag-philo-bg: #291f3d; --tag-philo-fg: #b49ce8;
@@ -186,6 +183,8 @@ body {
   cursor: pointer;
   transition: transform .12s, box-shadow .12s;
 }
+.i-ic { display: inline-flex; }
+.i-ic svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .icon-btn:hover { transform: translate(-1px,-1px); box-shadow: 2px 2px 0 var(--ink); }
 .icon-btn:active { transform: translate(1px,1px); box-shadow: none; }
 
@@ -279,24 +278,19 @@ main { position: relative; z-index: 1; }
   background: var(--card);
   border: var(--bd); border-radius: var(--r);
   box-shadow: var(--sh);
-  padding: 18px 16px 16px;
+  padding: 17px 16px 15px;
+  overflow: hidden;
   cursor: pointer; font: inherit; color: inherit;
   transition: transform .14s ease, box-shadow .14s ease;
   display: flex; flex-direction: column; gap: 9px;
   min-height: 152px;
 }
-.deck-card:nth-child(odd) { transform: rotate(-.4deg); }
-.deck-card:nth-child(even) { transform: rotate(.3deg); }
+.deck-card:nth-child(odd) { transform: rotate(-.25deg); }
+.deck-card:nth-child(even) { transform: rotate(.2deg); }
 .deck-card:hover, .deck-card:focus-visible {
   transform: rotate(0deg) translate(-2px,-2px);
   box-shadow: var(--sh-lg);
   outline: none;
-}
-.deck-card::after {
-  content: ""; position: absolute; top: -7px; left: 50%;
-  width: 54px; height: 15px; transform: translateX(-50%) rotate(-1.5deg);
-  background: var(--tape);
-  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
 }
 .deck-name {
   font-family: var(--f-display); font-weight: 700;
@@ -333,7 +327,6 @@ main { position: relative; z-index: 1; }
 .deck-add b { font-family: var(--f-display); font-size: 1.5rem; font-weight: 900; display: block; }
 
 .deck-grid-sample .deck-card { box-shadow: 2px 2px 0 var(--rule); border-color: var(--rule); }
-.deck-grid-sample .deck-card::after { background: color-mix(in srgb, var(--rule) 55%, transparent); }
 .deck-grid-sample .deck-card:hover { border-color: var(--ink); box-shadow: var(--sh); }
 
 .empty-note {
@@ -418,7 +411,14 @@ main { position: relative; z-index: 1; }
 }
 .mode-card:hover { transform: translate(-2px,-2px); box-shadow: var(--sh-lg); }
 .mode-card:active { transform: translate(1px,1px); box-shadow: none; }
-.mode-emoji { font-size: 1.5rem; line-height: 1; }
+.mode-emoji {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: grid; place-items: center;
+  background: var(--blue-soft); color: var(--ink);
+  border: 1.5px solid color-mix(in srgb, var(--ink) 14%, transparent);
+}
+.mode-emoji .i-mode { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.mode-review .mode-emoji { background: var(--card); }
 .mode-name { font-family: var(--f-display); font-weight: 700; font-size: 1.02rem; }
 .mode-desc { font-size: .84rem; color: var(--ink-2); line-height: 1.4; }
 .mode-review { background: linear-gradient(135deg, var(--blue-soft), var(--card) 62%); }
