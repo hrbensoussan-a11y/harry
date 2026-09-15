@@ -56,21 +56,18 @@
 
       <div class="stats-strip" id="statsStrip"></div>
 
-      <div class="sec-head">
+      <div class="welcome" id="welcome" hidden>
+        <h2 class="welcome-title">Crée ton premier paquet</h2>
+        <p class="welcome-sub">Choisis tes mots, ou colle ton cours et on en fait des cartes automatiquement. À toi de jouer.</p>
+        <button class="btn btn-primary" id="welcomeBtn" type="button">Créer un paquet</button>
+      </div>
+
+      <div class="sec-head" id="decksHead" hidden>
         <h2 class="sec-title">Tes paquets</h2>
         <button class="btn btn-ghost btn-sm" id="newDeckBtn" type="button">+ Nouveau paquet</button>
       </div>
 
       <div class="deck-grid" id="deckGrid"></div>
-
-      <div class="empty-note" id="emptyNote" hidden>
-        <p>Tu n'as pas encore de paquet. Crée le tien, ou essaie un des exemples ci-dessous.</p>
-      </div>
-
-      <div class="sec-head" id="samplesHead">
-        <h2 class="sec-title">Exemples prêts à l'emploi</h2>
-      </div>
-      <div class="deck-grid deck-grid-sample" id="sampleGrid"></div>
 
     </div>
   </section>

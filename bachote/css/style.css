@@ -268,6 +268,23 @@ main { position: relative; z-index: 1; }
 }
 .stat span { font-size: .78rem; color: var(--ink-2); }
 
+
+/* ══════════════ Accueil vide : invitation ══════════════ */
+.welcome {
+  background: var(--card);
+  border: var(--bd); border-radius: var(--r);
+  box-shadow: var(--sh-lg);
+  padding: 40px 30px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.welcome-title {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(1.5rem, 4vw, 2.1rem); letter-spacing: -.03em;
+  margin: 0;
+}
+.welcome-sub { margin: 0; color: var(--ink-2); max-width: 46ch; }
+.welcome .btn { margin-top: 8px; }
+
 /* ══════════════ Grille de paquets ══════════════ */
 .deck-grid {
   display: grid; gap: 16px;
@@ -326,14 +343,7 @@ main { position: relative; z-index: 1; }
 .deck-add:hover { border-color: var(--ink); color: var(--ink); background: var(--paper-2); }
 .deck-add b { font-family: var(--f-display); font-size: 1.5rem; font-weight: 900; display: block; }
 
-.deck-grid-sample .deck-card { box-shadow: 2px 2px 0 var(--rule); border-color: var(--rule); }
-.deck-grid-sample .deck-card:hover { border-color: var(--ink); box-shadow: var(--sh); }
 
-.empty-note {
-  border: 2px dashed var(--rule); border-radius: var(--r);
-  padding: 22px; text-align: center; color: var(--ink-2);
-}
-.empty-note p { margin: 0; }
 
 /* ══════════════ Mini-barre de progression ══════════════ */
 .mini-bar {

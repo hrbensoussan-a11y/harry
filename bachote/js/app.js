@@ -148,27 +148,13 @@
   /* ============================================================
      ACCUEIL
      ============================================================ */
-  function deckCard(deck, isSample) {
+  function deckCard(deck) {
     var b = el("button", "deck-card");
     b.type = "button";
 
     var tag = el("span", "tag tag-" + (deck.subject || "autre"), window.SUBJECT_LABEL(deck.subject));
     b.appendChild(tag);
     b.appendChild(el("h3", "deck-name", deck.name));
-
-    if (isSample) {
-      b.appendChild(el("p", "deck-sub", plural(deck.pairs.length, "carte", "cartes") + " · exemple"));
-      var foot = el("div", "deck-foot");
-      foot.appendChild(el("span", "mini-num", "Cliquer pour ajouter"));
-      b.appendChild(foot);
-      b.addEventListener("click", function () {
-        var d = S.createDeck(deck.name, deck.subject, deck.pairs);
-        Sfx.play("good");
-        toast("Paquet ajouté à tes paquets.");
-        go("#/d/" + d.id);
-      });
-      return b;
-    }
 
     var due = S.dueCount(deck);
     var prog = S.deckProgress(deck);
@@ -191,18 +177,23 @@
   function renderHome() {
     var decks = S.allDecks();
     var grid = $("#deckGrid");
+    var empty = decks.length === 0;
+
+    // Aucun paquet : grande invitation à créer le sien, on cache la grille.
+    $("#welcome").hidden = !empty;
+    $("#decksHead").hidden = empty;
+    grid.hidden = empty;
+
     grid.innerHTML = "";
-
-    decks.forEach(function (d) { grid.appendChild(deckCard(d, false)); });
-
-    var add = el("button", "deck-add");
-    add.type = "button";
-    add.innerHTML = "<b>+</b>";
-    add.appendChild(el("span", null, "Nouveau paquet"));
-    add.addEventListener("click", function () { go("#/new"); });
-    grid.appendChild(add);
-
-    $("#emptyNote").hidden = decks.length > 0;
+    if (!empty) {
+      decks.forEach(function (d) { grid.appendChild(deckCard(d)); });
+      var add = el("button", "deck-add");
+      add.type = "button";
+      add.innerHTML = "<b>+</b>";
+      add.appendChild(el("span", null, "Nouveau paquet"));
+      add.addEventListener("click", function () { go("#/new"); });
+      grid.appendChild(add);
+    }
 
     /* Bandeau de statistiques */
     var totalCards = decks.reduce(function (n, d) { return n + d.cards.length; }, 0);
@@ -233,15 +224,6 @@
     } else {
       dueCard.hidden = true;
     }
-
-    /* Exemples : on masque ceux déjà ajoutés */
-    var names = decks.map(function (d) { return d.name; });
-    var samples = window.SAMPLES.filter(function (s) { return names.indexOf(s.name) < 0; });
-    var sg = $("#sampleGrid");
-    sg.innerHTML = "";
-    samples.forEach(function (s) { sg.appendChild(deckCard(s, true)); });
-    $("#samplesHead").hidden = samples.length === 0;
-    sg.hidden = samples.length === 0;
 
     screen("home");
   }
@@ -1004,6 +986,7 @@
     initKeys();
 
     $("#newDeckBtn").addEventListener("click", function () { go("#/new"); });
+    $("#welcomeBtn").addEventListener("click", function () { go("#/new"); });
     $("#dueStart").addEventListener("click", function () { go("#/review"); });
     $("#quitStudy").addEventListener("click", quitStudy);
 
