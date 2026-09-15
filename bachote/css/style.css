@@ -849,3 +849,30 @@ kbd {
 .ctx-item:hover { background: var(--paper-2); }
 .ctx-item.ctx-danger { color: var(--red); }
 .ctx-item.ctx-danger:hover { background: var(--red-soft); }
+
+/* ══════════════ Fenêtre modale (confirmation, partage) ══════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+  backdrop-filter: blur(2px);
+  animation: modalIn .16s ease;
+}
+@keyframes modalIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-card {
+  width: 100%; max-width: 420px;
+  background: var(--card);
+  border: var(--bd); border-radius: var(--r);
+  box-shadow: var(--sh-lg);
+  padding: 22px 22px 18px;
+}
+.modal-title {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: 1.25rem; letter-spacing: -.02em; margin: 0 0 8px;
+}
+.modal-msg { margin: 0 0 16px; color: var(--ink-2); line-height: 1.5; }
+.modal-card .inp { margin-bottom: 4px; font-size: .9rem; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.btn-confirm-danger { background: var(--red); color: #fff; border-color: var(--red); }
+[data-theme="dark"] .btn-confirm-danger { color: #1a1a1a; }

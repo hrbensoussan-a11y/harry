@@ -223,6 +223,69 @@
   }
 
   /* ============================================================
+     FENÊTRES MODALES (confirmation, lien de partage)
+     window.confirm / window.prompt sont bloqués dans l'iframe publiée :
+     on fait donc nos propres fenêtres, qui marchent partout.
+     ============================================================ */
+  function closeModal() {
+    var m = $("#modal");
+    m.hidden = true;
+    m.innerHTML = "";
+  }
+
+  function buildModal(title, bodyNode, buttons) {
+    var m = $("#modal");
+    m.innerHTML = "";
+    var card = el("div", "modal-card");
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    card.appendChild(el("h2", "modal-title", title));
+    if (bodyNode) card.appendChild(bodyNode);
+    var row = el("div", "modal-actions");
+    buttons.forEach(function (b) {
+      var btn = el("button", "btn " + (b.cls || "btn-ghost"), b.label);
+      btn.type = "button";
+      btn.addEventListener("click", function () { if (b.onClick) b.onClick(); });
+      row.appendChild(btn);
+    });
+    card.appendChild(row);
+    m.appendChild(card);
+    m.hidden = false;
+    // Fermeture au clic sur le fond
+    m.onclick = function (e) { if (e.target === m) closeModal(); };
+    // Met le focus sur le dernier bouton (souvent l'action principale)
+    var focusables = row.querySelectorAll("button");
+    if (focusables.length) focusables[focusables.length - 1].focus();
+    return card;
+  }
+
+  function confirmDialog(title, message, confirmLabel, danger, onConfirm) {
+    var body = el("p", "modal-msg", message);
+    var card = buildModal(title, body, [
+      { label: "Annuler", cls: "btn-ghost", onClick: closeModal },
+      { label: confirmLabel, cls: danger ? "btn-primary btn-confirm-danger" : "btn-primary",
+        onClick: function () { closeModal(); onConfirm(); } }
+    ]);
+    // Sur une action destructive, on met le focus sur « Annuler » : un appui
+    // sur Entrée n'efface alors rien par mégarde.
+    if (danger) { var first = card.querySelector(".modal-actions .btn"); if (first) first.focus(); }
+  }
+
+  function showLinkDialog(url) {
+    var wrap = el("div");
+    var msg = el("p", "modal-msg", "Copie ce lien et envoie-le à qui tu veux :");
+    var field = el("input", "inp");
+    field.type = "text"; field.value = url; field.readOnly = true;
+    field.addEventListener("focus", function () { field.select(); });
+    wrap.appendChild(msg);
+    wrap.appendChild(field);
+    buildModal("Partager le paquet", wrap, [
+      { label: "Fermer", cls: "btn-primary", onClick: closeModal }
+    ]);
+    setTimeout(function () { field.focus(); field.select(); }, 30);
+  }
+
+  /* ============================================================
      MENU CONTEXTUEL (clic droit / bouton ⋯) sur un paquet
      ============================================================ */
   var ctxOpenId = null;
@@ -266,11 +329,12 @@
     });
     item("Partager", shareIcon, "", function () { shareDeck(deckId); });
     item("Supprimer", trashIcon, "ctx-danger", function () {
-      if (window.confirm("Supprimer définitivement « " + deck.name + " » et ses " + deck.cards.length + " cartes ?")) {
-        S.deleteDeck(deckId);
-        toast("Paquet supprimé.");
-        renderHome();
-      }
+      confirmDialog(
+        "Supprimer ce paquet ?",
+        "« " + deck.name + " » et ses " + deck.cards.length + " carte" + (deck.cards.length > 1 ? "s" : "") + " seront définitivement supprimés.",
+        "Supprimer", true,
+        function () { S.deleteDeck(deckId); toast("Paquet supprimé."); Sfx.play("click"); renderHome(); }
+      );
     });
 
     // Positionnement : on garde le menu dans la fenêtre.
@@ -1031,7 +1095,7 @@
     }
 
     function fallback() {
-      window.prompt("Copie ce lien et envoie-le :", url);
+      showLinkDialog(url);
     }
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1114,11 +1178,12 @@
     $("#delDeckBtn").addEventListener("click", function () {
       var d = S.getDeck(currentDeckId);
       if (!d) return;
-      if (window.confirm("Supprimer définitivement « " + d.name + " » et ses " + d.cards.length + " cartes ?")) {
-        S.deleteDeck(currentDeckId);
-        toast("Paquet supprimé.");
-        go("#/");
-      }
+      confirmDialog(
+        "Supprimer ce paquet ?",
+        "« " + d.name + " » et ses " + d.cards.length + " carte" + (d.cards.length > 1 ? "s" : "") + " seront définitivement supprimés.",
+        "Supprimer", true,
+        function () { S.deleteDeck(currentDeckId); toast("Paquet supprimé."); go("#/"); }
+      );
     });
 
     $("#againBtn").addEventListener("click", function () {
@@ -1136,7 +1201,7 @@
     document.addEventListener("click", function (e) {
       if (ctxOpenId && !e.target.closest("#ctxMenu")) closeCtxMenu();
     });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeCtxMenu(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeCtxMenu(); closeModal(); } });
     window.addEventListener("scroll", closeCtxMenu, true);
     window.addEventListener("resize", closeCtxMenu);
     window.addEventListener("hashchange", function () { closeCtxMenu(); route(); });
