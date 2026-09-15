@@ -35,9 +35,22 @@ Chaque leçon suit le même rythme, en 8 étapes courtes :
 Les mini-défis comptent comme de vraies réponses : ils rapportent de l'XP et font monter
 la barre de maîtrise.
 
-## 🎮 Entraînement
+## ✏️ Conjugaison écrite
 
-Quatre formats mélangés pour éviter la monotonie :
+Le mode principal : **tu écris, le site corrige**.
+
+1. Choisis un verbe (recherche insensible aux accents parmi les 68) ou prends-en un au hasard.
+2. Choisis **un temps** — ou **les 5 temps** d'affilée.
+3. Écris les six personnes. `Entrée` valide la ligne et saute à la suivante, `Vérifier` valide tout.
+
+Chaque ligne est jugée séparément : bordure verte si c'est juste, rouge sinon, avec **la bonne
+réponse affichée dessous**, terminaison en couleur. Une case laissée vide compte comme fausse.
+À la fin, le **tableau complet du verbe** dans les temps travaillés reste affiché comme fiche
+de référence.
+
+## 🎮 Questions mélangées
+
+Quatre formats pour éviter la monotonie :
 
 - **Trouve la forme** — QCM à trous (« Hier, quand j'étais petit, je ___ souvent au parc. »).
 - **Conjugue** — saisie libre (« Conjugue *prendre* à la 1ʳᵉ personne du singulier à l'imparfait. »).
@@ -84,7 +97,7 @@ js/conjugate.js     Moteur : terminaisons, temps composés, accords, correction 
 js/content.js       Les 5 leçons, 60 phrases d'exercice, 20 erreurs à corriger
 js/store.js         XP, niveaux, séries, maîtrise, trophées, sauvegarde
 js/quiz.js          Génération et mélange des questions
-js/app.js           Interface : accueil, leçons, entraînement, progression
+js/app.js           Interface : accueil, leçons, conjugaison écrite, quiz, progression
 ```
 
 ## 🛠️ Technique

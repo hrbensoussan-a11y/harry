@@ -97,7 +97,7 @@
 
   /* ---------- routeur ---------- */
   let showcaseTimer = null;
-  const NAV_FOR = { home: 'home', lessons: 'lessons', lesson: 'lessons', train: 'train', progress: 'progress' };
+  const NAV_FOR = { home: 'home', lessons: 'lessons', lesson: 'lessons', train: 'train', drill: 'train', progress: 'progress' };
 
   function go(view, arg) {
     if (showcaseTimer) { clearInterval(showcaseTimer); showcaseTimer = null; }
@@ -111,9 +111,10 @@
     if (view === 'lessons')  { setAccent('imparfait'); renderLessons(); }
     if (view === 'lesson')   { startLesson(arg); }
     if (view === 'train')    { setAccent('condPresent'); renderTrainMenu(); }
+    if (view === 'drill')    { setAccent('condPresent'); renderDrillSetup(); }
     if (view === 'progress') { setAccent('plusQueParfait'); renderProgress(); }
 
-    const target = view === 'lesson' ? 'lesson' : view;
+    const target = view === 'lesson' ? 'lesson' : view === 'drill' ? 'train' : view;
     $('#view-' + target).classList.add('active');
     window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
     renderHud();
@@ -168,7 +169,7 @@
           '<p class="hero-sub">5 temps. Des défis. Zéro prise de tête.</p>' +
           '<div class="hero-cta">' +
             '<button class="btn btn-primary" id="ctaStart">Commencer à apprendre</button>' +
-            '<button class="btn btn-ghost" id="ctaQuick">Défi rapide · 10 questions</button>' +
+            '<button class="btn btn-ghost" id="ctaWrite">Écrire une conjugaison</button>' +
           '</div>' +
           '<div class="hero-stats">' +
             '<div class="hero-stat"><div class="n">' + lv.level + '</div><div class="l">Niveau</div></div>' +
@@ -194,7 +195,7 @@
       '</div>';
 
     $('#ctaStart').onclick = function () { Sound.play('click'); go('lessons'); };
-    $('#ctaQuick').onclick = function () { Sound.play('click'); startQuiz({ tense: 'all', count: 10 }); };
+    $('#ctaWrite').onclick = function () { Sound.play('click'); go('drill'); };
     wireCards($('#view-home'));
     runShowcase();
   }
@@ -295,7 +296,7 @@
     if (step.type === 'defi') {
       const q = lessonChallenge(step, id);
       const host = document.createElement('div');
-      host.id = 'qHost';
+      host.id = 'lessonQHost';
       $('#lessonPanel').insertBefore(host, nav);
       nav.innerHTML = prevBtn + '<span class="spacer"></span>' +
         '<button class="btn btn-primary" id="lNext" disabled>' + nextLabel + '</button>';
@@ -488,6 +489,7 @@
    */
   function renderQ(q, host, done) {
     const isChoice = q.format === 'fill' || q.format === 'identify' || q.format === 'mcq';
+    activeQHost = host;
     setAccent(q.tense);
 
     host.innerHTML =
@@ -572,6 +574,8 @@
     document.addEventListener('keydown', host._keyHandler);
   }
 
+  let activeQHost = null;
+
   const PRAISES = ['Exact !', 'Parfait.', 'Bien joué !', 'Nickel.', 'Impeccable.', 'Tu gères.'];
   function pickPraise() { return PRAISES[Math.floor(Math.random() * PRAISES.length)]; }
 
@@ -601,8 +605,21 @@
       '<span class="eyebrow">Entraînement</span>' +
       '<div class="section-head" style="margin-top:10px">' +
         '<div><h2>Choisis ton défi</h2>' +
-        '<p>Quatre formats mélangés : compléter, conjuguer, identifier le temps, corriger une erreur.</p></div>' +
+        '<p>Écris toi-même les formes, ou enchaîne des questions mélangées.</p></div>' +
       '</div>' +
+      '<div class="panel">' +
+        '<span class="qtype">Conjugaison écrite</span>' +
+        '<h3 style="margin-top:14px">Écris les six personnes, on corrige</h3>' +
+        '<p class="lead">Tu choisis un verbe et un temps — ou les cinq d’un coup — puis tu écris chaque forme. ' +
+        'Chaque ligne est validée séparément, avec la bonne réponse quand tu te trompes.</p>' +
+        '<div class="panel-nav">' +
+          '<button class="btn btn-primary" id="goDrill">Choisir un verbe</button>' +
+          '<button class="btn btn-ghost" id="drillRandom">Verbe au hasard · les 5 temps</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="section-head"><div><h2>Questions mélangées</h2>' +
+        '<p>Quatre formats : compléter, conjuguer, identifier le temps, corriger une erreur.</p></div></div>' +
       '<div class="panel">' +
         '<div class="meter-row"><span>Objectif du jour</span><span>' + s.dayCount + ' / ' + Store.DAILY_GOAL + ' questions</span></div>' +
         '<div class="meter" style="--c: var(--accent)"><i style="width:' + goalPct + '%;background:var(--accent)"></i></div>' +
@@ -616,6 +633,12 @@
 
     wireCards($('#view-train'));
     $('#marathon').onclick = function () { startQuiz({ tense: 'all', count: 20 }); };
+    $('#goDrill').onclick = function () { Sound.play('click'); go('drill'); };
+    $('#drillRandom').onclick = function () {
+      Sound.play('click');
+      drillPick = { verb: CORE_VERBS[Math.floor(Math.random() * CORE_VERBS.length)], scope: 'all' };
+      startDrill();
+    };
   }
 
   let quiz = null;
@@ -656,7 +679,7 @@
 
     $('#qQuit').onclick = function () { cleanupQ(); go('train'); };
 
-    const host = $('#qHost');
+    const host = $('#view-train #qHost');
     renderQ(q, host, function (verdict) {
       const good = verdict === 'correct', near = verdict === 'accent';
       if (good) quiz.score++;
@@ -692,12 +715,13 @@
   function nextOnEnter(e) {
     if (e.key !== 'Enter') return;
     const b = $('#qNext');
-    if (b && !b.disabled && document.activeElement !== $('#qInput')) { e.preventDefault(); b.click(); }
+    const input = activeQHost ? $('#qInput', activeQHost) : null;
+    if (b && !b.disabled && document.activeElement !== input) { e.preventDefault(); b.click(); }
   }
 
   function cleanupQ() {
-    const host = $('#qHost');
-    if (host && host._keyHandler) document.removeEventListener('keydown', host._keyHandler);
+    if (activeQHost && activeQHost._keyHandler) document.removeEventListener('keydown', activeQHost._keyHandler);
+    activeQHost = null;
     document.removeEventListener('keydown', nextOnEnter);
   }
 
@@ -740,6 +764,291 @@
     $('#rAgain').onclick = function () { startQuiz(quiz.opts); };
     $('#rMenu').onclick  = function () { go('train'); };
     $('#rProg').onclick  = function () { go('progress'); };
+    renderHud();
+  }
+
+  /* ============================================================
+     CONJUGAISON ÉCRITE — on écrit les six personnes, on est corrigé
+     ============================================================ */
+  let drillPick = { verb: null, scope: 'all' };
+  let drill = null;
+
+  function scopeLabel(scope, verb) {
+    const n = scope === 'all' ? 30 : 6;
+    return 'Écrire les ' + n + ' formes de « ' + verb + ' »';
+  }
+
+  function renderDrillSetup() {
+    if (!drillPick.verb) drillPick.verb = CORE_VERBS[Math.floor(Math.random() * CORE_VERBS.length)];
+
+    const scopes = [{ id: 'all', name: 'Les 5 temps', c: 'var(--accent)' }].concat(
+      TENSE_IDS.map(function (t) { return { id: t, name: TENSES[t].name, c: 'var(--t-' + t + ')' }; }));
+
+    $('#view-train').innerHTML =
+      '<span class="eyebrow">Conjugaison écrite</span>' +
+      '<div class="section-head" style="margin-top:10px">' +
+        '<div><h2>Écris, on corrige</h2>' +
+        '<p>Choisis un verbe, écris ses six personnes. Chaque forme est corrigée séparément, ' +
+        'et la bonne réponse s’affiche dès que tu te trompes.</p></div>' +
+      '</div>' +
+      '<div class="panel">' +
+        '<div class="pick-block">' +
+          '<span class="eyebrow">Le verbe</span>' +
+          '<input class="verb-search" id="verbSearch" type="text" autocomplete="off" autocapitalize="off" ' +
+            'autocorrect="off" spellcheck="false" placeholder="Cherche un verbe — prendre, venir, écrire…" ' +
+            'aria-label="Chercher un verbe" />' +
+          '<div class="verb-chips" id="verbChips"></div>' +
+        '</div>' +
+        '<div class="pick-block">' +
+          '<span class="eyebrow">Le ou les temps</span>' +
+          '<div class="scope-row" id="scopeRow">' +
+            scopes.map(function (sc) {
+              return '<button class="scope' + (drillPick.scope === sc.id ? ' on' : '') + '" data-scope="' + sc.id +
+                '" style="--c: ' + sc.c + '">' + sc.name + '</button>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+        '<div class="panel-nav"><span class="spacer"></span>' +
+          '<button class="btn btn-primary" id="drillGo">' + scopeLabel(drillPick.scope, drillPick.verb) + '</button>' +
+        '</div>' +
+      '</div>';
+
+    paintVerbChips('');
+
+    $('#verbSearch').addEventListener('input', function () { paintVerbChips(this.value); });
+    $('#verbSearch').addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const first = $('#verbChips .vchip');
+      if (first) { selectVerb(first.dataset.verb); $('#drillGo').focus(); }
+    });
+    $$('#scopeRow .scope').forEach(function (b) {
+      b.onclick = function () {
+        drillPick.scope = b.dataset.scope;
+        $$('#scopeRow .scope').forEach(function (x) { x.classList.toggle('on', x === b); });
+        $('#drillGo').textContent = scopeLabel(drillPick.scope, drillPick.verb);
+        setAccent(drillPick.scope === 'all' ? 'condPresent' : drillPick.scope);
+        Sound.play('click');
+      };
+    });
+    $('#drillGo').onclick = function () { Sound.play('click'); startDrill(); };
+  }
+
+  function selectVerb(v) {
+    drillPick.verb = v;
+    $$('#verbChips .vchip').forEach(function (x) { x.classList.toggle('on', x.dataset.verb === v); });
+    $('#drillGo').textContent = scopeLabel(drillPick.scope, v);
+    Sound.play('click');
+  }
+
+  function paintVerbChips(filter) {
+    const q = stripAccents(String(filter).toLowerCase().trim());
+    const list = VERB_KEYS.filter(function (v) { return !q || stripAccents(v).indexOf(q) >= 0; })
+      .sort(function (a, b) {
+        const d = (VERBS[b].core ? 1 : 0) - (VERBS[a].core ? 1 : 0);
+        return d || a.localeCompare(b, 'fr');
+      });
+    const host = $('#verbChips');
+    host.innerHTML = list.length
+      ? list.map(function (v) {
+          return '<button class="vchip' + (VERBS[v].core ? ' core' : '') + (v === drillPick.verb ? ' on' : '') +
+            '" data-verb="' + v + '">' + v + '</button>';
+        }).join('')
+      : '<p class="verb-empty">Aucun verbe ne correspond. Les 68 verbes du site sont les plus courants.</p>';
+    $$('.vchip', host).forEach(function (b) { b.onclick = function () { selectVerb(b.dataset.verb); }; });
+  }
+
+  function startDrill() {
+    drill = {
+      verb: drillPick.verb,
+      tenses: drillPick.scope === 'all' ? TENSE_IDS.slice() : [drillPick.scope],
+      ti: 0, score: 0, near: 0, total: 0, xp: 0, state: []
+    };
+    Store.resetStreak();
+    $$('.view').forEach(function (v) { v.classList.remove('active'); });
+    $$('.nav button').forEach(function (b) {
+      if (b.dataset.go === 'train') b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    $('#view-train').classList.add('active');
+    window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+    renderDrillStep();
+  }
+
+  function renderDrillStep() {
+    const t = drill.tenses[drill.ti];
+    setAccent(t);
+    drill.state = [0, 1, 2, 3, 4, 5].map(function () { return { done: false, verdict: null }; });
+
+    const pct = Math.max(3, Math.round(drill.ti / drill.tenses.length * 100));
+    const rows = PRONOUNS.map(function (pr, i) {
+      return '<div class="cell-row" data-i="' + i + '">' +
+        '<span class="pr">' + pr + '</span>' +
+        '<label class="cell" for="cell-' + i + '">' +
+          '<input id="cell-' + i + '" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" ' +
+            'spellcheck="false" aria-label="' + PERSON_LABELS[i] + '" />' +
+          '<span class="mark" aria-hidden="true"></span>' +
+        '</label></div>';
+    }).join('');
+
+    $('#view-train').innerHTML =
+      '<div class="quiz-bar">' +
+        '<button class="icon-btn" id="dQuit" aria-label="Quitter">✕</button>' +
+        '<div class="quiz-progress"><i style="width:' + pct + '%"></i></div>' +
+        '<span class="qcount">' + (drill.tenses.length > 1 ? 'temps ' + (drill.ti + 1) + ' / ' + drill.tenses.length : '6 formes') + '</span>' +
+        '<span class="streak-pill">🔥 ' + Store.get().streak + '</span>' +
+      '</div>' +
+      '<div class="panel">' +
+        '<div class="drill-head">' +
+          '<span class="drill-verb">' + drill.verb + '</span>' +
+          '<span class="drill-tense">' + TENSES[t].name + '</span>' +
+          '<span class="drill-count">Entrée pour valider une ligne</span>' +
+        '</div>' +
+        '<div class="drill-grid">' + rows + '</div>' +
+        '<div id="drillFoot"></div>' +
+        '<div class="panel-nav"><span class="spacer"></span>' +
+          '<button class="btn btn-primary" id="drillCheck">Vérifier</button></div>' +
+      '</div>';
+
+    $('#dQuit').onclick = function () { go('drill'); };
+    $('#drillCheck').onclick = function () {
+      /* Tout valider d'un coup : un seul son, pas six. */
+      let allGood = true;
+      for (let i = 0; i < 6; i++) {
+        const before = drill.state[i].done;
+        settleCell(i, true);
+        if (!before && drill.state[i].verdict !== 'correct') allGood = false;
+      }
+      Sound.play(allGood ? 'good' : 'bad');
+    };
+
+    PRONOUNS.forEach(function (_, i) {
+      const input = document.getElementById('cell-' + i);
+      input.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        settleCell(i);
+        const next = drill.state.findIndex(function (st) { return !st.done; });
+        if (next >= 0) document.getElementById('cell-' + next).focus();
+        else $('#drillCheck').focus();
+      });
+    });
+    setTimeout(function () { const f = document.getElementById('cell-0'); if (f) f.focus(); }, 60);
+  }
+
+  function settleCell(i, silent) {
+    const st = drill.state[i];
+    if (st.done) return;
+    const t = drill.tenses[drill.ti];
+    const input = document.getElementById('cell-' + i);
+    const val = input.value.trim();
+    const verdict = val ? checkForm(val, acceptedForms(drill.verb, t, i)) : 'wrong';
+    const ok = verdict === 'correct', near = verdict === 'accent';
+
+    st.done = true;
+    st.verdict = verdict;
+
+    const row = document.querySelector('.cell-row[data-i="' + i + '"]');
+    const cell = $('.cell', row);
+    cell.classList.add(ok ? 'correct' : near ? 'accent' : 'wrong');
+    $('.mark', cell).textContent = ok ? '✓' : near ? '!' : '✗';
+    input.disabled = true;
+
+    if (!ok) {
+      const c = conjugate(drill.verb, t, i);
+      const fix = document.createElement('div');
+      fix.className = 'fix';
+      fix.innerHTML = '<span class="lab">' + (near ? 'les accents' : 'réponse') + '</span>' + displayHTML(c);
+      row.appendChild(fix);
+    }
+
+    drill.total++;
+    if (ok) drill.score++;
+    if (near) drill.near++;
+    const res = Store.record(t, ok || near, near ? 0.5 : 1);
+    drill.xp += res.xp;
+    if (res.badges.length) { drill.badges = (drill.badges || []).concat(res.badges); Sound.play('badge'); }
+    else if (!silent) Sound.play(ok ? 'good' : near ? 'near' : 'bad');
+
+    const pill = $('.streak-pill');
+    if (pill) {
+      pill.textContent = '🔥 ' + res.streak;
+      if (ok && res.streak > 1 && !silent) { pill.classList.add('bump'); setTimeout(function () { pill.classList.remove('bump'); }, 460); }
+    }
+    renderHud();
+    updateDrillFoot();
+  }
+
+  function updateDrillFoot() {
+    const done = drill.state.filter(function (s) { return s.done; }).length;
+    if (done < 6) return;
+
+    const good = drill.state.filter(function (s) { return s.verdict === 'correct' || s.verdict === 'accent'; }).length;
+    const msg = good === 6 ? 'Tableau parfait.'
+      : good >= 4 ? 'Presque. Regarde les lignes rouges.'
+      : 'Reprends la leçon de ce temps, puis réessaie.';
+    $('#drillFoot').innerHTML =
+      '<div class="drill-score"><span class="big">' + good + ' / 6</span>' +
+      '<span class="lab">' + msg + '</span>' +
+      '<span class="chip xp" style="margin-left:auto">⚡ +' + drill.xp + ' XP</span></div>';
+
+    const last = drill.ti === drill.tenses.length - 1;
+    const btn = $('#drillCheck');
+    btn.textContent = last ? 'Voir le bilan' : 'Temps suivant · ' + TENSES[drill.tenses[drill.ti + 1]].name;
+    btn.onclick = function () {
+      Sound.play('click');
+      if (last) { finishDrill(); return; }
+      drill.ti++;
+      renderDrillStep();
+    };
+    btn.focus();
+  }
+
+  function finishDrill() {
+    const good = drill.score + drill.near;
+    const pct = Math.round(good / drill.total * 100);
+    const badges = (drill.badges || []).concat(Store.finishSession(drill.score, drill.total));
+    if (pct >= 80) { confetti(); Sound.play('badge'); }
+
+    const verdict = drill.score === drill.total ? 'Sans une faute. Ce verbe est à toi.'
+      : pct >= 80 ? 'Solide. Il reste deux ou trois formes à revoir.'
+      : pct >= 50 ? 'La moitié est acquise. Refais le même verbe.'
+      : 'Relis la leçon, puis reprends ce verbe.';
+
+    const tables = drill.tenses.map(function (t) {
+      return '<div class="conj-table" style="--accent: var(--t-' + t + ')">' +
+        '<div class="cap">' + TENSES[t].name + '</div>' +
+        fullTable(drill.verb, t).map(function (c) {
+          return '<div class="row"><span class="pr">' + PRONOUNS[c.person] + '</span>' +
+            '<span class="fm">' + partsHTML(c) + '</span></div>';
+        }).join('') + '</div>';
+    }).join('');
+
+    setAccent(drill.tenses.length > 1 ? 'condPresent' : drill.tenses[0]);
+    $('#view-train').innerHTML =
+      '<div class="panel" style="text-align:center">' +
+        '<span class="eyebrow">' + drill.verb + '</span>' +
+        '<div class="result-score" style="margin-top:14px">' + good + '<span class="of"> / ' + drill.total + '</span></div>' +
+        '<h3 style="margin-top:14px">' + verdict + '</h3>' +
+        '<div class="result-grid">' +
+          '<div class="result-tile"><div class="n">' + pct + ' %</div><div class="l">Réussite</div></div>' +
+          '<div class="result-tile"><div class="n">+' + drill.xp + '</div><div class="l">XP gagnée</div></div>' +
+          '<div class="result-tile"><div class="n">' + drill.tenses.length + '</div><div class="l">Temps écrits</div></div>' +
+          '<div class="result-tile"><div class="n">' + Store.level().level + '</div><div class="l">Niveau</div></div>' +
+        '</div>' +
+        (badges.length ? '<div class="badge-pop" style="justify-content:center">' + badges.map(badgeNewHTML).join('') + '</div>' : '') +
+        '<div class="section-head" style="margin-top:38px"><div><h2>Le tableau complet</h2>' +
+          '<p>Garde-le sous les yeux : c’est exactement ce que tu viens d’écrire.</p></div></div>' +
+        '<div class="recap-tables">' + tables + '</div>' +
+        '<div class="panel-nav" style="justify-content:center;margin-top:30px">' +
+          '<button class="btn btn-primary" id="fAgain">Refaire ce verbe</button>' +
+          '<button class="btn btn-ghost" id="fOther">Un autre verbe</button>' +
+          '<button class="btn btn-ghost" id="fProg">Ma progression</button>' +
+        '</div>' +
+      '</div>';
+
+    $('#fAgain').onclick = function () { startDrill(); };
+    $('#fOther').onclick = function () { go('drill'); };
+    $('#fProg').onclick  = function () { go('progress'); };
     renderHud();
   }
 
@@ -817,6 +1126,9 @@
     }
   };
   Store.onChange(renderHud);
+
+  /* accès en lecture pour les tests automatisés */
+  window.drillTenseForTest = function () { return drill ? drill.tenses[drill.ti] : null; };
 
   go('home');
 })();
