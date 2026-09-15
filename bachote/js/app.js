@@ -5,6 +5,24 @@
   "use strict";
 
   var S = window.Store, Sfx = window.Sfx;
+  var LC = window.LANG_CODES || ["fr"];
+
+  /* Langue courante (mémorisée), avec repli sur le français. */
+  function curLang() { var l = S.setting("lang"); return LC.indexOf(l) >= 0 ? l : "fr"; }
+  function t(k) { return window.tRaw(curLang(), k); }
+  var tr = t; // alias sûr là où une variable locale « t » masquerait la fonction
+  function sepName(sep) {
+    if (sep === "\t") return tr("sep_word_tab");
+    var c = String(sep).trim();
+    return c ? "« " + c + " »" : tr("sep_word_space");
+  }
+  function tn(k, n) { return window.tnRaw(curLang(), k, n); }
+  function subjLabel(k) { return window.subjectLabel(curLang(), k); }
+
+  /* Message de confirmation de suppression, avec le nom et le nombre de cartes. */
+  function delMsg(deck) {
+    return "« " + deck.name + " » — " + tn("n_cards", deck.cards.length) + ".";
+  }
 
   /* Icônes SVG de la barre (au lieu d'emoji, plus net et cohérent). */
   var IC = {
@@ -123,6 +141,77 @@
     $("#themeIcon").innerHTML = effectiveTheme() === "dark" ? IC.sun : IC.moon;
   }
 
+  function visibleScreen() {
+    for (var i = 0; i < SCREENS.length; i++) {
+      var n = $("#screen-" + SCREENS[i]);
+      if (n && !n.hidden) return SCREENS[i];
+    }
+    return "home";
+  }
+
+  function applyStaticI18n() {
+    var lang = curLang();
+    document.documentElement.lang = lang;
+    $$("[data-i18n]").forEach(function (e) { e.textContent = window.tRaw(lang, e.getAttribute("data-i18n")); });
+    $$("[data-i18n-ph]").forEach(function (e) { e.placeholder = window.tRaw(lang, e.getAttribute("data-i18n-ph")); });
+    $$("[data-i18n-title]").forEach(function (e) { e.title = window.tRaw(lang, e.getAttribute("data-i18n-title")); });
+    var flag = $("#langFlag");
+    var cur = window.LANGS.filter(function (l) { return l.code === lang; })[0];
+    if (flag && cur) flag.textContent = cur.flag;
+  }
+
+  function relabelEditor() {
+    $("#editHeading").textContent = t(editState.id ? "edit_heading_edit" : "edit_heading_new");
+    renderSubjectPills($("#deckSubjectInput").value);
+  }
+
+  function setLang(code) {
+    if (LC.indexOf(code) < 0) return;
+    S.setting("lang", code);
+    applyStaticI18n();
+    Sfx.play("click");
+    var scr = visibleScreen();
+    if (scr === "home") renderHome();
+    else if (scr === "deck") renderDeck(currentDeckId);
+    else if (scr === "edit") relabelEditor();
+    // étude / résultat : les libellés statiques suffisent, on ne coupe pas la session
+  }
+
+  function initLangMenu() {
+    var menu = $("#langMenu"), btn = $("#langBtn");
+    menu.innerHTML = "";
+    window.LANGS.forEach(function (l) {
+      var b = el("button", "lang-opt");
+      b.type = "button";
+      b.setAttribute("role", "menuitem");
+      b.setAttribute("data-lang", l.code);
+      b.innerHTML = '<span class="lang-flag">' + l.flag + '</span><span>' + l.label + '</span>';
+      b.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setLang(l.code);
+        closeLangMenu();
+      });
+      menu.appendChild(b);
+    });
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var open = menu.hidden;
+      if (open) openLangMenu(); else closeLangMenu();
+    });
+  }
+  function openLangMenu() {
+    var menu = $("#langMenu");
+    $$(".lang-opt", menu).forEach(function (o) {
+      o.setAttribute("aria-current", String(o.getAttribute("data-lang") === curLang()));
+    });
+    menu.hidden = false;
+    $("#langBtn").setAttribute("aria-expanded", "true");
+  }
+  function closeLangMenu() {
+    $("#langMenu").hidden = true;
+    $("#langBtn").setAttribute("aria-expanded", "false");
+  }
+
   function initSettings() {
     applyTheme(S.setting("theme"));
     $("#themeBtn").addEventListener("click", function () {
@@ -158,7 +247,7 @@
     // Bouton menu (⋯) — clic gauche ou clic droit ouvrent le même menu.
     var menuBtn = el("button", "card-menu");
     menuBtn.type = "button";
-    menuBtn.setAttribute("aria-label", "Options du paquet");
+    menuBtn.setAttribute("aria-label", t("options_deck"));
     menuBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>';
     menuBtn.addEventListener("click", function (e) {
       e.stopPropagation();
@@ -173,14 +262,14 @@
       b.appendChild(st);
     }
 
-    var tag = el("span", "tag tag-" + (deck.subject || "autre"), window.SUBJECT_LABEL(deck.subject));
+    var tag = el("span", "tag tag-" + (deck.subject || "autre"), subjLabel(deck.subject));
     b.appendChild(tag);
     b.appendChild(el("h3", "deck-name", deck.name));
 
     var due = S.dueCount(deck);
     var prog = S.deckProgress(deck);
-    b.appendChild(el("p", "deck-sub", plural(deck.cards.length, "carte", "cartes") +
-      (due ? " · " + due + " à réviser" : "")));
+    b.appendChild(el("p", "deck-sub", tn("n_cards", deck.cards.length) +
+      (due ? " · " + due + " " + t("to_review_word") : "")));
 
     var foot2 = el("div", "deck-foot");
     var bar = el("div", "mini-bar");
@@ -205,19 +294,18 @@
     grid.innerHTML = "";
     window.SUBJECTS.forEach(function (subj) {
       if (subj.k === "autre") return; // "Autre" est proposé dans l'éditeur, pas ici
-      var t = el("button", "subject-tile");
-      t.type = "button";
-      t.setAttribute("data-subj", subj.k);
-      var tag = el("span", "tag tag-" + subj.k, subj.label);
-      t.appendChild(tag);
-      t.appendChild(el("span", "subject-plus", "+ Créer un paquet"));
-      t.addEventListener("click", function () { go("#/new/" + subj.k); });
-      grid.appendChild(t);
+      var tile = el("button", "subject-tile");
+      tile.type = "button";
+      tile.setAttribute("data-subj", subj.k);
+      tile.appendChild(el("span", "tag tag-" + subj.k, subjLabel(subj.k)));
+      tile.appendChild(el("span", "subject-plus", t("create_deck_tile")));
+      tile.addEventListener("click", function () { go("#/new/" + subj.k); });
+      grid.appendChild(tile);
     });
     // Tuile "vierge" pour une matière libre
     var blank = el("button", "subject-tile subject-blank");
     blank.type = "button";
-    blank.innerHTML = '<span class="subject-plus"><b>+</b> Paquet vierge</span>';
+    blank.innerHTML = '<span class="subject-plus"><b>+</b> ' + t("blank_deck") + '</span>';
     blank.addEventListener("click", function () { go("#/new"); });
     grid.appendChild(blank);
   }
@@ -262,7 +350,7 @@
   function confirmDialog(title, message, confirmLabel, danger, onConfirm) {
     var body = el("p", "modal-msg", message);
     var card = buildModal(title, body, [
-      { label: "Annuler", cls: "btn-ghost", onClick: closeModal },
+      { label: t("cancel"), cls: "btn-ghost", onClick: closeModal },
       { label: confirmLabel, cls: danger ? "btn-primary btn-confirm-danger" : "btn-primary",
         onClick: function () { closeModal(); onConfirm(); } }
     ]);
@@ -273,14 +361,14 @@
 
   function showLinkDialog(url) {
     var wrap = el("div");
-    var msg = el("p", "modal-msg", "Copie ce lien et envoie-le à qui tu veux :");
+    var msg = el("p", "modal-msg", t("share_link_msg"));
     var field = el("input", "inp");
     field.type = "text"; field.value = url; field.readOnly = true;
     field.addEventListener("focus", function () { field.select(); });
     wrap.appendChild(msg);
     wrap.appendChild(field);
-    buildModal("Partager le paquet", wrap, [
-      { label: "Fermer", cls: "btn-primary", onClick: closeModal }
+    buildModal(t("share_deck_title"), wrap, [
+      { label: t("close"), cls: "btn-primary", onClick: closeModal }
     ]);
     setTimeout(function () { field.focus(); field.select(); }, 30);
   }
@@ -321,19 +409,17 @@
     var shareIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M8.1 10.9 15.9 6.1M8.1 13.1l7.8 4.8"/></svg>';
     var trashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>';
 
-    item(deck.fav ? "Retirer des favoris" : "Mettre en favori", starIcon, "", function () {
+    item(deck.fav ? t("fav_remove") : t("fav_add"), starIcon, "", function () {
       var nowFav = S.toggleFav(deckId);
       Sfx.play(nowFav ? "good" : "click");
-      toast(nowFav ? "Ajouté aux favoris." : "Retiré des favoris.");
+      toast(nowFav ? t("t_fav_added") : t("t_fav_removed"));
       renderHome();
     });
-    item("Partager", shareIcon, "", function () { shareDeck(deckId); });
-    item("Supprimer", trashIcon, "ctx-danger", function () {
+    item(t("share"), shareIcon, "", function () { shareDeck(deckId); });
+    item(t("delete"), trashIcon, "ctx-danger", function () {
       confirmDialog(
-        "Supprimer ce paquet ?",
-        "« " + deck.name + " » et ses " + deck.cards.length + " carte" + (deck.cards.length > 1 ? "s" : "") + " seront définitivement supprimés.",
-        "Supprimer", true,
-        function () { S.deleteDeck(deckId); toast("Paquet supprimé."); Sfx.play("click"); renderHome(); }
+        t("confirm_del_title"), delMsg(deck), t("delete"), true,
+        function () { S.deleteDeck(deckId); toast(t("t_deck_deleted")); Sfx.play("click"); renderHome(); }
       );
     });
 
@@ -355,7 +441,7 @@
     $("#decksHead").hidden = empty;
     grid.hidden = empty;
     // Le titre de la section matières s'adapte à l'état.
-    $("#subjectHead").textContent = empty ? "Commence par une matière" : "Créer un nouveau paquet";
+    $("#subjectHead").textContent = empty ? t("subject_head_empty") : t("subject_head_more");
 
     grid.innerHTML = "";
     if (!empty) {
@@ -363,7 +449,7 @@
       var add = el("button", "deck-add");
       add.type = "button";
       add.innerHTML = "<b>+</b>";
-      add.appendChild(el("span", null, "Nouveau paquet"));
+      add.appendChild(el("span", null, t("new_deck_tile")));
       add.addEventListener("click", function () { go("#/new"); });
       grid.appendChild(add);
     }
@@ -375,10 +461,10 @@
     strip.innerHTML = "";
     if (decks.length) {
       [
-        [decks.length, decks.length > 1 ? "paquets" : "paquet"],
-        [totalCards, totalCards > 1 ? "cartes" : "carte"],
-        [mastered, "maîtrisées"],
-        [S.state().stats.streak, S.state().stats.streak > 1 ? "jours d'affilée" : "jour d'affilée"]
+        [decks.length, tn("lbl_decks", decks.length)],
+        [totalCards, tn("lbl_cards", totalCards)],
+        [mastered, tn("lbl_mastered", mastered)],
+        [S.state().stats.streak, tn("lbl_streak", S.state().stats.streak)]
       ].forEach(function (p) {
         var s = el("div", "stat");
         s.appendChild(el("b", null, String(p[0])));
@@ -393,7 +479,7 @@
     if (due > 0) {
       dueCard.hidden = false;
       $("#dueNum").textContent = String(due);
-      $("#dueLabel").textContent = due > 1 ? "cartes à réviser" : "carte à réviser";
+      $("#dueLabel").textContent = window.tnRaw(curLang(), "due_label", due).replace(/^\d+\s*/, "");
     } else {
       dueCard.hidden = true;
     }
@@ -409,25 +495,26 @@
 
   function renderDeck(id) {
     var d = S.getDeck(id);
-    if (!d) { toast("Ce paquet n'existe plus."); go("#/"); return; }
+    if (!d) { toast(t("t_deck_gone")); go("#/"); return; }
     currentDeckId = id;
 
-    $("#deckTag").textContent = window.SUBJECT_LABEL(d.subject);
+    $("#deckTag").textContent = subjLabel(d.subject);
     $("#deckTag").className = "tag tag-" + (d.subject || "autre");
     $("#deckTitle").textContent = d.name;
 
     var due = S.dueCount(d);
-    $("#deckMeta").textContent = plural(d.cards.length, "carte", "cartes") +
-      (due ? " · " + due + " à réviser maintenant" : " · rien à réviser pour l'instant");
+    $("#deckMeta").textContent = tn("n_cards", d.cards.length) +
+      (due ? " · " + due + " " + t("to_review_now") : " · " + t("nothing_due_short"));
 
     var prog = S.deckProgress(d);
     $("#deckProgFill").style.width = prog.pct + "%";
     $("#deckProgLegend").textContent =
-      prog.ok + " maîtrisée" + (prog.ok > 1 ? "s" : "") + " · " +
-      prog.learn + " en cours · " + prog.fresh + " jamais vue" + (prog.fresh > 1 ? "s" : "");
+      prog.ok + " " + tn("lbl_mastered", prog.ok) + " · " +
+      prog.learn + " " + t("in_progress_word") + " · " +
+      prog.fresh + " " + tn("lbl_fresh", prog.fresh);
 
     $("#modeReviewBadge").textContent = due ? String(due) : "";
-    $("#cardCount").textContent = plural(d.cards.length, "carte", "cartes");
+    $("#cardCount").textContent = tn("n_cards", d.cards.length);
 
     var list = $("#cardList");
     list.innerHTML = "";
@@ -450,14 +537,14 @@
   function editRow(term, def) {
     var li = el("li");
     var t = el("input", "inp");
-    t.type = "text"; t.value = term || ""; t.placeholder = "Mot ou terme";
+    t.type = "text"; t.value = term || ""; t.placeholder = tr("ph_term");
     t.maxLength = 300;
     var dd = el("input", "inp");
-    dd.type = "text"; dd.value = def || ""; dd.placeholder = "Sa définition";
+    dd.type = "text"; dd.value = def || ""; dd.placeholder = tr("ph_def");
     dd.maxLength = 900;
     var del = el("button", "row-del", "✕");
     del.type = "button";
-    del.title = "Supprimer cette carte";
+    del.title = tr("row_del_title");
     del.addEventListener("click", function () {
       li.remove();
       refreshEditCount();
@@ -468,7 +555,7 @@
 
   function refreshEditCount() {
     var n = $$("#editList li").length;
-    $("#editCount").textContent = plural(n, "carte", "cartes");
+    $("#editCount").textContent = tn("n_cards", n);
   }
 
   function renderSubjectPills(selected) {
@@ -476,7 +563,7 @@
     row.innerHTML = "";
     $("#deckSubjectInput").value = selected || "autre";
     window.SUBJECTS.forEach(function (s) {
-      var b = el("button", "subj-pill", s.label);
+      var b = el("button", "subj-pill", subjLabel(s.k));
       b.type = "button";
       b.setAttribute("aria-pressed", String(s.k === (selected || "autre")));
       b.addEventListener("click", function () {
@@ -496,13 +583,13 @@
     if (id) {
       var d = S.getDeck(id);
       if (!d) { go("#/"); return; }
-      $("#editHeading").textContent = "Modifier le paquet";
+      $("#editHeading").textContent = tr("edit_heading_edit");
       $("#deckNameInput").value = d.name;
       renderSubjectPills(d.subject);
       d.cards.forEach(function (c) { list.appendChild(editRow(c.t, c.d)); });
       $("#pasteBox").open = false;
     } else {
-      $("#editHeading").textContent = "Nouveau paquet";
+      $("#editHeading").textContent = tr("edit_heading_new");
       $("#deckNameInput").value = "";
       renderSubjectPills(initialSubject || "autre");
       for (var i = 0; i < 3; i++) list.appendChild(editRow("", ""));
@@ -546,16 +633,12 @@
       if (!txt.trim()) { p.textContent = ""; p.className = "paste-preview"; return; }
       var r = S.parsePaste(txt, sep === "auto" ? null : sep);
       if (!r.pairs.length) {
-        p.textContent = "Aucune ligne reconnue. Chaque ligne doit contenir un séparateur entre le mot et sa définition, par exemple « mitose : division cellulaire ».";
+        p.textContent = tr("paste_none");
         p.className = "paste-preview warn";
       } else {
-        var many = r.pairs.length > 1 ? "s" : "";
-        var sepTxt = r.seps.length > 1
-          ? "séparateurs mélangés, c'est géré"
-          : "séparateur : " + S.sepLabel(r.seps[0]);
-        p.textContent = r.pairs.length + " carte" + many + " détectée" + many +
-          " (" + sepTxt + ")" +
-          (r.skipped ? " · " + r.skipped + " ligne" + (r.skipped > 1 ? "s" : "") + " sans séparateur, ignorée" + (r.skipped > 1 ? "s" : "") : "");
+        var sepTxt = r.seps.length > 1 ? tr("sep_mixed") : (tr("sep_which") + sepName(r.seps[0]));
+        p.textContent = "✓ " + tn("n_cards", r.pairs.length) + " · " + sepTxt +
+          (r.skipped ? " · " + tn("n_skipped", r.skipped) : "");
         p.className = "paste-preview ok";
       }
     }
@@ -565,7 +648,7 @@
     $("#pasteApply").addEventListener("click", function () {
       var sep = $("#sepSelect").value;
       var r = S.parsePaste($("#pasteArea").value, sep === "auto" ? null : sep);
-      if (!r.pairs.length) { toast("Aucune carte détectée dans ce texte."); return; }
+      if (!r.pairs.length) { toast(tr("t_no_card")); return; }
       var list = $("#editList");
       // On enlève les lignes vides laissées par défaut.
       $$("#editList li").forEach(function (li) {
@@ -586,8 +669,8 @@
       var name = $("#deckNameInput").value.trim();
       var subject = $("#deckSubjectInput").value || "autre";
       var pairs = collectRows();
-      if (!name) { toast("Donne un nom à ton paquet."); $("#deckNameInput").focus(); return; }
-      if (!pairs.length) { toast("Il faut au moins une carte complète (mot + définition)."); return; }
+      if (!name) { toast(tr("t_need_name")); $("#deckNameInput").focus(); return; }
+      if (!pairs.length) { toast(tr("t_need_card")); return; }
 
       if (editState.id) {
         var d = S.getDeck(editState.id);
@@ -600,12 +683,12 @@
           return S.newCard(p[0], p[1]);
         });
         S.updateDeck(editState.id, { name: name, subject: subject, cards: cards });
-        toast("Paquet enregistré.");
+        toast(tr("t_saved"));
         go("#/d/" + editState.id);
       } else {
         var nd = S.createDeck(name, subject, pairs);
         Sfx.play("done");
-        toast("Paquet créé : " + plural(pairs.length, "carte", "cartes") + ".");
+        toast(tr("t_created"));
         go("#/d/" + nd.id);
       }
     });
@@ -637,7 +720,7 @@
     if (mode === "review") {
       items = deck ? S.dueCards(deck).slice() : S.globalQueue().map(function (q) { return q.card; });
       if (!items.length) {
-        toast("Rien à réviser pour l'instant. Reviens plus tard, ou choisis un autre mode.");
+        toast(tr("t_nothing_due"));
         go(deck ? "#/d/" + deckId : "#/");
         return;
       }
@@ -647,10 +730,10 @@
       items = shuffle(deck.cards.slice());
     }
 
-    if (!items.length) { toast("Ce paquet est vide."); go("#/d/" + deckId); return; }
+    if (!items.length) { toast(tr("t_empty_deck")); go("#/d/" + deckId); return; }
 
     if ((mode === "mcq" || mode === "match") && items.length < 4) {
-      toast("Il faut au moins 4 cartes pour ce mode.");
+      toast(tr("t_need_4"));
       go("#/d/" + deckId);
       return;
     }
@@ -658,7 +741,7 @@
     sess = {
       mode: mode,
       deckId: deckId,
-      deckName: deck ? deck.name : "Toutes tes cartes",
+      deckName: deck ? deck.name : tr("all_cards"),
       queue: items,
       total: items.length,
       i: 0,
@@ -684,12 +767,12 @@
     var pct = total ? Math.round((sess.right / total) * 100) : 0;
 
     var emoji, title;
-    if (sess.mode === "flash") { emoji = "📚"; title = "Paquet parcouru"; }
-    else if (sess.mode === "review") { emoji = "🧠"; title = "Révision terminée"; }
-    else if (pct >= 90) { emoji = "🏆"; title = "Excellent !"; }
-    else if (pct >= 70) { emoji = "👏"; title = "Bien joué"; }
-    else if (pct >= 45) { emoji = "💪"; title = "Ça progresse"; }
-    else { emoji = "🌱"; title = "On recommence ?"; }
+    if (sess.mode === "flash") { emoji = "📚"; title = tr("done_flash"); }
+    else if (sess.mode === "review") { emoji = "🧠"; title = tr("done_review"); }
+    else if (pct >= 90) { emoji = "🏆"; title = tr("res_excellent"); }
+    else if (pct >= 70) { emoji = "👏"; title = tr("res_good"); }
+    else if (pct >= 45) { emoji = "💪"; title = tr("res_progress"); }
+    else { emoji = "🌱"; title = tr("res_retry"); }
 
     $("#resultEmoji").textContent = emoji;
     $("#resultTitle").textContent = title;
@@ -704,17 +787,17 @@
       stats.appendChild(s);
     }
     if (sess.mode === "flash") {
-      stat(sess.total, "cartes vues");
+      stat(sess.total, tr("cards_seen"));
     } else if (sess.mode === "review") {
-      stat(sess.total, "cartes revues");
-      stat(sess.right, "sues");
-      stat(sess.wrong, "à revoir");
+      stat(sess.total, tr("cards_reviewed"));
+      stat(sess.right, tr("known"));
+      stat(sess.wrong, tr("to_revise"));
     } else {
-      stat(sess.right, "bonnes réponses");
-      stat(sess.wrong, "erreurs");
-      stat(pct + "%", "de réussite");
+      stat(sess.right, tr("correct_answers"));
+      stat(sess.wrong, tr("errors"));
+      stat(pct + "%", tr("success_rate"));
     }
-    stat(secs < 60 ? secs + " s" : Math.floor(secs / 60) + " min " + (secs % 60) + " s", "de travail");
+    stat(secs < 60 ? secs + " " + tr("unit_sec") : Math.floor(secs / 60) + " " + tr("unit_min") + " " + (secs % 60) + " " + tr("unit_sec"), tr("work_time"));
 
     var missedBox = $("#resultMissed"), missedList = $("#missedList");
     missedList.innerHTML = "";
@@ -754,9 +837,9 @@
     $("#flashBack").textContent = c.d;
     if (sess.mode === "review") {
       $("#gradeRow").hidden = true;
-      $("#gHard").textContent = S.previewInterval(c, 3);
-      $("#gGood").textContent = S.previewInterval(c, 4);
-      $("#gEasy").textContent = S.previewInterval(c, 5);
+      $("#gHard").textContent = S.previewInterval(c, 3, curLang());
+      $("#gGood").textContent = S.previewInterval(c, 4, curLang());
+      $("#gEasy").textContent = S.previewInterval(c, 5, curLang());
     }
     studyProgress();
   }
@@ -890,14 +973,14 @@
 
     if (verdict === "exact" || verdict === "close") {
       fb.className = "write-feedback good";
-      fb.appendChild(el("b", null, verdict === "close" ? "Presque — on accepte : " : "Correct : "));
+      fb.appendChild(el("b", null, verdict === "close" ? tr("fb_almost") : tr("fb_correct")));
       fb.appendChild(document.createTextNode(card.t));
       sess.right++;
       S.grade(card, verdict === "close" ? 3 : 5);
       Sfx.play("good");
     } else {
       fb.className = "write-feedback bad";
-      fb.appendChild(el("b", null, "La réponse était : "));
+      fb.appendChild(el("b", null, tr("fb_wrong")));
       fb.appendChild(document.createTextNode(card.t));
       sess.wrong++;
       sess.missed.push(card);
@@ -1090,7 +1173,7 @@
     var url = location.origin + location.pathname + "#/s/" + code;
 
     if (url.length > 7500) {
-      toast("Ce paquet est trop gros pour un lien. Réduis-le ou partage-le en deux paquets.");
+      toast(tr("t_too_big"));
       return;
     }
 
@@ -1100,7 +1183,7 @@
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(function () {
-        toast("Lien copié ! Colle-le dans ton groupe de classe.");
+        toast(tr("t_link_copied"));
         Sfx.play("good");
       }).catch(fallback);
     } else {
@@ -1111,13 +1194,13 @@
   function importShared(code) {
     var parsed = S.decodeDeck(code);
     if (!parsed) {
-      toast("Ce lien de partage est invalide ou abîmé.");
+      toast(tr("t_link_invalid"));
       go("#/");
       return;
     }
     var d = S.createDeck(parsed.name, parsed.subject, parsed.pairs);
     Sfx.play("done");
-    toast("Paquet importé : " + plural(parsed.pairs.length, "carte", "cartes") + ".");
+    toast(tr("t_imported"));
     go("#/d/" + d.id);
   }
 
@@ -1154,6 +1237,8 @@
      ============================================================ */
   function init() {
     initSettings();
+    initLangMenu();
+    applyStaticI18n();
     initEditor();
     initFlash();
     initWrite();
@@ -1179,10 +1264,8 @@
       var d = S.getDeck(currentDeckId);
       if (!d) return;
       confirmDialog(
-        "Supprimer ce paquet ?",
-        "« " + d.name + " » et ses " + d.cards.length + " carte" + (d.cards.length > 1 ? "s" : "") + " seront définitivement supprimés.",
-        "Supprimer", true,
-        function () { S.deleteDeck(currentDeckId); toast("Paquet supprimé."); go("#/"); }
+        tr("confirm_del_title"), delMsg(d), tr("delete"), true,
+        function () { S.deleteDeck(currentDeckId); toast(tr("t_deck_deleted")); go("#/"); }
       );
     });
 
@@ -1200,8 +1283,9 @@
 
     document.addEventListener("click", function (e) {
       if (ctxOpenId && !e.target.closest("#ctxMenu")) closeCtxMenu();
+      if (!$("#langMenu").hidden && !e.target.closest(".lang-wrap")) closeLangMenu();
     });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeCtxMenu(); closeModal(); } });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeCtxMenu(); closeModal(); closeLangMenu(); } });
     window.addEventListener("scroll", closeCtxMenu, true);
     window.addEventListener("resize", closeCtxMenu);
     window.addEventListener("hashchange", function () { closeCtxMenu(); route(); });

@@ -27,8 +27,12 @@
     <span class="brand-text">Bachote</span>
   </a>
   <div class="topbar-actions">
-    <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" title="Activer / couper les sons"><span class="i-ic" id="soundIcon"></span></button>
-    <button class="icon-btn" id="themeBtn" type="button" title="Thème clair / sombre"><span class="i-ic" id="themeIcon"></span></button>
+    <div class="lang-wrap">
+      <button class="icon-btn lang-btn" id="langBtn" type="button" aria-haspopup="true" aria-expanded="false" data-i18n-title="lang_toggle"><span class="lang-flag" id="langFlag">🇫🇷</span></button>
+      <div class="lang-menu" id="langMenu" role="menu" hidden></div>
+    </div>
+    <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" data-i18n-title="sound_toggle"><span class="i-ic" id="soundIcon"></span></button>
+    <button class="icon-btn" id="themeBtn" type="button" data-i18n-title="theme_toggle"><span class="i-ic" id="themeIcon"></span></button>
   </div>
 </header>
 
@@ -39,8 +43,8 @@
     <div class="wrap">
 
       <div class="hero">
-        <h1 class="hero-title">Colle ton cours.<br><mark class="hl">On fabrique tes fiches.</mark></h1>
-        <p class="hero-sub">Flashcards, quiz, jeu d'association et révision intelligente. Gratuit, sans compte, tes fiches restent sur ton appareil.</p>
+        <h1 class="hero-title"><span data-i18n="hero_l1">Colle ton cours.</span><br><mark class="hl" data-i18n="hero_l2">On fabrique tes fiches.</mark></h1>
+        <p class="hero-sub" data-i18n="hero_sub">Flashcards, quiz, jeu d'association et révision intelligente. Gratuit, sans compte, tes fiches restent sur ton appareil.</p>
       </div>
 
       <div class="due-card" id="dueCard" hidden>
@@ -49,16 +53,16 @@
           <span class="due-label" id="dueLabel">carte à réviser</span>
         </div>
         <div class="due-right">
-          <p class="due-hint">La révision intelligente te montre en priorité ce que tu es sur le point d'oublier.</p>
-          <button class="btn btn-primary" id="dueStart" type="button">Lancer la révision</button>
+          <p class="due-hint" data-i18n="due_hint">La révision intelligente te montre en priorité ce que tu es sur le point d'oublier.</p>
+          <button class="btn btn-primary" id="dueStart" type="button" data-i18n="due_start">Lancer la révision</button>
         </div>
       </div>
 
       <div class="stats-strip" id="statsStrip"></div>
 
       <div class="sec-head" id="decksHead" hidden>
-        <h2 class="sec-title">Tes paquets</h2>
-        <button class="btn btn-ghost btn-sm" id="newDeckBtn" type="button">+ Nouveau paquet</button>
+        <h2 class="sec-title" data-i18n="decks_title">Tes paquets</h2>
+        <button class="btn btn-ghost btn-sm" id="newDeckBtn" type="button" data-i18n="new_deck">+ Nouveau paquet</button>
       </div>
 
       <div class="deck-grid" id="deckGrid"></div>
@@ -66,7 +70,7 @@
       <div class="sec-head">
         <h2 class="sec-title" id="subjectHead">Commence par une matière</h2>
       </div>
-      <p class="sec-note" id="subjectNote">Choisis une matière et remplis-la avec tes propres mots — ou colle ton cours.</p>
+      <p class="sec-note" id="subjectNote" data-i18n="subject_note">Choisis une matière et remplis-la avec tes propres mots — ou colle ton cours.</p>
       <div class="subject-grid" id="subjectGrid"></div>
 
     </div>
@@ -75,7 +79,7 @@
   <!-- ══════════ PAQUET ══════════ -->
   <section class="screen" id="screen-deck" hidden>
     <div class="wrap">
-      <button class="back-link" type="button" data-nav="#/">← Tous les paquets</button>
+      <button class="back-link" type="button" data-nav="#/" data-i18n="back_all">← Tous les paquets</button>
 
       <div class="deck-head">
         <div class="deck-head-main">
@@ -84,9 +88,9 @@
           <p class="deck-meta" id="deckMeta">0 carte</p>
         </div>
         <div class="deck-head-actions">
-          <button class="btn btn-ghost btn-sm" id="editDeckBtn" type="button">Modifier</button>
-          <button class="btn btn-ghost btn-sm" id="shareDeckBtn" type="button">Partager</button>
-          <button class="btn btn-ghost btn-sm btn-danger" id="delDeckBtn" type="button">Supprimer</button>
+          <button class="btn btn-ghost btn-sm" id="editDeckBtn" type="button" data-i18n="edit">Modifier</button>
+          <button class="btn btn-ghost btn-sm" id="shareDeckBtn" type="button" data-i18n="share">Partager</button>
+          <button class="btn btn-ghost btn-sm btn-danger" id="delDeckBtn" type="button" data-i18n="delete">Supprimer</button>
         </div>
       </div>
 
@@ -95,38 +99,38 @@
         <p class="progress-legend" id="deckProgLegend"></p>
       </div>
 
-      <h2 class="sec-title sec-title-tight">Comment veux-tu travailler ?</h2>
+      <h2 class="sec-title sec-title-tight" data-i18n="how_work">Comment veux-tu travailler ?</h2>
       <div class="mode-grid" id="modeGrid">
         <button class="mode-card mode-review" data-mode="review" type="button">
           <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg></span>
-          <span class="mode-name">Révision intelligente</span>
-          <span class="mode-desc">L'algorithme choisit quoi te montrer et quand. Le plus efficace.</span>
+          <span class="mode-name" data-i18n="mode_review_name">Révision intelligente</span>
+          <span class="mode-desc" data-i18n="mode_review_desc">L'algorithme choisit quoi te montrer et quand. Le plus efficace.</span>
           <span class="mode-badge" id="modeReviewBadge"></span>
         </button>
         <button class="mode-card" data-mode="flash" type="button">
           <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="7" width="14" height="11" rx="2"/><path d="M4 9v9a2 2 0 0 0 2 2h10"/><path d="M10 12.5h6"/></svg></span>
-          <span class="mode-name">Flashcards</span>
-          <span class="mode-desc">Tu retournes la carte, tu vérifies. Simple et rapide.</span>
+          <span class="mode-name" data-i18n="mode_flash_name">Flashcards</span>
+          <span class="mode-desc" data-i18n="mode_flash_desc">Tu retournes la carte, tu vérifies. Simple et rapide.</span>
         </button>
         <button class="mode-card" data-mode="match" type="button">
           <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="8" r="2.6"/><circle cx="17" cy="16" r="2.6"/><path d="M9.4 9.3 14.6 14.7"/></svg></span>
-          <span class="mode-name">Associer</span>
-          <span class="mode-desc">Relie chaque mot à sa définition, le plus vite possible.</span>
+          <span class="mode-name" data-i18n="mode_match_name">Associer</span>
+          <span class="mode-desc" data-i18n="mode_match_desc">Relie chaque mot à sa définition, le plus vite possible.</span>
         </button>
         <button class="mode-card" data-mode="mcq" type="button">
           <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9.5h8M8 14.5h5"/><path d="M14.5 15.5l1.6 1.6 2.4-2.8" stroke="var(--green)"/></svg></span>
-          <span class="mode-name">QCM</span>
-          <span class="mode-desc">Quatre propositions, une bonne réponse.</span>
+          <span class="mode-name" data-i18n="mode_mcq_name">QCM</span>
+          <span class="mode-desc" data-i18n="mode_mcq_desc">Quatre propositions, une bonne réponse.</span>
         </button>
         <button class="mode-card" data-mode="write" type="button">
           <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 5.5 18.5 8.5"/><path d="M5 19l1-4L16.5 4.5a1.5 1.5 0 0 1 2.1 0l.9.9a1.5 1.5 0 0 1 0 2.1L9 18l-4 1Z"/></svg></span>
-          <span class="mode-name">Écrire</span>
-          <span class="mode-desc">Retrouve le mot à partir de la définition. Le plus exigeant.</span>
+          <span class="mode-name" data-i18n="mode_write_name">Écrire</span>
+          <span class="mode-desc" data-i18n="mode_write_desc">Retrouve le mot à partir de la définition. Le plus exigeant.</span>
         </button>
       </div>
 
       <div class="sec-head">
-        <h2 class="sec-title">Les cartes</h2>
+        <h2 class="sec-title" data-i18n="cards_title">Les cartes</h2>
         <span class="muted-count" id="cardCount"></span>
       </div>
       <ul class="card-list" id="cardList"></ul>
@@ -136,53 +140,53 @@
   <!-- ══════════ ÉDITEUR ══════════ -->
   <section class="screen" id="screen-edit" hidden>
     <div class="wrap wrap-narrow">
-      <button class="back-link" type="button" id="editBack">← Annuler</button>
+      <button class="back-link" type="button" id="editBack" data-i18n="editor_cancel">← Annuler</button>
       <h1 class="edit-title" id="editHeading">Nouveau paquet</h1>
 
       <div class="field">
-        <label class="lbl" for="deckNameInput">Nom du paquet</label>
-        <input class="inp" id="deckNameInput" type="text" placeholder="ex. SVT — La cellule" maxlength="70" autocomplete="off">
+        <label class="lbl" for="deckNameInput" data-i18n="deck_name_label">Nom du paquet</label>
+        <input class="inp" id="deckNameInput" type="text" placeholder="ex. SVT — La cellule" data-i18n-ph="deck_name_ph" maxlength="70" autocomplete="off">
       </div>
 
       <div class="field">
-        <label class="lbl" for="deckSubjectInput">Matière</label>
+        <label class="lbl" for="deckSubjectInput" data-i18n="subject_label">Matière</label>
         <div class="subject-row" id="subjectRow"></div>
         <input type="hidden" id="deckSubjectInput">
       </div>
 
       <details class="paste-box" id="pasteBox">
         <summary class="paste-summary">
-          <span class="paste-title">⚡ Coller mon cours d'un coup</span>
-          <span class="paste-hint">La façon la plus rapide de remplir un paquet</span>
+          <span class="paste-title" data-i18n="paste_title">⚡ Coller mon cours d'un coup</span>
+          <span class="paste-hint" data-i18n="paste_hint">La façon la plus rapide de remplir un paquet</span>
         </summary>
         <div class="paste-body">
-          <p class="paste-help">Colle tes lignes, une par carte. Bachote détecte tout seul le séparateur entre le mot et sa définition.</p>
+          <p class="paste-help" data-i18n="paste_help">Colle tes lignes, une par carte. Bachote détecte tout seul le séparateur entre le mot et sa définition.</p>
           <textarea class="inp inp-area" id="pasteArea" rows="7" placeholder="mitose : division cellulaire qui produit deux cellules identiques&#10;méiose : division qui produit quatre cellules à n chromosomes&#10;chromosome — molécule d'ADN condensée portant les gènes"></textarea>
           <div class="paste-controls">
-            <label class="lbl lbl-inline" for="sepSelect">Séparateur</label>
+            <label class="lbl lbl-inline" for="sepSelect" data-i18n="sep_label">Séparateur</label>
             <select class="inp inp-select" id="sepSelect">
-              <option value="auto">Détection automatique</option>
-              <option value="tab">Tabulation</option>
-              <option value=":">Deux-points :</option>
-              <option value="-">Tiret -</option>
-              <option value="=">Égal =</option>
+              <option value="auto" data-i18n="sep_auto">Détection automatique</option>
+              <option value="tab" data-i18n="sep_tab">Tabulation</option>
+              <option value=":" data-i18n="sep_colon">Deux-points :</option>
+              <option value="-" data-i18n="sep_dash">Tiret -</option>
+              <option value="=" data-i18n="sep_eq">Égal =</option>
             </select>
-            <button class="btn btn-primary btn-sm" id="pasteApply" type="button">Créer les cartes</button>
+            <button class="btn btn-primary btn-sm" id="pasteApply" type="button" data-i18n="paste_apply">Créer les cartes</button>
           </div>
           <p class="paste-preview" id="pastePreview"></p>
         </div>
       </details>
 
       <div class="sec-head">
-        <h2 class="sec-title">Cartes</h2>
+        <h2 class="sec-title" data-i18n="cards_edit_title">Cartes</h2>
         <span class="muted-count" id="editCount"></span>
       </div>
 
       <ul class="edit-list" id="editList"></ul>
-      <button class="btn btn-ghost btn-wide" id="addCardBtn" type="button">+ Ajouter une carte</button>
+      <button class="btn btn-ghost btn-wide" id="addCardBtn" type="button" data-i18n="add_card">+ Ajouter une carte</button>
 
       <div class="edit-actions">
-        <button class="btn btn-primary btn-wide" id="saveDeckBtn" type="button">Enregistrer le paquet</button>
+        <button class="btn btn-primary btn-wide" id="saveDeckBtn" type="button" data-i18n="save_deck">Enregistrer le paquet</button>
       </div>
     </div>
   </section>
@@ -190,7 +194,7 @@
   <!-- ══════════ ÉTUDE ══════════ -->
   <section class="screen screen-study" id="screen-study" hidden>
     <div class="study-bar">
-      <button class="icon-btn" id="quitStudy" type="button" title="Quitter">✕</button>
+      <button class="icon-btn" id="quitStudy" type="button" data-i18n-title="quit">✕</button>
       <div class="study-prog"><span id="studyProgFill"></span></div>
       <span class="study-count" id="studyCount">0 / 0</span>
     </div>
@@ -201,32 +205,32 @@
         <div class="flip" id="flip">
           <div class="flip-in" id="flipIn">
             <div class="flip-face flip-front">
-              <span class="face-label">Terme</span>
+              <span class="face-label" data-i18n="face_term">Terme</span>
               <p class="face-text" id="flashFront"></p>
-              <span class="face-hint">Appuie sur la carte ou <kbd>Espace</kbd> pour retourner</span>
+              <span class="face-hint"><span data-i18n="flip_hint_a">Appuie sur la carte ou </span><kbd data-i18n="flip_kbd">Espace</kbd><span data-i18n="flip_hint_b"> pour retourner</span></span>
             </div>
             <div class="flip-face flip-back">
-              <span class="face-label">Définition</span>
+              <span class="face-label" data-i18n="face_def">Définition</span>
               <p class="face-text face-text-def" id="flashBack"></p>
             </div>
           </div>
         </div>
         <div class="grade-row" id="gradeRow" hidden>
-          <button class="btn-grade g-again" data-q="1" type="button"><b>Encore</b><i>&lt; 1 min</i></button>
-          <button class="btn-grade g-hard" data-q="3" type="button"><b>Difficile</b><i id="gHard"></i></button>
-          <button class="btn-grade g-good" data-q="4" type="button"><b>Bien</b><i id="gGood"></i></button>
-          <button class="btn-grade g-easy" data-q="5" type="button"><b>Facile</b><i id="gEasy"></i></button>
+          <button class="btn-grade g-again" data-q="1" type="button"><b data-i18n="g_again">Encore</b><i data-i18n="iv_min">&lt; 1 min</i></button>
+          <button class="btn-grade g-hard" data-q="3" type="button"><b data-i18n="g_hard">Difficile</b><i id="gHard"></i></button>
+          <button class="btn-grade g-good" data-q="4" type="button"><b data-i18n="g_good">Bien</b><i id="gGood"></i></button>
+          <button class="btn-grade g-easy" data-q="5" type="button"><b data-i18n="g_easy">Facile</b><i id="gEasy"></i></button>
         </div>
         <div class="grade-row grade-row-simple" id="simpleRow" hidden>
-          <button class="btn btn-ghost" id="flashPrev" type="button">← Précédent</button>
-          <button class="btn btn-primary" id="flashNext" type="button">Suivant →</button>
+          <button class="btn btn-ghost" id="flashPrev" type="button" data-i18n="prev">← Précédent</button>
+          <button class="btn btn-primary" id="flashNext" type="button" data-i18n="next">Suivant →</button>
         </div>
       </div>
 
       <!-- QCM -->
       <div class="pane" id="pane-mcq" hidden>
         <div class="prompt-card">
-          <span class="face-label" id="mcqLabel">Quelle est la définition de</span>
+          <span class="face-label" id="mcqLabel" data-i18n="mcq_label">Quelle est la définition de</span>
           <p class="prompt-text" id="mcqPrompt"></p>
         </div>
         <div class="opt-grid" id="mcqOpts"></div>
@@ -235,20 +239,20 @@
       <!-- Écrire -->
       <div class="pane" id="pane-write" hidden>
         <div class="prompt-card">
-          <span class="face-label">Quel mot correspond à cette définition ?</span>
+          <span class="face-label" data-i18n="write_q">Quel mot correspond à cette définition ?</span>
           <p class="prompt-text prompt-text-def" id="writePrompt"></p>
         </div>
         <form class="write-form" id="writeForm" autocomplete="off">
-          <input class="inp inp-write" id="writeInput" type="text" placeholder="Écris le mot…" autocomplete="off" autocorrect="off" spellcheck="false">
-          <button class="btn btn-primary" type="submit" id="writeSubmit">Valider</button>
+          <input class="inp inp-write" id="writeInput" type="text" placeholder="Écris le mot…" data-i18n-ph="write_ph" autocomplete="off" autocorrect="off" spellcheck="false">
+          <button class="btn btn-primary" type="submit" id="writeSubmit" data-i18n="validate">Valider</button>
         </form>
         <div class="write-feedback" id="writeFeedback" hidden></div>
-        <button class="btn btn-ghost btn-sm" id="writeSkip" type="button">Je ne sais pas</button>
+        <button class="btn btn-ghost btn-sm" id="writeSkip" type="button" data-i18n="dont_know">Je ne sais pas</button>
       </div>
 
       <!-- Associer -->
       <div class="pane pane-match" id="pane-match" hidden>
-        <p class="match-help">Clique un mot, puis sa définition.</p>
+        <p class="match-help" data-i18n="match_help">Clique un mot, puis sa définition.</p>
         <div class="match-grid" id="matchGrid"></div>
       </div>
     </div>
@@ -263,11 +267,11 @@
         <p class="result-sub" id="resultSub"></p>
         <div class="result-stats" id="resultStats"></div>
         <div class="result-actions">
-          <button class="btn btn-primary" id="againBtn" type="button">Recommencer</button>
-          <button class="btn btn-ghost" id="backDeckBtn" type="button">Retour au paquet</button>
+          <button class="btn btn-primary" id="againBtn" type="button" data-i18n="again">Recommencer</button>
+          <button class="btn btn-ghost" id="backDeckBtn" type="button" data-i18n="back_deck">Retour au paquet</button>
         </div>
         <div class="result-missed" id="resultMissed" hidden>
-          <h2 class="sec-title sec-title-tight">À retravailler</h2>
+          <h2 class="sec-title sec-title-tight" data-i18n="to_review_title">À retravailler</h2>
           <ul class="missed-list" id="missedList"></ul>
         </div>
       </div>
@@ -277,7 +281,7 @@
 </main>
 
 <footer class="foot">
-  <p>Bachote — tes fiches sont enregistrées dans ton navigateur, rien n'est envoyé nulle part.</p>
+  <p data-i18n="foot">Bachote — tes fiches sont enregistrées dans ton navigateur, rien n'est envoyé nulle part.</p>
 </footer>
 
 <div class="toast" id="toast" hidden></div>
@@ -286,6 +290,7 @@
 
 <div class="modal-overlay" id="modal" hidden></div>
 
+<script src="js/i18n.js"></script>
 <script src="js/store.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/samples.js"></script>

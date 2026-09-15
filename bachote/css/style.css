@@ -876,3 +876,26 @@ kbd {
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
 .btn-confirm-danger { background: var(--red); color: #fff; border-color: var(--red); }
 [data-theme="dark"] .btn-confirm-danger { color: #1a1a1a; }
+
+/* ══════════════ Sélecteur de langue ══════════════ */
+.lang-wrap { position: relative; }
+.lang-btn { font-size: 1.1rem; }
+.lang-flag { line-height: 1; }
+.lang-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  min-width: 168px;
+  background: var(--card);
+  border: var(--bd); border-radius: var(--r-sm);
+  box-shadow: var(--sh-lg);
+  padding: 6px; display: flex; flex-direction: column; gap: 2px;
+}
+.lang-opt {
+  display: flex; align-items: center; gap: 10px;
+  font: inherit; font-weight: 600; font-size: .92rem;
+  text-align: left; width: 100%;
+  padding: 9px 11px; border: none; border-radius: 6px;
+  background: transparent; color: var(--ink); cursor: pointer;
+}
+.lang-opt .lang-flag { font-size: 1.15rem; }
+.lang-opt:hover { background: var(--paper-2); }
+.lang-opt[aria-current="true"] { background: var(--blue-soft); }

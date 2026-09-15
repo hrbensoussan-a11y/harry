@@ -179,22 +179,20 @@
     return card;
   }
 
-  function fmtDays(iv) {
-    if (iv === 1) return "1 jour";
-    if (iv < 30) return iv + " jours";
-    if (iv < 365) {
-      var m = Math.round(iv / 30);
-      return m + (m > 1 ? " mois" : " mois");
-    }
-    var y = Math.round(iv / 36.5) / 10;
-    return y + (y > 1 ? " ans" : " an");
+  function fmtDays(iv, lang) {
+    lang = lang || "fr";
+    var tn = window.tnRaw || function (l, k, n) { return String(n); };
+    if (iv < 30) return tn(lang, "iv_day", iv);
+    if (iv < 365) return tn(lang, "iv_month", Math.round(iv / 30));
+    return tn(lang, "iv_year", Math.round(iv / 36.5) / 10);
   }
 
   /* Prévisualise sans rien modifier (pour l'étiquette des boutons). */
-  function previewInterval(card, q) {
+  function previewInterval(card, q, lang) {
     healCard(card);
-    if (q < 3) return "< 1 min";
-    return fmtDays(nextInterval(card, q));
+    lang = lang || "fr";
+    if (q < 3) return window.tRaw ? window.tRaw(lang, "iv_min") : "< 1 min";
+    return fmtDays(nextInterval(card, q), lang);
   }
 
   function dueCards(deck, now) {
