@@ -68,6 +68,12 @@ vendor/leaflet.*      Bibliothèque de carte Leaflet (embarquée en local)
 - **Frontières** : [Natural Earth](https://www.naturalearthdata.com/) via le paquet `world-atlas` (domaine public).
 - **Métadonnées des pays** (noms français, drapeaux, capitales, régions) : paquet `world-countries` (ODbL).
 
+## ✍️ Aussi dans ce dépôt
+
+**[Conjugo](conjugaison/)** — un second site, indépendant : apprendre et maîtriser 5 temps de
+la conjugaison française (imparfait, passé simple, conditionnel présent, conditionnel passé,
+plus-que-parfait). Ouvre `conjugaison/index.html`.
+
 ---
 
 Fait avec ❤️ pour les explorateur·rice·s.
