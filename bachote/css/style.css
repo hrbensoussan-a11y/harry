@@ -1005,3 +1005,81 @@ kbd {
   .prog-card { gap: 14px; padding: 16px; }
   .prog-goal { order: -1; }
 }
+
+/* ══════════════ Suite : tuiles d'outils (accueil) ══════════════ */
+.tools-row {
+  display: grid; gap: 12px; margin: 8px 0 26px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.tool-tile {
+  display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
+  text-align: left; font: inherit; color: inherit; cursor: pointer;
+  background: var(--card); border: var(--bd); border-radius: var(--r);
+  box-shadow: var(--sh); padding: 15px 16px;
+  transition: transform .13s, box-shadow .13s;
+}
+.tool-tile:hover { transform: translate(-2px,-2px); box-shadow: var(--sh-lg); }
+.tool-tile:active { transform: translate(1px,1px); box-shadow: none; }
+.tool-ic {
+  width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--blue-soft); color: var(--ink);
+  border: 1.5px solid color-mix(in srgb, var(--ink) 14%, transparent);
+}
+.tool-ic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tool-name { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; }
+.tool-desc { font-size: .84rem; color: var(--ink-2); line-height: 1.4; }
+.tool-tile.tool-active { background: linear-gradient(135deg, var(--blue-soft), var(--card) 62%); }
+
+/* ══════════════ Panneau scan (éditeur) ══════════════ */
+.scan-box { border-style: dashed; }
+.scan-photos { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.scan-photo { position: relative; margin: 0; }
+.scan-photo img {
+  width: 108px; height: 108px; object-fit: cover;
+  border: var(--bd-thin); border-radius: var(--r-sm); display: block;
+}
+.scan-photo-rm {
+  position: absolute; top: -8px; right: -8px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--ink); color: var(--paper); border: 2px solid var(--card);
+  cursor: pointer; font-size: .8rem; line-height: 1; display: grid; place-items: center;
+}
+.scan-status { font-size: .86rem; margin: 4px 0 10px; font-weight: 600; }
+.scan-status.busy { color: var(--ink-2); }
+.scan-status.ok { color: var(--green); }
+.scan-status.warn { color: var(--red); }
+
+/* ══════════════ Minuteur d'étude ══════════════ */
+.timer-card {
+  background: var(--card); border: var(--bd); border-radius: var(--r);
+  box-shadow: var(--sh-lg); padding: 26px 22px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  margin-top: 8px;
+}
+.timer-phase {
+  font-family: var(--f-mono); font-size: .74rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .14em; color: var(--ink-2);
+  padding: 4px 12px; border-radius: 99px; background: var(--blue-soft);
+}
+.timer-card.is-break .timer-phase { background: var(--green-soft); color: var(--green); }
+.timer-dial { position: relative; width: min(260px, 74vw); aspect-ratio: 1; }
+.timer-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer-ring-bg { fill: none; stroke: var(--rule-soft); stroke-width: 10; }
+.timer-ring-arc { fill: none; stroke: var(--ink); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset .3s linear; }
+[data-theme="dark"] .timer-ring-arc { stroke: var(--yellow); }
+.timer-card.is-break .timer-ring-arc { stroke: var(--green); }
+.timer-clock {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-family: var(--f-display); font-weight: 900; letter-spacing: -.02em;
+  font-size: clamp(2.6rem, 12vw, 3.6rem); font-variant-numeric: tabular-nums;
+}
+.timer-presets { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.preset {
+  font: inherit; font-weight: 600; font-size: .84rem; font-variant-numeric: tabular-nums;
+  padding: 7px 13px; border-radius: 99px; cursor: pointer;
+  border: var(--bd-thin); background: var(--card); color: var(--ink-2);
+}
+.preset[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+[data-theme="dark"] .preset[aria-pressed="true"] { background: var(--yellow); color: #1a1a1a; }
+.timer-actions { display: flex; gap: 10px; }
+.timer-cycles { font-family: var(--f-mono); font-size: .8rem; color: var(--ink-3); margin: 0; min-height: 1em; }

@@ -44,7 +44,7 @@
   function show(node) { node.hidden = false; }
   function hide(node) { node.hidden = true; }
 
-  var SCREENS = ["home", "deck", "edit", "study", "result"];
+  var SCREENS = ["home", "deck", "edit", "study", "result", "timer"];
   function screen(name) {
     SCREENS.forEach(function (s) {
       var n = $("#screen-" + s);
@@ -625,7 +625,7 @@
     });
   }
 
-  function renderEdit(id, initialSubject) {
+  function renderEdit(id, initialSubject, openScan) {
     editState.id = id || null;
     var list = $("#editList");
     list.innerHTML = "";
@@ -649,8 +649,118 @@
     $("#pasteArea").value = "";
     $("#pastePreview").textContent = "";
     $("#pastePreview").className = "paste-preview";
+    // Réinitialise le panneau scan
+    if ($("#scanText")) $("#scanText").value = "";
+    if ($("#scanPhotos")) { $("#scanPhotos").innerHTML = ""; $("#scanPhotos").hidden = true; }
+    if ($("#scanStatus")) { $("#scanStatus").hidden = true; $("#scanStatus").textContent = ""; }
+    if ($("#scanPreview")) $("#scanPreview").textContent = "";
+    if ($("#scanBox")) $("#scanBox").open = !!openScan;
+    if (openScan && $("#pasteBox")) $("#pasteBox").open = false;
     refreshEditCount();
     screen("edit");
+    if (openScan && $("#scanBox")) $("#scanBox").scrollIntoView({ block: "center" });
+  }
+
+  /* ============================================================
+     MINUTEUR D'ÉTUDE (Pomodoro)
+     ============================================================ */
+  var PRESETS = [{ work: 25, brk: 5 }, { work: 50, brk: 10 }, { work: 15, brk: 3 }];
+  var timer = { running: false, phase: "work", preset: PRESETS[0], endAt: 0, remaining: PRESETS[0].work * 60000, cycles: 0 };
+  var timerLoop = null;
+  var TC = 2 * Math.PI * 98;
+
+  function phaseTotalMs() { return (timer.phase === "work" ? timer.preset.work : timer.preset.brk) * 60000; }
+
+  function fmtClock(ms) {
+    var s = Math.max(0, Math.round(ms / 1000));
+    var m = Math.floor(s / 60);
+    return (m < 10 ? "0" : "") + m + ":" + ((s % 60) < 10 ? "0" : "") + (s % 60);
+  }
+
+  function updateTimerUI() {
+    var rem = timer.running ? Math.max(0, timer.endAt - Date.now()) : timer.remaining;
+    $("#timerClock").textContent = fmtClock(rem);
+    $("#timerPhase").textContent = t(timer.phase === "work" ? "timer_work" : "timer_break");
+    var arc = $("#timerArc");
+    arc.style.strokeDasharray = TC;
+    arc.style.strokeDashoffset = TC * (1 - rem / phaseTotalMs());
+    $("#timerCard").classList.toggle("is-break", timer.phase === "break");
+    $("#timerCard").classList.toggle("running", timer.running);
+    $("#timerStart").textContent = timer.running ? t("timer_pause") : (timer.remaining < phaseTotalMs() ? t("timer_resume") : t("timer_start"));
+    $("#timerCycles").textContent = timer.cycles ? tn("n_cycles", timer.cycles) : "";
+  }
+
+  function timerTick() {
+    if (!timer.running) return;
+    if (Date.now() >= timer.endAt) { advancePhase(); return; }
+    updateTimerUI();
+  }
+
+  function advancePhase() {
+    var wasWork = timer.phase === "work";
+    Sfx.play(wasWork ? "done" : "good");
+    if (wasWork) {
+      timer.cycles += 1;
+      var focusCount = S.focusDone();
+      var fresh = S.refreshBadges();
+      toast(t("timer_done_work"));
+      fresh.forEach(function (id, i) { setTimeout(function () { toast(t("badge_new") + " " + t("b_" + id + "_n")); }, 2900 * (i + 1)); });
+      timer.phase = "break";
+    } else {
+      toast(t("timer_done_break"));
+      timer.phase = "work";
+    }
+    timer.remaining = phaseTotalMs();
+    timer.endAt = Date.now() + timer.remaining;
+    updateTimerUI();
+  }
+
+  function startTimer() {
+    if (timer.running) { pauseTimer(); return; }
+    timer.running = true;
+    timer.endAt = Date.now() + timer.remaining;
+    if (!timerLoop) timerLoop = setInterval(timerTick, 250);
+    Sfx.play("click");
+    updateTimerUI();
+  }
+  function pauseTimer() {
+    if (!timer.running) return;
+    timer.remaining = Math.max(0, timer.endAt - Date.now());
+    timer.running = false;
+    updateTimerUI();
+  }
+  function resetTimer() {
+    timer.running = false;
+    timer.phase = "work";
+    timer.remaining = phaseTotalMs();
+    updateTimerUI();
+  }
+  function setPreset(idx) {
+    timer.preset = PRESETS[idx] || PRESETS[0];
+    timer.running = false;
+    timer.phase = "work";
+    timer.remaining = phaseTotalMs();
+    $$("#timerPresets .preset").forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === idx)); });
+    updateTimerUI();
+  }
+
+  function initTimer() {
+    var pres = $("#timerPresets");
+    PRESETS.forEach(function (pr, i) {
+      var b = el("button", "preset", pr.work + " / " + pr.brk);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(i === 0));
+      b.addEventListener("click", function () { setPreset(i); Sfx.play("click"); });
+      pres.appendChild(b);
+    });
+    $("#timerStart").addEventListener("click", startTimer);
+    $("#timerReset").addEventListener("click", function () { resetTimer(); Sfx.play("click"); });
+    $("#timerBack").addEventListener("click", function () { pauseTimer(); go("#/"); });
+  }
+
+  function renderTimer() {
+    updateTimerUI();
+    screen("timer");
   }
 
   function collectRows() {
@@ -661,6 +771,86 @@
       if (t && d) out.push([t, d]);
     });
     return out;
+  }
+
+  /* Import partagé (collage ET scan) : texte → lignes de cartes dans l'éditeur. */
+  function importTextToRows(text, forcedSep, clearSel, previewSel, boxSel) {
+    var r = S.parsePaste(text, forcedSep || null);
+    if (!r.pairs.length) { toast(tr("t_no_card")); return; }
+    var list = $("#editList");
+    $$("#editList li").forEach(function (li) {
+      var ins = $$("input", li);
+      if (!ins[0].value.trim() && !ins[1].value.trim()) li.remove();
+    });
+    r.pairs.forEach(function (p) { list.appendChild(editRow(p[0], p[1])); });
+    if (clearSel && $(clearSel)) $(clearSel).value = "";
+    if (previewSel && $(previewSel)) { $(previewSel).textContent = ""; $(previewSel).className = "paste-preview"; }
+    if (boxSel && $(boxSel)) $(boxSel).open = false;
+    refreshEditCount();
+    Sfx.play("good");
+    toast(tn("n_added", r.pairs.length));
+  }
+
+  /* ---------- méthode « Scanner une photo » ---------- */
+  function initScan() {
+    var input = $("#scanInput"), photos = $("#scanPhotos"), status = $("#scanStatus"), area = $("#scanText");
+    if (!input) return;
+
+    $("#scanPick").addEventListener("click", function () { input.click(); });
+
+    input.addEventListener("change", function () {
+      var files = Array.prototype.slice.call(input.files || []);
+      input.value = ""; // permet de re-choisir le même fichier
+      files.forEach(handleScanFile);
+    });
+
+    $("#scanApply").addEventListener("click", function () {
+      importTextToRows(area.value, null, "#scanText", "#scanPreview", "#scanBox");
+    });
+
+    function handleScanFile(file) {
+      if (!file || !/^image\//.test(file.type || "")) { toast(tr("scan_not_image")); return; }
+      // Miniature de la photo (toujours visible, même si la lecture échoue).
+      photos.hidden = false;
+      var url = URL.createObjectURL(file);
+      var fig = el("figure", "scan-photo");
+      var img = document.createElement("img");
+      img.src = url; img.alt = "";
+      var rm = el("button", "scan-photo-rm", "✕");
+      rm.type = "button"; rm.title = tr("scan_remove_photo");
+      rm.addEventListener("click", function (e) {
+        e.stopPropagation();
+        URL.revokeObjectURL(url);
+        fig.remove();
+        if (!photos.children.length) photos.hidden = true;
+      });
+      fig.appendChild(img); fig.appendChild(rm);
+      photos.appendChild(fig);
+
+      status.hidden = false;
+      status.textContent = tr("scan_reading");
+      status.className = "scan-status busy";
+
+      window.Scan.recognize(file, {
+        lang: curLang(),
+        onProgress: function (engine, p) {
+          status.textContent = tr("scan_reading") + (p ? " " + Math.round(p * 100) + "%" : "");
+        }
+      }).then(function (res) {
+        if (res.text) {
+          area.value = (area.value ? area.value.replace(/\s*$/, "") + "\n" : "") + res.text;
+          status.textContent = tr(res.engine === "ai" ? "scan_engine_ai" : "scan_engine_ocr");
+          status.className = "scan-status ok";
+        } else {
+          status.textContent = tr("scan_failed");
+          status.className = "scan-status warn";
+          area.focus();
+        }
+      }).catch(function () {
+        status.textContent = tr("scan_failed");
+        status.className = "scan-status warn";
+      });
+    }
   }
 
   function initEditor() {
@@ -697,23 +887,10 @@
 
     $("#pasteApply").addEventListener("click", function () {
       var sep = $("#sepSelect").value;
-      var r = S.parsePaste($("#pasteArea").value, sep === "auto" ? null : sep);
-      if (!r.pairs.length) { toast(tr("t_no_card")); return; }
-      var list = $("#editList");
-      // On enlève les lignes vides laissées par défaut.
-      $$("#editList li").forEach(function (li) {
-        var ins = $$("input", li);
-        if (!ins[0].value.trim() && !ins[1].value.trim()) li.remove();
-      });
-      r.pairs.forEach(function (p) { list.appendChild(editRow(p[0], p[1])); });
-      $("#pasteArea").value = "";
-      $("#pastePreview").textContent = "";
-      $("#pastePreview").className = "paste-preview";
-      $("#pasteBox").open = false;
-      refreshEditCount();
-      Sfx.play("good");
-      toast(r.pairs.length + " carte" + (r.pairs.length > 1 ? "s" : "") + " créée" + (r.pairs.length > 1 ? "s" : "") + ".");
+      importTextToRows($("#pasteArea").value, sep === "auto" ? null : sep, "#pasteArea", "#pastePreview", "#pasteBox");
     });
+
+    initScan();
 
     $("#saveDeckBtn").addEventListener("click", function () {
       var name = $("#deckNameInput").value.trim();
@@ -1385,10 +1562,14 @@
       S.save();
       sess = null;
     }
+    // On met le minuteur en pause quand on quitte son écran.
+    if (parts[0] !== "timer" && timer.running) pauseTimer();
 
     if (parts[0] === "" || parts[0] === undefined) { renderHome(); return; }
     if (parts[0] === "d" && parts[1]) { renderDeck(parts[1]); return; }
     if (parts[0] === "new") { renderEdit(null, parts[1] || null); return; }
+    if (parts[0] === "scan") { renderEdit(null, null, true); return; }
+    if (parts[0] === "timer") { renderTimer(); return; }
     if (parts[0] === "edit" && parts[1]) { renderEdit(parts[1]); return; }
     if (parts[0] === "study" && parts[1] && parts[2]) { startStudy(parts[1], parts[2]); return; }
     if (parts[0] === "review") { startStudy("all", "review"); return; }
@@ -1413,6 +1594,14 @@
     $("#newDeckBtn").addEventListener("click", function () { go("#/new"); });
     $("#dueStart").addEventListener("click", function () { go("#/review"); });
     $("#goalBtn").addEventListener("click", cycleGoal);
+    initTimer();
+    $("#toolScan").addEventListener("click", function () { go("#/scan"); });
+    $("#toolTimer").addEventListener("click", function () { go("#/timer"); });
+    $("#toolCards").addEventListener("click", function () {
+      var h = $("#decksHead"); var g = $("#deckGrid");
+      var target = (h && !h.hidden) ? h : (g || null);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     $("#quitStudy").addEventListener("click", quitStudy);
 
     $$("[data-nav]").forEach(function (b) {

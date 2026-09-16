@@ -252,6 +252,52 @@
     b_level_5_d: { fr:"Tu as atteint le niveau 5.", en:"You reached level 5.", es:"Llegaste al nivel 5.", it:"Hai raggiunto il livello 5.", de:"Du hast Level 5 erreicht.", zh:"你达到了 5 级。", ru:"Ты достиг 5 уровня." },
     b_level_10_n: { fr:"Niveau 10", en:"Level 10", es:"Nivel 10", it:"Livello 10", de:"Level 10", zh:"10 级", ru:"Уровень 10" },
     b_level_10_d: { fr:"Niveau 10 ! Un(e) vrai(e) pro.", en:"Level 10! A real pro.", es:"¡Nivel 10! Todo un pro.", it:"Livello 10! Un vero pro.", de:"Level 10! Ein echter Profi.", zh:"10 级！真正的高手。", ru:"Уровень 10! Настоящий профи." },
+    // Suite d'outils
+    tools_title: { fr:"Outils d'étude", en:"Study tools", es:"Herramientas de estudio", it:"Strumenti di studio", de:"Lernwerkzeuge", zh:"学习工具", ru:"Инструменты для учёбы" },
+    tool_cards_name: { fr:"Fiches", en:"Flashcards", es:"Fichas", it:"Carte", de:"Karten", zh:"卡片", ru:"Карточки" },
+    tool_cards_desc: { fr:"Crée et révise tes paquets de définitions.", en:"Create and review your definition decks.", es:"Crea y repasa tus mazos de definiciones.", it:"Crea e ripassa i tuoi mazzi di definizioni.", de:"Erstelle und wiederhole deine Definitionsstapel.", zh:"创建并复习你的定义卡组。", ru:"Создавай и повторяй свои наборы определений." },
+    tool_scan_name: { fr:"Scanner mes notes", en:"Scan my notes", es:"Escanear mis apuntes", it:"Scansiona i miei appunti", de:"Notizen scannen", zh:"扫描我的笔记", ru:"Сканировать конспект" },
+    tool_scan_desc: { fr:"Prends ton cours en photo, on en fait des cartes.", en:"Snap a photo of your notes, we turn it into cards.", es:"Haz una foto de tus apuntes y las convertimos en fichas.", it:"Fotografa i tuoi appunti, li trasformiamo in carte.", de:"Fotografiere deine Notizen, wir machen Karten daraus.", zh:"给你的笔记拍张照，我们把它变成卡片。", ru:"Сфотографируй конспект — сделаем из него карточки." },
+    tool_timer_name: { fr:"Minuteur d'étude", en:"Study timer", es:"Temporizador de estudio", it:"Timer di studio", de:"Lern-Timer", zh:"学习计时器", ru:"Таймер учёбы" },
+    tool_timer_desc: { fr:"Cycles travail / pause pour rester concentré.", en:"Work / break cycles to stay focused.", es:"Ciclos de trabajo / descanso para concentrarte.", it:"Cicli lavoro / pausa per restare concentrato.", de:"Arbeits-/Pausenzyklen, um konzentriert zu bleiben.", zh:"工作 / 休息循环，保持专注。", ru:"Циклы работа / пауза, чтобы не терять фокус." },
+    nav_home: { fr:"← Accueil", en:"← Home", es:"← Inicio", it:"← Home", de:"← Startseite", zh:"← 主页", ru:"← Главная" },
+
+    // Scan
+    scan_title: { fr:"📷 Scanner / importer une photo", en:"📷 Scan / import a photo", es:"📷 Escanear / importar una foto", it:"📷 Scansiona / importa una foto", de:"📷 Foto scannen / importieren", zh:"📷 扫描 / 导入照片", ru:"📷 Сканировать / загрузить фото" },
+    scan_hint: { fr:"Une photo de ton cahier → des cartes", en:"A photo of your notebook → cards", es:"Una foto de tu cuaderno → fichas", it:"Una foto del quaderno → carte", de:"Ein Foto deines Hefts → Karten", zh:"一张笔记本照片 → 卡片", ru:"Фото тетради → карточки" },
+    scan_help: { fr:"Importe une ou plusieurs photos. On lit le texte quand c'est possible ; sinon, recopie-le en regardant ta photo. Ensuite on le découpe en cartes (une ligne par carte, « : » entre le mot et sa définition).",
+                 en:"Import one or more photos. We read the text when we can; otherwise, copy it while looking at your photo. Then we split it into cards (one line per card, “:” between the word and its definition).",
+                 es:"Importa una o varias fotos. Leemos el texto cuando podemos; si no, cópialo mirando tu foto. Luego lo dividimos en fichas (una línea por ficha, “:” entre la palabra y su definición).",
+                 it:"Importa una o più foto. Leggiamo il testo quando possiamo; altrimenti, ricopialo guardando la foto. Poi lo dividiamo in carte (una riga per carta, “:” tra la parola e la definizione).",
+                 de:"Importiere ein oder mehrere Fotos. Wir lesen den Text, wenn es geht; sonst tipp ihn ab, während du dein Foto ansiehst. Dann teilen wir ihn in Karten auf (eine Zeile pro Karte, „:“ zwischen Wort und Definition).",
+                 zh:"导入一张或多张照片。能识别时我们会读出文字；否则请对照照片抄下来。然后我们把它切分成卡片（每行一张，词语和定义之间用“:”）。",
+                 ru:"Загрузи одно или несколько фото. Где можем — распознаём текст; иначе перепиши его, глядя на фото. Затем разобьём на карточки (одна строка — одна карточка, «:» между словом и определением)." },
+    scan_pick: { fr:"Choisir / prendre une photo", en:"Choose / take a photo", es:"Elegir / tomar una foto", it:"Scegli / scatta una foto", de:"Foto wählen / aufnehmen", zh:"选择 / 拍照", ru:"Выбрать / сделать фото" },
+    scan_reading: { fr:"Lecture de l'image…", en:"Reading the image…", es:"Leyendo la imagen…", it:"Lettura dell'immagine…", de:"Bild wird gelesen…", zh:"正在识别图片……", ru:"Читаю изображение…" },
+    scan_engine_ai: { fr:"Lu par l'IA de vision ✨", en:"Read by vision AI ✨", es:"Leído por la IA de visión ✨", it:"Letto dall'IA di visione ✨", de:"Von der Bild-KI gelesen ✨", zh:"由视觉 AI 识别 ✨", ru:"Распознано ИИ-зрением ✨" },
+    scan_engine_ocr: { fr:"Lu par la reconnaissance du navigateur", en:"Read by browser text recognition", es:"Leído por el reconocimiento del navegador", it:"Letto dal riconoscimento del browser", de:"Von der Browser-Texterkennung gelesen", zh:"由浏览器文字识别读取", ru:"Распознано браузером" },
+    scan_engine_manual: { fr:"Recopie le texte en regardant ta photo.", en:"Copy the text while looking at your photo.", es:"Copia el texto mirando tu foto.", it:"Ricopia il testo guardando la foto.", de:"Tipp den Text ab, während du dein Foto ansiehst.", zh:"对照照片把文字抄下来。", ru:"Перепиши текст, глядя на фото." },
+    scan_failed: { fr:"Le texte n'a pas pu être lu automatiquement. Recopie-le en regardant ta photo ci-dessus.", en:"The text couldn't be read automatically. Copy it while looking at your photo above.", es:"No se pudo leer el texto automáticamente. Cópialo mirando tu foto de arriba.", it:"Non è stato possibile leggere il testo. Ricopialo guardando la foto qui sopra.", de:"Der Text konnte nicht automatisch gelesen werden. Tipp ihn ab, während du dein Foto oben ansiehst.", zh:"无法自动识别文字。请对照上方照片抄下来。", ru:"Не удалось распознать текст автоматически. Перепиши его, глядя на фото выше." },
+    scan_not_image: { fr:"Ce fichier n'est pas une image.", en:"This file is not an image.", es:"Este archivo no es una imagen.", it:"Questo file non è un'immagine.", de:"Diese Datei ist kein Bild.", zh:"这个文件不是图片。", ru:"Этот файл не изображение." },
+    scan_review: { fr:"Vérifie et corrige le texte, puis crée les cartes.", en:"Check and fix the text, then create the cards.", es:"Revisa y corrige el texto, luego crea las fichas.", it:"Controlla e correggi il testo, poi crea le carte.", de:"Text prüfen und korrigieren, dann Karten erstellen.", zh:"检查并修正文字，然后创建卡片。", ru:"Проверь и поправь текст, затем создай карточки." },
+    scan_remove_photo: { fr:"Retirer cette photo", en:"Remove this photo", es:"Quitar esta foto", it:"Rimuovi questa foto", de:"Dieses Foto entfernen", zh:"移除这张照片", ru:"Убрать это фото" },
+
+    // Minuteur
+    timer_work: { fr:"Concentration", en:"Focus", es:"Concentración", it:"Concentrazione", de:"Fokus", zh:"专注", ru:"Фокус" },
+    timer_break: { fr:"Pause", en:"Break", es:"Descanso", it:"Pausa", de:"Pause", zh:"休息", ru:"Перерыв" },
+    timer_start: { fr:"Démarrer", en:"Start", es:"Empezar", it:"Avvia", de:"Start", zh:"开始", ru:"Старт" },
+    timer_pause: { fr:"Pause", en:"Pause", es:"Pausar", it:"Pausa", de:"Pause", zh:"暂停", ru:"Пауза" },
+    timer_resume: { fr:"Reprendre", en:"Resume", es:"Reanudar", it:"Riprendi", de:"Fortsetzen", zh:"继续", ru:"Продолжить" },
+    timer_reset: { fr:"Réinitialiser", en:"Reset", es:"Reiniciar", it:"Azzera", de:"Zurücksetzen", zh:"重置", ru:"Сброс" },
+    timer_preset: { fr:"Préréglage", en:"Preset", es:"Preajuste", it:"Preset", de:"Voreinstellung", zh:"预设", ru:"Режим" },
+    timer_done_work: { fr:"Session terminée ! Fais une pause 👏", en:"Session done! Take a break 👏", es:"¡Sesión terminada! Tómate un descanso 👏", it:"Sessione finita! Fai una pausa 👏", de:"Session fertig! Mach eine Pause 👏", zh:"这一节完成了！休息一下 👏", ru:"Сессия завершена! Отдохни 👏" },
+    timer_done_break: { fr:"Pause finie, on s'y remet !", en:"Break over, back to work!", es:"¡Fin del descanso, a seguir!", it:"Pausa finita, si riparte!", de:"Pause vorbei, weiter geht's!", zh:"休息结束，继续加油！", ru:"Перерыв окончен, за работу!" },
+    timer_focus_note: { fr:"Reste sur cette page pendant ta session de concentration.", en:"Stay on this page during your focus session.", es:"Quédate en esta página durante tu sesión de concentración.", it:"Resta su questa pagina durante la sessione di concentrazione.", de:"Bleib während deiner Fokus-Session auf dieser Seite.", zh:"专注期间请停留在此页面。", ru:"Оставайся на этой странице во время сессии фокуса." },
+
+    // Badge concentration
+    b_focus_n: { fr:"Concentration", en:"Focused", es:"Concentración", it:"Concentrazione", de:"Konzentriert", zh:"专注", ru:"Сосредоточенность" },
+    b_focus_d: { fr:"Tu as terminé 4 sessions de travail au minuteur.", en:"You completed 4 timer work sessions.", es:"Completaste 4 sesiones de trabajo con el temporizador.", it:"Hai completato 4 sessioni di lavoro col timer.", de:"Du hast 4 Arbeits-Sessions mit dem Timer geschafft.", zh:"你用计时器完成了 4 个工作节。", ru:"Ты завершил 4 рабочие сессии по таймеру." },
+
     flip_kbd: { fr:"Espace", en:"Space", es:"Espacio", it:"Spazio", de:"Leertaste", zh:"空格", ru:"Пробел" },
     iv_min: { fr:"< 1 min", en:"< 1 min", es:"< 1 min", it:"< 1 min", de:"< 1 Min.", zh:"< 1 分钟", ru:"< 1 мин" }
   };
@@ -323,6 +369,15 @@
       de:{one:"{n} Zeile übersprungen", other:"{n} Zeilen übersprungen"},
       zh:{other:"跳过 {n} 行"},
       ru:{one:"{n} строка пропущена", few:"{n} строки пропущено", many:"{n} строк пропущено"}
+    },
+    n_cycles: {
+      fr:{one:"{n} cycle terminé", other:"{n} cycles terminés"},
+      en:{one:"{n} cycle done", other:"{n} cycles done"},
+      es:{one:"{n} ciclo hecho", other:"{n} ciclos hechos"},
+      it:{one:"{n} ciclo fatto", other:"{n} cicli fatti"},
+      de:{one:"{n} Zyklus fertig", other:"{n} Zyklen fertig"},
+      zh:{other:"完成 {n} 个循环"},
+      ru:{one:"{n} цикл завершён", few:"{n} цикла завершено", many:"{n} циклов завершено"}
     },
     iv_day: {
       fr:{one:"1 jour", other:"{n} jours"}, en:{one:"1 day", other:"{n} days"},

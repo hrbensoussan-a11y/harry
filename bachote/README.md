@@ -80,3 +80,44 @@ js/sound.js       Sons de synthèse (Web Audio, aucun fichier audio)
   pas changé.
 - Le flip 3D garde une hauteur fixe recto/verso pour que la carte ne saute pas.
 - Aucune dépendance externe hors polices Google Fonts (avec repli système).
+
+## 🧰 Une suite d'outils
+
+Bachote n'est plus qu'un jeu de fiches : c'est une petite **suite d'outils d'étude**.
+
+- **Fiches** — créer et réviser des paquets de définitions (le cœur).
+- **Scanner mes notes** — prendre son cours en photo et en faire des cartes.
+- **Minuteur d'étude** — cycles travail / pause (Pomodoro) qui alimentent la série et l'XP.
+
+## 📷 Scanner mes notes → fiches
+
+Dans la création d'un paquet, la méthode « 📷 Scanner / importer une photo » importe
+une ou plusieurs photos. La photo reste **affichée à côté d'une zone de texte modifiable** :
+la reconnaissance pré-remplit le texte quand elle le peut, sinon on recopie en regardant
+la photo. Le texte est ensuite découpé en cartes (une ligne par carte, `:` entre le mot et
+sa définition).
+
+Trois moteurs, en cascade (du meilleur au plus universel) :
+
+1. **IA de vision** — la meilleure pour le **manuscrit**. Via la fonction Netlify
+   `netlify/functions/scan.js`. **Désactivée par défaut** : elle ne s'allume que sur le site
+   déployé, avec deux variables d'environnement.
+2. **Reconnaissance du navigateur** (Tesseract.js) — bonne pour l'**imprimé / le net**,
+   gratuite, sans serveur. Chargée depuis un CDN au moment du scan.
+3. **Manuel** — la photo reste affichée, on recopie.
+
+> Les deux premiers moteurs ne fonctionnent **pas dans l'aperçu claude.ai** (bac à sable :
+> pas de fonctions serverless, WASM/réseau restreints). Ils fonctionnent une fois le site
+> **déployé** (Netlify) ou ouvert normalement. Le mode manuel marche partout.
+
+### Activer l'IA de vision (manuscrit) sur Netlify
+
+1. Déploie le dépôt sur Netlify (le fichier `netlify.toml` publie déjà `bachote/` et la fonction).
+2. Dans **Site settings → Environment variables**, ajoute :
+   - `ANTHROPIC_API_KEY` : ta clé API Anthropic.
+   - `ANTHROPIC_MODEL` : l'identifiant du modèle de vision à utiliser.
+3. Redéploie. La fonction `/.netlify/functions/scan` répond, et le scan lit le manuscrit.
+
+Sans ces variables, la fonction renvoie `501` et le site bascule automatiquement sur la
+reconnaissance du navigateur, puis le mode manuel. Chaque appel à l'API a un petit coût
+facturé sur ton compte Anthropic.

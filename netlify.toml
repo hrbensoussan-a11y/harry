@@ -1,0 +1,5 @@
+# Configuration Netlify pour Bachote
+# Le site (statique) vit dans bachote/ ; la fonction de scan dans netlify/functions/.
+[build]
+  publish = "bachote"
+  functions = "netlify/functions"

@@ -14,7 +14,7 @@
       v: 1,
       decks: {},
       settings: { sound: true, theme: null, lang: null, dailyGoal: 20 },
-      stats: { streak: 0, lastDay: null, reviews: 0, xp: 0, today: { day: null, cards: 0 }, badges: [] }
+      stats: { streak: 0, lastDay: null, reviews: 0, xp: 0, today: { day: null, cards: 0 }, badges: [], focus: 0 }
     };
   }
 
@@ -277,6 +277,15 @@
     save();
   }
 
+  /* Fin d'une session de travail au minuteur : XP + compteur + série. */
+  function focusDone() {
+    state.stats.focus = (state.stats.focus || 0) + 1;
+    state.stats.xp = (state.stats.xp || 0) + 25;
+    touchStreak();
+    save();
+    return state.stats.focus;
+  }
+
   function dailyProgress() {
     var goal = (state.settings.dailyGoal | 0) || 20;
     var done = ensureToday().cards;
@@ -297,7 +306,8 @@
     { id: "mastered_25",test: function (c) { return c.mastered >= 25; } },
     { id: "mastered_100",test: function (c) { return c.mastered >= 100; } },
     { id: "level_5",    test: function (c) { return c.level >= 5; } },
-    { id: "level_10",   test: function (c) { return c.level >= 10; } }
+    { id: "level_10",   test: function (c) { return c.level >= 10; } },
+    { id: "focus",      test: function (c) { return c.focus >= 4; } }
   ];
   window.BADGE_ORDER = BADGES.map(function (b) { return b.id; });
 
@@ -307,7 +317,8 @@
       streak: state.stats.streak || 0,
       mastered: totalMastered(),
       level: levelInfo().level,
-      goalReached: dailyProgress().reached
+      goalReached: dailyProgress().reached,
+      focus: state.stats.focus || 0
     };
   }
 
@@ -481,6 +492,7 @@
     dailyProgress: dailyProgress,
     totalMastered: totalMastered,
     refreshBadges: refreshBadges,
+    focusDone: focusDone,
     earnedBadges: earnedBadges,
     setting: setting,
     encodeDeck: encodeDeck,
