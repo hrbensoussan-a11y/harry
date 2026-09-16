@@ -1083,3 +1083,24 @@ kbd {
 [data-theme="dark"] .preset[aria-pressed="true"] { background: var(--yellow); color: #1a1a1a; }
 .timer-actions { display: flex; gap: 10px; }
 .timer-cycles { font-family: var(--f-mono); font-size: .8rem; color: var(--ink-3); margin: 0; min-height: 1em; }
+
+/* ══════════════ Finitions ══════════════ */
+/* Scan : état « lecture en cours » qui respire, avec un petit indicateur animé. */
+.scan-status.busy { display: inline-flex; align-items: center; gap: 8px; }
+.scan-status.busy::before {
+  content: ""; width: 13px; height: 13px; border-radius: 50%;
+  border: 2px solid var(--rule); border-top-color: var(--ink);
+  animation: scanspin .7s linear infinite;
+}
+@keyframes scanspin { to { transform: rotate(360deg); } }
+
+/* Icône d'outil : léger relief au survol de la tuile. */
+.tool-tile:hover .tool-ic { transform: translateY(-1px); }
+.tool-ic { transition: transform .13s; }
+
+/* Le miroir de la miniature scan pendant la lecture (léger voile). */
+.scan-photo img { transition: opacity .2s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-status.busy::before { animation: none; }
+}

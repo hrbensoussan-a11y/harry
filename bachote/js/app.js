@@ -651,7 +651,10 @@
     $("#pastePreview").className = "paste-preview";
     // Réinitialise le panneau scan
     if ($("#scanText")) $("#scanText").value = "";
-    if ($("#scanPhotos")) { $("#scanPhotos").innerHTML = ""; $("#scanPhotos").hidden = true; }
+    if ($("#scanPhotos")) {
+      $$("#scanPhotos img").forEach(function (im) { try { URL.revokeObjectURL(im.src); } catch (e) {} });
+      $("#scanPhotos").innerHTML = ""; $("#scanPhotos").hidden = true;
+    }
     if ($("#scanStatus")) { $("#scanStatus").hidden = true; $("#scanStatus").textContent = ""; }
     if ($("#scanPreview")) $("#scanPreview").textContent = "";
     if ($("#scanBox")) $("#scanBox").open = !!openScan;
@@ -698,15 +701,22 @@
 
   function advancePhase() {
     var wasWork = timer.phase === "work";
-    Sfx.play(wasWork ? "done" : "good");
     if (wasWork) {
+      Sfx.play("chime");
       timer.cycles += 1;
-      var focusCount = S.focusDone();
+      var lvlBefore = S.levelInfo().level;
+      S.focusDone();
       var fresh = S.refreshBadges();
       toast(t("timer_done_work"));
-      fresh.forEach(function (id, i) { setTimeout(function () { toast(t("badge_new") + " " + t("b_" + id + "_n")); }, 2900 * (i + 1)); });
+      if (S.levelInfo().level > lvlBefore) {
+        setTimeout(function () { toast(t("level_up").replace("{n}", S.levelInfo().level)); Sfx.play("levelup"); }, 2900);
+      }
+      fresh.forEach(function (id, i) {
+        setTimeout(function () { toast(t("badge_new") + " " + t("b_" + id + "_n")); Sfx.play("badge"); }, 2900 * (i + 2));
+      });
       timer.phase = "break";
     } else {
+      Sfx.play("good");
       toast(t("timer_done_break"));
       timer.phase = "work";
     }
@@ -723,16 +733,19 @@
     Sfx.play("click");
     updateTimerUI();
   }
+  function stopLoop() { if (timerLoop) { clearInterval(timerLoop); timerLoop = null; } }
   function pauseTimer() {
     if (!timer.running) return;
     timer.remaining = Math.max(0, timer.endAt - Date.now());
     timer.running = false;
+    stopLoop();
     updateTimerUI();
   }
   function resetTimer() {
     timer.running = false;
     timer.phase = "work";
     timer.remaining = phaseTotalMs();
+    stopLoop();
     updateTimerUI();
   }
   function setPreset(idx) {
@@ -841,9 +854,11 @@
           area.value = (area.value ? area.value.replace(/\s*$/, "") + "\n" : "") + res.text;
           status.textContent = tr(res.engine === "ai" ? "scan_engine_ai" : "scan_engine_ocr");
           status.className = "scan-status ok";
+          Sfx.play("good");
         } else {
           status.textContent = tr("scan_failed");
           status.className = "scan-status warn";
+          Sfx.play("click");
           area.focus();
         }
       }).catch(function () {
@@ -982,6 +997,7 @@
       missed: [],
       answered: false,
       goalWasReached: S.dailyProgress().reached,
+      levelBefore: S.levelInfo().level,
       startedAt: Date.now()
     };
 
@@ -1057,19 +1073,21 @@
       missedBox.hidden = true;
     }
 
-    // Récompenses : objectif du jour franchi + nouveaux badges (en plus du résultat).
+    // Récompenses : montée de niveau + objectif du jour + nouveaux badges.
     var goalNow = S.dailyProgress().reached;
     var freshBadges = S.refreshBadges();
+    var levelNow = S.levelInfo().level;
     var celebrations = [];
-    if (!sess.goalWasReached && goalNow) celebrations.push(t("goal_today_reached"));
-    freshBadges.forEach(function (id) { celebrations.push(t("badge_new") + " " + t("b_" + id + "_n")); });
+    if (levelNow > (sess.levelBefore || 1)) celebrations.push({ msg: t("level_up").replace("{n}", levelNow), sfx: "levelup" });
+    if (!sess.goalWasReached && goalNow) celebrations.push({ msg: t("goal_today_reached"), sfx: "good" });
+    freshBadges.forEach(function (id) { celebrations.push({ msg: t("badge_new") + " " + t("b_" + id + "_n"), sfx: "badge" }); });
 
     Sfx.play("done");
     screen("result");
 
-    // On enchaîne les petits messages de récompense après l'arrivée sur le résultat.
-    celebrations.forEach(function (msg, i) {
-      setTimeout(function () { toast(msg); }, 500 + i * 2900);
+    // On enchaîne les petits messages (et leur son) après l'arrivée sur le résultat.
+    celebrations.forEach(function (c, i) {
+      setTimeout(function () { toast(c.msg); Sfx.play(c.sfx); }, 800 + i * 2900);
     });
   }
 

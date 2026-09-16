@@ -79,7 +79,7 @@
   }
 
   // Notes (Hz) — gamme majeure de do, pour des accords agréables.
-  var N = { C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.0, A4:440.0, B4:493.88, C5:523.25, D5:587.33, E5:659.25, G5:783.99, C6:1046.5 };
+  var N = { C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.0, A4:440.0, B4:493.88, C5:523.25, D5:587.33, E5:659.25, G5:783.99, C6:1046.5, E6:1318.51 };
 
   function chord(notes, start, dur, opts) {
     opts = opts || {};
@@ -123,6 +123,26 @@
       chord([N.C5, N.E5, N.G5], 0, 0.5, { type: "triangle", gain: 0.12, spread: 0.09 });
       tone(N.C6, 0.32, 0.5, { type: "sine", gain: 0.09 });
       tone(N.C4, 0, 0.6, { type: "sine", gain: 0.06 });
+    },
+    // Fin d'une session de concentration (minuteur) : cloche chaude à deux notes.
+    chime: function () {
+      tone(N.C5, 0, 0.9, { type: "sine", gain: 0.16 });
+      tone(N.G5, 0.02, 0.9, { type: "sine", gain: 0.09 });
+      tone(N.C6, 0.02, 0.7, { type: "sine", gain: 0.05 });
+      tone(N.E5, 0.42, 0.8, { type: "sine", gain: 0.09 });
+    },
+    // Montée de niveau : arpège ascendant lumineux.
+    levelup: function () {
+      [N.C5, N.E5, N.G5, N.C6].forEach(function (f, i) {
+        tone(f, i * 0.085, 0.34, { type: "triangle", gain: 0.13 });
+      });
+      tone(N.G5, 0.34, 0.5, { type: "sine", gain: 0.08 });
+    },
+    // Badge débloqué : petite étincelle brillante.
+    badge: function () {
+      tone(N.E6 || 1318.5, 0, 0.12, { type: "triangle", gain: 0.1 });
+      tone(N.C6, 0.06, 0.18, { type: "sine", gain: 0.1 });
+      tone(N.G5, 0.12, 0.22, { type: "sine", gain: 0.08 });
     }
   };
 

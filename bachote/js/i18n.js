@@ -298,6 +298,7 @@
     b_focus_n: { fr:"Concentration", en:"Focused", es:"Concentración", it:"Concentrazione", de:"Konzentriert", zh:"专注", ru:"Сосредоточенность" },
     b_focus_d: { fr:"Tu as terminé 4 sessions de travail au minuteur.", en:"You completed 4 timer work sessions.", es:"Completaste 4 sesiones de trabajo con el temporizador.", it:"Hai completato 4 sessioni di lavoro col timer.", de:"Du hast 4 Arbeits-Sessions mit dem Timer geschafft.", zh:"你用计时器完成了 4 个工作节。", ru:"Ты завершил 4 рабочие сессии по таймеру." },
 
+    level_up: { fr:"Niveau {n} atteint ! 🎉", en:"Level {n} reached! 🎉", es:"¡Nivel {n} alcanzado! 🎉", it:"Livello {n} raggiunto! 🎉", de:"Level {n} erreicht! 🎉", zh:"达到 {n} 级！🎉", ru:"Уровень {n} достигнут! 🎉" },
     flip_kbd: { fr:"Espace", en:"Space", es:"Espacio", it:"Spazio", de:"Leertaste", zh:"空格", ru:"Пробел" },
     iv_min: { fr:"< 1 min", en:"< 1 min", es:"< 1 min", it:"< 1 min", de:"< 1 Min.", zh:"< 1 分钟", ru:"< 1 мин" }
   };
