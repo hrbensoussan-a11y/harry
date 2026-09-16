@@ -13,8 +13,8 @@
     return {
       v: 1,
       decks: {},
-      settings: { sound: true, theme: null },
-      stats: { streak: 0, lastDay: null, reviews: 0 }
+      settings: { sound: true, theme: null, lang: null, dailyGoal: 20 },
+      stats: { streak: 0, lastDay: null, reviews: 0, xp: 0, today: { day: null, cards: 0 }, badges: [] }
     };
   }
 
@@ -249,6 +249,86 @@
     state.stats.lastDay = today;
   }
 
+  /* ============================================================
+     PROGRESSION — XP, niveaux, objectif quotidien, badges
+     ============================================================ */
+
+  /* Niveau à partir de l'XP : le palier N coûte 100·N points cumulés,
+     donc chaque niveau demande un peu plus que le précédent. */
+  function levelInfo() {
+    var xp = state.stats.xp || 0;
+    var lvl = 1, need = 100, acc = 0;
+    while (xp >= acc + need) { acc += need; lvl += 1; need = 100 * lvl; }
+    return { level: lvl, into: xp - acc, forNext: need, xp: xp };
+  }
+
+  function ensureToday() {
+    var d = dayStamp();
+    if (!state.stats.today || state.stats.today.day !== d) {
+      state.stats.today = { day: d, cards: 0 };
+    }
+    return state.stats.today;
+  }
+
+  /* Récompense une réponse : XP + compteur du jour. Appelé à chaque réponse. */
+  function award(correct) {
+    state.stats.xp = (state.stats.xp || 0) + (correct ? 10 : 3);
+    ensureToday().cards += 1;
+    save();
+  }
+
+  function dailyProgress() {
+    var goal = (state.settings.dailyGoal | 0) || 20;
+    var done = ensureToday().cards;
+    return { done: done, goal: goal, pct: Math.min(100, Math.round((done / goal) * 100)), reached: done >= goal };
+  }
+
+  function totalMastered() {
+    return allDecks().reduce(function (n, d) { return n + deckProgress(d).ok; }, 0);
+  }
+
+  /* Catalogue des badges : chaque badge a une condition sur les stats. */
+  var BADGES = [
+    { id: "first_deck", test: function (c) { return c.decks >= 1; } },
+    { id: "streak_3",   test: function (c) { return c.streak >= 3; } },
+    { id: "streak_7",   test: function (c) { return c.streak >= 7; } },
+    { id: "streak_30",  test: function (c) { return c.streak >= 30; } },
+    { id: "goal",       test: function (c) { return c.goalReached; } },
+    { id: "mastered_25",test: function (c) { return c.mastered >= 25; } },
+    { id: "mastered_100",test: function (c) { return c.mastered >= 100; } },
+    { id: "level_5",    test: function (c) { return c.level >= 5; } },
+    { id: "level_10",   test: function (c) { return c.level >= 10; } }
+  ];
+  window.BADGE_ORDER = BADGES.map(function (b) { return b.id; });
+
+  function badgeContext() {
+    return {
+      decks: allDecks().length,
+      streak: state.stats.streak || 0,
+      mastered: totalMastered(),
+      level: levelInfo().level,
+      goalReached: dailyProgress().reached
+    };
+  }
+
+  /* Recalcule les badges gagnés ; renvoie ceux nouvellement débloqués. */
+  function refreshBadges() {
+    if (!Array.isArray(state.stats.badges)) state.stats.badges = [];
+    var ctx = badgeContext(), fresh = [];
+    BADGES.forEach(function (b) {
+      if (b.test(ctx) && state.stats.badges.indexOf(b.id) < 0) {
+        state.stats.badges.push(b.id);
+        fresh.push(b.id);
+      }
+    });
+    if (fresh.length) save();
+    return fresh;
+  }
+
+  function earnedBadges() {
+    return Array.isArray(state.stats.badges) ? state.stats.badges.slice() : [];
+  }
+
   /* ---------- réglages ---------- */
   function setting(k, v) {
     if (arguments.length === 1) return state.settings[k];
@@ -396,6 +476,12 @@
     globalQueue: globalQueue,
     level: level,
     deckProgress: deckProgress,
+    levelInfo: levelInfo,
+    award: award,
+    dailyProgress: dailyProgress,
+    totalMastered: totalMastered,
+    refreshBadges: refreshBadges,
+    earnedBadges: earnedBadges,
     setting: setting,
     encodeDeck: encodeDeck,
     decodeDeck: decodeDeck,

@@ -288,6 +288,55 @@
     return b;
   }
 
+  /* ---------- progression : niveau, objectif du jour, badges ---------- */
+  function renderProgress() {
+    var decks = S.allDecks();
+    var card = $("#progCard");
+    if (!decks.length) { card.hidden = true; $("#badgesBlock").hidden = true; return; }
+    card.hidden = false;
+
+    var li = S.levelInfo();
+    $("#levelNum").textContent = String(li.level);
+    var pct = Math.round((li.into / li.forNext) * 100);
+    $("#xpFill").style.width = pct + "%";
+    $("#xpText").textContent = (li.forNext - li.into) + " " + t("xp_to_next");
+
+    var dp = S.dailyProgress();
+    $("#goalCenter").textContent = dp.done + "/" + dp.goal;
+    var arc = $("#goalArc"), C = 2 * Math.PI * 30;
+    arc.style.strokeDasharray = C;
+    arc.style.strokeDashoffset = C * (1 - dp.pct / 100);
+    $("#progCard").classList.toggle("goal-reached", dp.reached);
+    $("#goalBtn").title = dp.reached ? t("goal_done_today") : t("daily_goal");
+
+    // Badges gagnés
+    S.refreshBadges();
+    var earned = S.earnedBadges();
+    var order = window.BADGE_ORDER || [];
+    var strip = $("#badgesStrip");
+    strip.innerHTML = "";
+    order.forEach(function (id) {
+      var got = earned.indexOf(id) >= 0;
+      var b = el("div", "badge" + (got ? " got" : " locked"));
+      b.title = t("b_" + id + "_n") + " — " + t("b_" + id + "_d");
+      b.innerHTML = '<span class="badge-medal">' + (got ? "🏅" : "🔒") + '</span>';
+      b.appendChild(el("span", "badge-name", t("b_" + id + "_n")));
+      strip.appendChild(b);
+    });
+    $("#badgesBlock").hidden = false;
+  }
+
+  /* Change l'objectif quotidien au clic (10 → 20 → 30 → 50 → 10). */
+  function cycleGoal() {
+    var opts = [10, 20, 30, 50];
+    var cur = (S.setting("dailyGoal") | 0) || 20;
+    var next = opts[(opts.indexOf(cur) + 1) % opts.length];
+    S.setting("dailyGoal", next);
+    Sfx.play("click");
+    renderProgress();
+    toast(next + " " + t("goal_cards"));
+  }
+
   /* ---------- tuiles de matières (points de départ, sans contenu imposé) ---------- */
   function renderSubjectTiles() {
     var grid = $("#subjectGrid");
@@ -484,6 +533,7 @@
       dueCard.hidden = true;
     }
 
+    renderProgress();
     renderSubjectTiles();
     screen("home");
   }
@@ -754,6 +804,7 @@
       wrong: 0,
       missed: [],
       answered: false,
+      goalWasReached: S.dailyProgress().reached,
       startedAt: Date.now()
     };
 
@@ -807,6 +858,10 @@
       stat(pct + "%", tr("success_rate"));
     }
     stat(secs < 60 ? secs + " " + tr("unit_sec") : Math.floor(secs / 60) + " " + tr("unit_min") + " " + (secs % 60) + " " + tr("unit_sec"), tr("work_time"));
+    if (sess.mode !== "flash") {
+      var earnedXP = sess.right * 10 + sess.wrong * 3;
+      if (earnedXP > 0) stat("+" + earnedXP, tr("xp_gain"));
+    }
 
     var missedBox = $("#resultMissed"), missedList = $("#missedList");
     missedList.innerHTML = "";
@@ -825,8 +880,20 @@
       missedBox.hidden = true;
     }
 
+    // Récompenses : objectif du jour franchi + nouveaux badges (en plus du résultat).
+    var goalNow = S.dailyProgress().reached;
+    var freshBadges = S.refreshBadges();
+    var celebrations = [];
+    if (!sess.goalWasReached && goalNow) celebrations.push(t("goal_today_reached"));
+    freshBadges.forEach(function (id) { celebrations.push(t("badge_new") + " " + t("b_" + id + "_n")); });
+
     Sfx.play("done");
     screen("result");
+
+    // On enchaîne les petits messages de récompense après l'arrivée sur le résultat.
+    celebrations.forEach(function (msg, i) {
+      setTimeout(function () { toast(msg); }, 500 + i * 2900);
+    });
   }
 
   /* ---------- Flashcards / révision ---------- */
@@ -871,13 +938,13 @@
         var c = sess.queue[sess.i];
         S.grade(c, q);
         if (q < 3) {
-          sess.wrong++;
+          sess.wrong++; S.award(false);
           sess.missed.push(c);
           // La carte ratée repasse plus loin dans la même session.
           sess.queue.push(c);
           sess.total = sess.queue.length;
         } else {
-          sess.right++;
+          sess.right++; S.award(true);
         }
         Sfx.play(q < 3 ? "bad" : "good");
         sess.i++;
@@ -933,12 +1000,12 @@
       else if (o !== btn) o.classList.add("dim");
     });
     if (correct) {
-      sess.right++;
+      sess.right++; S.award(true);
       S.grade(card, 4);
       Sfx.play("good");
     } else {
       btn.classList.add("bad");
-      sess.wrong++;
+      sess.wrong++; S.award(false);
       sess.missed.push(card);
       S.grade(card, 1);
       Sfx.play("bad");
@@ -984,14 +1051,14 @@
       fb.className = "write-feedback good";
       fb.appendChild(el("b", null, verdict === "close" ? tr("fb_almost") : tr("fb_correct")));
       fb.appendChild(document.createTextNode(card.t));
-      sess.right++;
+      sess.right++; S.award(true);
       S.grade(card, verdict === "close" ? 3 : 5);
       Sfx.play("good");
     } else {
       fb.className = "write-feedback bad";
       fb.appendChild(el("b", null, tr("fb_wrong")));
       fb.appendChild(document.createTextNode(card.t));
-      sess.wrong++;
+      sess.wrong++; S.award(false);
       sess.missed.push(card);
       S.grade(card, 1);
       Sfx.play("bad");
@@ -1095,7 +1162,7 @@
         n.classList.add("gone");
         n.disabled = true;
       });
-      sess.right++;
+      sess.right++; S.award(true);
       sess.left--;
       sess.i++;
       Sfx.play("pair");
@@ -1112,7 +1179,7 @@
       return;
     }
 
-    sess.wrong++;
+    sess.wrong++; S.award(false);
     sess.missed.push(tile.kind === "term" ? tile.card : a.tile.card);
     Sfx.play("bad");
     [a.btn, btn].forEach(function (n) {
@@ -1158,8 +1225,8 @@
     // On marque en vert le bon choix (Vrai/Faux), en rouge l'erreur.
     $(sess.tfTruth ? "#tfTrue" : "#tfFalse").classList.add("good");
     if (!correct) $(saidTrue ? "#tfTrue" : "#tfFalse").classList.add("bad");
-    if (correct) { sess.right++; S.grade(c, 4); Sfx.play("good"); }
-    else { sess.wrong++; sess.missed.push(c); S.grade(c, 1); Sfx.play("bad"); }
+    if (correct) { sess.right++; S.award(true); S.grade(c, 4); Sfx.play("good"); }
+    else { sess.wrong++; S.award(false); sess.missed.push(c); S.grade(c, 1); Sfx.play("bad"); }
     setTimeout(function () { if (!sess) return; sess.i++; renderTF(); }, correct ? 640 : 1300);
   }
 
@@ -1345,6 +1412,7 @@
 
     $("#newDeckBtn").addEventListener("click", function () { go("#/new"); });
     $("#dueStart").addEventListener("click", function () { go("#/review"); });
+    $("#goalBtn").addEventListener("click", cycleGoal);
     $("#quitStudy").addEventListener("click", quitStudy);
 
     $$("[data-nav]").forEach(function (b) {
@@ -1385,7 +1453,6 @@
       if (!$("#langMenu").hidden && !e.target.closest(".lang-wrap")) closeLangMenu();
     });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeCtxMenu(); closeModal(); closeLangMenu(); } });
-    window.addEventListener("scroll", closeCtxMenu, true);
     window.addEventListener("resize", closeCtxMenu);
     window.addEventListener("hashchange", function () { closeCtxMenu(); route(); });
     route();

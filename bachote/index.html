@@ -60,12 +60,35 @@
 
       <div class="stats-strip" id="statsStrip"></div>
 
+      <div class="prog-card" id="progCard" hidden>
+        <div class="prog-level">
+          <div class="prog-level-top">
+            <span class="prog-level-badge"><span data-i18n="level_word">Niveau</span>&nbsp;<b id="levelNum">1</b></span>
+            <span class="prog-xp-text" id="xpText"></span>
+          </div>
+          <div class="prog-xp-bar"><span id="xpFill"></span></div>
+        </div>
+        <button class="prog-goal" id="goalBtn" type="button" title="Objectif du jour">
+          <svg class="goal-ring" viewBox="0 0 72 72" aria-hidden="true">
+            <circle class="goal-ring-bg" cx="36" cy="36" r="30"></circle>
+            <circle class="goal-ring-arc" id="goalArc" cx="36" cy="36" r="30"></circle>
+          </svg>
+          <span class="goal-center" id="goalCenter">0/20</span>
+          <span class="goal-label" data-i18n="daily_goal">Objectif du jour</span>
+        </button>
+      </div>
+
       <div class="sec-head" id="decksHead" hidden>
         <h2 class="sec-title" data-i18n="decks_title">Tes paquets</h2>
         <button class="btn btn-ghost btn-sm" id="newDeckBtn" type="button" data-i18n="new_deck">+ Nouveau paquet</button>
       </div>
 
       <div class="deck-grid" id="deckGrid"></div>
+
+      <div class="badges-block" id="badgesBlock" hidden>
+        <h2 class="sec-title sec-title-tight" data-i18n="badges_title">Badges</h2>
+        <div class="badges-strip" id="badgesStrip"></div>
+      </div>
 
       <div class="sec-head">
         <h2 class="sec-title" id="subjectHead">Commence par une matière</h2>
