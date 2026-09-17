@@ -352,6 +352,99 @@
                       zh:"还没有记录。开始一次复习或一个计时器节：你的第一天会在这里亮起。",
                       ru:"Пока пусто. Начни повторение или сессию таймера — твой первый день загорится здесь." },
 
+    // ── Types de paquet (sélecteur + badges) ──
+    type_def_name: { fr:"Définitions", en:"Definitions", es:"Definiciones", it:"Definizioni", de:"Definitionen", zh:"定义", ru:"Определения" },
+    type_def_desc: { fr:"Mot → définition. Flashcards, quiz, association…", en:"Word → definition. Flashcards, quizzes, matching…", es:"Palabra → definición. Tarjetas, cuestionarios, emparejar…", it:"Parola → definizione. Flashcard, quiz, abbinamenti…", de:"Wort → Definition. Karten, Quiz, Zuordnen…", zh:"词语 → 定义。抽认卡、测验、连线……", ru:"Слово → определение. Карточки, тесты, сопоставление…" },
+    type_cloze_name: { fr:"Texte à trous", en:"Fill in the blanks", es:"Rellenar huecos", it:"Testo bucato", de:"Lückentext", zh:"填空", ru:"Заполни пропуски" },
+    type_cloze_desc: { fr:"Cache des mots dans ton cours et retrouve-les dans le contexte.", en:"Hide words in your notes and recall them in context.", es:"Oculta palabras de tus apuntes y recupéralas en su contexto.", it:"Nascondi parole nei tuoi appunti e ritrovale nel contesto.", de:"Verstecke Wörter in deinem Text und finde sie im Kontext wieder.", zh:"在课文里挖空，在上下文中回忆这些词。", ru:"Спрячь слова в тексте и вспоминай их в контексте." },
+    type_recit_name: { fr:"Apprendre par cœur", en:"Learn by heart", es:"Aprender de memoria", it:"Imparare a memoria", de:"Auswendig lernen", zh:"背诵记忆", ru:"Учить наизусть" },
+    type_recit_desc: { fr:"Un poème, une citation, une définition exacte, mot pour mot.", en:"A poem, a quote, an exact definition — word for word.", es:"Un poema, una cita, una definición exacta, palabra por palabra.", it:"Una poesia, una citazione, una definizione esatta, parola per parola.", de:"Ein Gedicht, ein Zitat, eine genaue Definition — Wort für Wort.", zh:"一首诗、一句名言、一条准确定义，一字不差。", ru:"Стихотворение, цитата, точное определение — слово в слово." },
+    type_order_name: { fr:"Remettre dans l'ordre", en:"Put in order", es:"Ordenar", it:"Rimetti in ordine", de:"In die richtige Reihenfolge", zh:"排列顺序", ru:"Расставь по порядку" },
+    type_order_desc: { fr:"Des événements ou des étapes à replacer dans le bon ordre.", en:"Events or steps to put back in the right order.", es:"Acontecimientos o pasos para colocar en el orden correcto.", it:"Eventi o passaggi da rimettere nell'ordine giusto.", de:"Ereignisse oder Schritte in die richtige Reihenfolge bringen.", zh:"把事件或步骤重新排成正确顺序。", ru:"События или шаги, которые нужно расставить по порядку." },
+    type_qa_name: { fr:"Questions de cours", en:"Course questions", es:"Preguntas de clase", it:"Domande di studio", de:"Lernfragen", zh:"课堂问答", ru:"Вопросы по курсу" },
+    type_qa_desc: { fr:"Des questions ouvertes ; tu réponds de tête puis tu te corriges.", en:"Open questions; answer from memory, then check yourself.", es:"Preguntas abiertas; responde de memoria y luego corrígete.", it:"Domande aperte; rispondi a memoria e poi ti correggi.", de:"Offene Fragen; antworte aus dem Kopf und prüfe dich selbst.", zh:"开放式问题；先凭记忆回答，再自我核对。", ru:"Открытые вопросы: отвечай по памяти, потом проверяй себя." },
+
+    // ── Nouveaux modes ──
+    mode_cloze_name: { fr:"Texte à trous", en:"Fill the blanks", es:"Rellenar huecos", it:"Testo bucato", de:"Lückentext", zh:"填空", ru:"Заполнить пропуски" },
+    mode_cloze_desc: { fr:"Complète les mots manquants dans le passage.", en:"Fill in the missing words in the passage.", es:"Completa las palabras que faltan en el pasaje.", it:"Completa le parole mancanti nel brano.", de:"Ergänze die fehlenden Wörter im Text.", zh:"补全段落中缺失的词。", ru:"Впиши пропущенные слова в отрывке." },
+    mode_clozerev_name: { fr:"Révision intelligente", en:"Smart review", es:"Repaso inteligente", it:"Ripasso intelligente", de:"Smartes Wiederholen", zh:"智能复习", ru:"Умное повторение" },
+    mode_clozerev_desc: { fr:"Revois en priorité les passages presque oubliés.", en:"Review first the passages you're about to forget.", es:"Repasa primero los pasajes que estás por olvidar.", it:"Ripassa prima i brani che stai per dimenticare.", de:"Wiederhole zuerst die Textstellen, die du bald vergisst.", zh:"优先复习快要遗忘的段落。", ru:"Сначала повторяй отрывки, которые вот-вот забудешь." },
+    mode_recit_name: { fr:"Apprendre", en:"Learn", es:"Aprender", it:"Impara", de:"Lernen", zh:"学习", ru:"Учить" },
+    mode_recit_desc: { fr:"On masque de plus en plus de mots, à ton rythme.", en:"Hide more and more words, at your own pace.", es:"Oculta cada vez más palabras, a tu ritmo.", it:"Nascondi sempre più parole, al tuo ritmo.", de:"Blende immer mehr Wörter aus, in deinem Tempo.", zh:"逐步隐藏更多词，按你的节奏。", ru:"Прячь всё больше слов в своём темпе." },
+    mode_recittest_name: { fr:"Test", en:"Test", es:"Prueba", it:"Test", de:"Test", zh:"测试", ru:"Тест" },
+    mode_recittest_desc: { fr:"Tout est masqué : récite, puis révèle ligne par ligne.", en:"Everything hidden: recite, then reveal line by line.", es:"Todo oculto: recita y revela línea por línea.", it:"Tutto nascosto: recita, poi rivela riga per riga.", de:"Alles verdeckt: rezitiere, dann Zeile für Zeile aufdecken.", zh:"全部隐藏：先背诵，再逐行揭示。", ru:"Всё скрыто: рассказывай, затем открывай строку за строкой." },
+    mode_order_name: { fr:"Remettre dans l'ordre", en:"Put in order", es:"Ordenar", it:"Rimetti in ordine", de:"Ordnen", zh:"排列顺序", ru:"По порядку" },
+    mode_order_desc: { fr:"Replace chaque élément à la bonne position.", en:"Move each item to its correct position.", es:"Coloca cada elemento en su posición correcta.", it:"Metti ogni elemento al posto giusto.", de:"Bring jedes Element an die richtige Stelle.", zh:"把每一项移到正确的位置。", ru:"Поставь каждый элемент на своё место." },
+    mode_qa_name: { fr:"Interro", en:"Quiz yourself", es:"Autoevaluación", it:"Interrogazione", de:"Abfrage", zh:"自测", ru:"Опрос" },
+    mode_qa_desc: { fr:"Réponds de tête, puis compare à la réponse modèle.", en:"Answer from memory, then compare with the model answer.", es:"Responde de memoria y compara con la respuesta modelo.", it:"Rispondi a memoria e confronta con la risposta modello.", de:"Antworte aus dem Kopf und vergleiche mit der Musterlösung.", zh:"凭记忆作答，再与参考答案对照。", ru:"Отвечай по памяти, потом сравни с образцом." },
+    mode_qarev_name: { fr:"Révision intelligente", en:"Smart review", es:"Repaso inteligente", it:"Ripasso intelligente", de:"Smartes Wiederholen", zh:"智能复习", ru:"Умное повторение" },
+    mode_qarev_desc: { fr:"Revois en priorité les questions presque oubliées.", en:"Review first the questions you're about to forget.", es:"Repasa primero las preguntas que estás por olvidar.", it:"Ripassa prima le domande che stai per dimenticare.", de:"Wiederhole zuerst die Fragen, die du bald vergisst.", zh:"优先复习快要遗忘的问题。", ru:"Сначала повторяй вопросы, которые вот-вот забудешь." },
+
+    // ── Sélecteur de type ──
+    pick_title: { fr:"Quel type de fiche ?", en:"What kind of set?", es:"¿Qué tipo de ficha?", it:"Che tipo di scheda?", de:"Welche Art von Stapel?", zh:"哪种学习卡？", ru:"Какой тип набора?" },
+    pick_sub: { fr:"Choisis la façon dont tu veux étudier. Chaque type a sa propre manière de réviser.", en:"Choose how you want to study. Each type has its own way to review.", es:"Elige cómo quieres estudiar. Cada tipo tiene su forma de repasar.", it:"Scegli come vuoi studiare. Ogni tipo ha il suo modo di ripassare.", de:"Wähle, wie du lernen willst. Jeder Typ hat seine eigene Art zu wiederholen.", zh:"选择你想怎么学。每种类型都有自己的复习方式。", ru:"Выбери, как хочешь заниматься. У каждого типа свой способ повторения." },
+
+    // ── Éditeur & étude : Texte à trous ──
+    cloze_edit_title: { fr:"Passages", en:"Passages", es:"Pasajes", it:"Brani", de:"Textstellen", zh:"段落", ru:"Отрывки" },
+    cloze_edit_help: { fr:"Colle un passage de ton cours, puis clique les mots à cacher. À la révision, tu les retrouveras dans leur contexte.", en:"Paste a passage from your notes, then click the words to hide. You'll recall them in context when you review.", es:"Pega un pasaje de tus apuntes y haz clic en las palabras que quieres ocultar. Los recordarás en su contexto al repasar.", it:"Incolla un brano dei tuoi appunti, poi clicca le parole da nascondere. Le ritroverai nel contesto durante il ripasso.", de:"Füge eine Textstelle ein und klicke die Wörter an, die du verstecken willst. Beim Wiederholen findest du sie im Kontext wieder.", zh:"粘贴一段课文，然后点击要隐藏的词。复习时你将在上下文中回忆它们。", ru:"Вставь отрывок из конспекта и щёлкни по словам, которые нужно скрыть. При повторении ты вспомнишь их в контексте." },
+    cloze_add: { fr:"+ Ajouter un passage", en:"+ Add a passage", es:"+ Añadir un pasaje", it:"+ Aggiungi un brano", de:"+ Textstelle hinzufügen", zh:"+ 添加段落", ru:"+ Добавить отрывок" },
+    cloze_src_ph: { fr:"Colle ici un passage de ton cours…", en:"Paste a passage from your notes here…", es:"Pega aquí un pasaje de tus apuntes…", it:"Incolla qui un brano dei tuoi appunti…", de:"Füge hier eine Textstelle ein…", zh:"在此粘贴一段课文……", ru:"Вставь сюда отрывок из конспекта…" },
+    cloze_click_hint: { fr:"Clique un mot pour le cacher (ou le réafficher).", en:"Click a word to hide it (or show it again).", es:"Haz clic en una palabra para ocultarla (o mostrarla).", it:"Clicca una parola per nasconderla (o mostrarla).", de:"Klicke ein Wort an, um es zu verstecken (oder wieder zu zeigen).", zh:"点击词语可将其隐藏（或重新显示）。", ru:"Щёлкни по слову, чтобы скрыть его (или показать снова)." },
+    cloze_prev_empty: { fr:"L'aperçu apparaîtra ici.", en:"The preview will appear here.", es:"La vista previa aparecerá aquí.", it:"L'anteprima apparirà qui.", de:"Die Vorschau erscheint hier.", zh:"预览将显示在这里。", ru:"Здесь появится предпросмотр." },
+    cloze_del: { fr:"Retirer ce passage", en:"Remove this passage", es:"Quitar este pasaje", it:"Rimuovi questo brano", de:"Textstelle entfernen", zh:"移除此段落", ru:"Убрать этот отрывок" },
+    cloze_fill: { fr:"Complète le texte", en:"Fill in the text", es:"Completa el texto", it:"Completa il testo", de:"Ergänze den Text", zh:"补全文本", ru:"Заполни текст" },
+    cloze_check: { fr:"Vérifier", en:"Check", es:"Comprobar", it:"Verifica", de:"Prüfen", zh:"检查", ru:"Проверить" },
+    cloze_blank: { fr:"mot à trouver", en:"word to find", es:"palabra a encontrar", it:"parola da trovare", de:"gesuchtes Wort", zh:"要填的词", ru:"слово" },
+    cloze_good: { fr:"Bien joué !", en:"Well done!", es:"¡Bien hecho!", it:"Ben fatto!", de:"Gut gemacht!", zh:"做得好！", ru:"Молодец!" },
+    cloze_retry: { fr:"À revoir — regarde les bonnes réponses.", en:"Review — look at the correct answers.", es:"A repasar: mira las respuestas correctas.", it:"Da rivedere — guarda le risposte corrette.", de:"Nochmal ansehen — schau dir die richtigen Antworten an.", zh:"需要复习——看看正确答案。", ru:"Повтори — посмотри правильные ответы." },
+
+    // ── Éditeur & étude : Apprendre par cœur ──
+    recit_edit_title: { fr:"Textes à apprendre", en:"Texts to learn", es:"Textos para aprender", it:"Testi da imparare", de:"Texte zum Lernen", zh:"要背的文本", ru:"Тексты для заучивания" },
+    recit_edit_help: { fr:"Un poème, une citation, une définition exacte… Donne un titre et colle le texte tel qu'il doit être su.", en:"A poem, a quote, an exact definition… Give a title and paste the text exactly as it must be known.", es:"Un poema, una cita, una definición exacta… Pon un título y pega el texto tal como debe saberse.", it:"Una poesia, una citazione, una definizione esatta… Dai un titolo e incolla il testo come dev'essere saputo.", de:"Ein Gedicht, ein Zitat, eine genaue Definition… Gib einen Titel und füge den Text genau so ein, wie er gekonnt werden muss.", zh:"一首诗、一句名言、一条准确定义……取个标题，并粘贴需要记住的原文。", ru:"Стихотворение, цитата, точное определение… Дай заголовок и вставь текст так, как его нужно знать." },
+    recit_add: { fr:"+ Ajouter un texte", en:"+ Add a text", es:"+ Añadir un texto", it:"+ Aggiungi un testo", de:"+ Text hinzufügen", zh:"+ 添加文本", ru:"+ Добавить текст" },
+    recit_title_ph: { fr:"Titre (ex. Demain dès l'aube — V. Hugo)", en:"Title (e.g. Sonnet 18 — Shakespeare)", es:"Título (p. ej. Rima LIII — Bécquer)", it:"Titolo (es. L'infinito — Leopardi)", de:"Titel (z. B. Der Erlkönig — Goethe)", zh:"标题（如：《静夜思》— 李白）", ru:"Заголовок (напр. «Парус» — Лермонтов)" },
+    recit_text_ph: { fr:"Colle ici le texte à apprendre, ligne par ligne…", en:"Paste the text to learn here, line by line…", es:"Pega aquí el texto a aprender, línea por línea…", it:"Incolla qui il testo da imparare, riga per riga…", de:"Füge hier den zu lernenden Text ein, Zeile für Zeile…", zh:"在此粘贴要背的文本，一行一行……", ru:"Вставь сюда текст для заучивания, строка за строкой…" },
+    recit_del: { fr:"Retirer ce texte", en:"Remove this text", es:"Quitar este texto", it:"Rimuovi questo testo", de:"Text entfernen", zh:"移除此文本", ru:"Убрать этот текст" },
+    recit_default_title: { fr:"Texte", en:"Text", es:"Texto", it:"Testo", de:"Text", zh:"文本", ru:"Текст" },
+    recit_hide: { fr:"Masquer :", en:"Hide:", es:"Ocultar:", it:"Nascondi:", de:"Ausblenden:", zh:"隐藏：", ru:"Скрыть:" },
+    recit_reveal: { fr:"Révéler la ligne", en:"Reveal the line", es:"Revelar la línea", it:"Rivela la riga", de:"Zeile aufdecken", zh:"揭示这一行", ru:"Показать строку" },
+    recit_again: { fr:"À revoir", en:"To review", es:"A repasar", it:"Da rivedere", de:"Nochmal", zh:"需复习", ru:"Повторить" },
+    recit_knew: { fr:"Je le savais", en:"I knew it", es:"Lo sabía", it:"Lo sapevo", de:"Wusste ich", zh:"我记得", ru:"Я знал" },
+    recit_lvl_none: { fr:"Rien", en:"None", es:"Nada", it:"Niente", de:"Nichts", zh:"无", ru:"Ничего" },
+
+    // ── Éditeur & étude : Remettre dans l'ordre ──
+    order_edit_title: { fr:"Suites à ordonner", en:"Sequences to order", es:"Secuencias para ordenar", it:"Sequenze da ordinare", de:"Reihenfolgen", zh:"要排序的序列", ru:"Последовательности" },
+    order_edit_help: { fr:"Donne un titre, puis écris les éléments dans le bon ordre, un par ligne. À la révision, ils seront mélangés à remettre en place.", en:"Give a title, then write the items in the correct order, one per line. They'll be shuffled to put back in place when you review.", es:"Pon un título y escribe los elementos en el orden correcto, uno por línea. Al repasar aparecerán mezclados para reordenarlos.", it:"Dai un titolo e scrivi gli elementi nell'ordine giusto, uno per riga. Al ripasso saranno mescolati da rimettere a posto.", de:"Gib einen Titel und schreibe die Elemente in der richtigen Reihenfolge, eins pro Zeile. Beim Wiederholen werden sie gemischt.", zh:"取个标题，然后按正确顺序每行写一个元素。复习时它们会被打乱，让你重新排列。", ru:"Дай заголовок и запиши элементы в правильном порядке, по одному в строке. При повторении они перемешаются." },
+    order_add: { fr:"+ Ajouter une suite", en:"+ Add a sequence", es:"+ Añadir una secuencia", it:"+ Aggiungi una sequenza", de:"+ Reihenfolge hinzufügen", zh:"+ 添加序列", ru:"+ Добавить последовательность" },
+    order_title_ph: { fr:"Titre (ex. Les étapes de la mitose)", en:"Title (e.g. The stages of mitosis)", es:"Título (p. ej. Las etapas de la mitosis)", it:"Titolo (es. Le fasi della mitosi)", de:"Titel (z. B. Die Phasen der Mitose)", zh:"标题（如：有丝分裂的各阶段）", ru:"Заголовок (напр. Этапы митоза)" },
+    order_items_ph: { fr:"Un élément par ligne, dans le bon ordre…", en:"One item per line, in the correct order…", es:"Un elemento por línea, en el orden correcto…", it:"Un elemento per riga, nell'ordine giusto…", de:"Ein Element pro Zeile, in der richtigen Reihenfolge…", zh:"每行一个元素，按正确顺序……", ru:"По одному элементу в строке, в правильном порядке…" },
+    order_del: { fr:"Retirer cette suite", en:"Remove this sequence", es:"Quitar esta secuencia", it:"Rimuovi questa sequenza", de:"Reihenfolge entfernen", zh:"移除此序列", ru:"Убрать эту последовательность" },
+    order_default_title: { fr:"Suite", en:"Sequence", es:"Secuencia", it:"Sequenza", de:"Reihenfolge", zh:"序列", ru:"Последовательность" },
+    order_do: { fr:"Remets dans le bon ordre", en:"Put in the right order", es:"Ponlo en el orden correcto", it:"Rimetti nell'ordine giusto", de:"In die richtige Reihenfolge bringen", zh:"按正确顺序排列", ru:"Расставь по порядку" },
+    order_up: { fr:"Monter", en:"Move up", es:"Subir", it:"Su", de:"Nach oben", zh:"上移", ru:"Вверх" },
+    order_down: { fr:"Descendre", en:"Move down", es:"Bajar", it:"Giù", de:"Nach unten", zh:"下移", ru:"Вниз" },
+    order_correct: { fr:"Parfait, tout est dans l'ordre !", en:"Perfect, everything's in order!", es:"¡Perfecto, todo en orden!", it:"Perfetto, tutto in ordine!", de:"Perfekt, alles in der richtigen Reihenfolge!", zh:"完美，全部顺序正确！", ru:"Отлично, всё по порядку!" },
+    order_wrong: { fr:"Pas tout à fait. Le bon ordre :", en:"Not quite. The right order:", es:"No del todo. El orden correcto:", it:"Non proprio. L'ordine giusto:", de:"Nicht ganz. Die richtige Reihenfolge:", zh:"还差一点。正确顺序：", ru:"Не совсем. Правильный порядок:" },
+
+    // ── Éditeur & étude : Questions de cours ──
+    qa_question: { fr:"Question", en:"Question", es:"Pregunta", it:"Domanda", de:"Frage", zh:"问题", ru:"Вопрос" },
+    qa_answer: { fr:"Réponse", en:"Answer", es:"Respuesta", it:"Risposta", de:"Antwort", zh:"答案", ru:"Ответ" },
+    qa_show: { fr:"Voir la réponse", en:"Show the answer", es:"Ver la respuesta", it:"Mostra la risposta", de:"Antwort zeigen", zh:"查看答案", ru:"Показать ответ" },
+    qa_paste_ph: { fr:"Question : réponse\nAutre question : sa réponse", en:"Question : answer\nAnother question : its answer", es:"Pregunta : respuesta\nOtra pregunta : su respuesta", it:"Domanda : risposta\nAltra domanda : la sua risposta", de:"Frage : Antwort\nWeitere Frage : ihre Antwort", zh:"问题 : 答案\n另一个问题 : 它的答案", ru:"Вопрос : ответ\nДругой вопрос : его ответ" },
+    ph_question: { fr:"Question", en:"Question", es:"Pregunta", it:"Domanda", de:"Frage", zh:"问题", ru:"Вопрос" },
+    ph_answer: { fr:"Réponse", en:"Answer", es:"Respuesta", it:"Risposta", de:"Antwort", zh:"答案", ru:"Ответ" },
+    paste_ph_def: { fr:"mot : définition\nautre mot : sa définition\nterme — explication", en:"word : definition\nanother word : its definition\nterm — explanation", es:"palabra : definición\notra palabra : su definición\ntérmino — explicación", it:"parola : definizione\naltra parola : la sua definizione\ntermine — spiegazione", de:"Wort : Definition\nweiteres Wort : seine Definition\nBegriff — Erklärung", zh:"词语 : 定义\n另一个词 : 它的定义\n术语 — 解释", ru:"слово : определение\nдругое слово : его определение\nтермин — объяснение" },
+
+    // ── Messages « rien à enregistrer » ──
+    t_need_cloze: { fr:"Ajoute au moins un passage avec un mot caché.", en:"Add at least one passage with a hidden word.", es:"Añade al menos un pasaje con una palabra oculta.", it:"Aggiungi almeno un brano con una parola nascosta.", de:"Füge mindestens eine Textstelle mit einem versteckten Wort hinzu.", zh:"至少添加一个含有隐藏词的段落。", ru:"Добавь хотя бы один отрывок со скрытым словом." },
+    t_need_recit: { fr:"Ajoute au moins un texte à apprendre.", en:"Add at least one text to learn.", es:"Añade al menos un texto para aprender.", it:"Aggiungi almeno un testo da imparare.", de:"Füge mindestens einen Text zum Lernen hinzu.", zh:"至少添加一个要背的文本。", ru:"Добавь хотя бы один текст для заучивания." },
+    t_need_order: { fr:"Ajoute une suite d'au moins deux éléments.", en:"Add a sequence of at least two items.", es:"Añade una secuencia de al menos dos elementos.", it:"Aggiungi una sequenza di almeno due elementi.", de:"Füge eine Reihenfolge mit mindestens zwei Elementen hinzu.", zh:"添加一个至少包含两个元素的序列。", ru:"Добавь последовательность минимум из двух элементов." },
+    t_need_qa: { fr:"Ajoute au moins une question et sa réponse.", en:"Add at least one question and its answer.", es:"Añade al menos una pregunta y su respuesta.", it:"Aggiungi almeno una domanda e la sua risposta.", de:"Füge mindestens eine Frage und ihre Antwort hinzu.", zh:"至少添加一个问题及其答案。", ru:"Добавь хотя бы один вопрос и ответ на него." },
+
+    // ── Résultats (nouveaux types) ──
+    texts_seen: { fr:"textes revus", en:"texts reviewed", es:"textos repasados", it:"testi ripassati", de:"Texte wiederholt", zh:"已复习文本", ru:"текстов пройдено" },
+    done_recit: { fr:"Bien récité !", en:"Well recited!", es:"¡Bien recitado!", it:"Ben recitato!", de:"Gut aufgesagt!", zh:"背得不错！", ru:"Хорошо рассказано!" },
+
     iv_min: { fr:"< 1 min", en:"< 1 min", es:"< 1 min", it:"< 1 min", de:"< 1 Min.", zh:"< 1 分钟", ru:"< 1 мин" }
   };
 
@@ -431,6 +524,24 @@
       de:{one:"{n} Zyklus fertig", other:"{n} Zyklen fertig"},
       zh:{other:"完成 {n} 个循环"},
       ru:{one:"{n} цикл завершён", few:"{n} цикла завершено", many:"{n} циклов завершено"}
+    },
+    cloze_n: {
+      fr:{one:"{n} passage", other:"{n} passages"}, en:{one:"{n} passage", other:"{n} passages"},
+      es:{one:"{n} pasaje", other:"{n} pasajes"}, it:{one:"{n} brano", other:"{n} brani"},
+      de:{one:"{n} Textstelle", other:"{n} Textstellen"}, zh:{other:"{n} 个段落"},
+      ru:{one:"{n} отрывок", few:"{n} отрывка", many:"{n} отрывков"}
+    },
+    recit_n: {
+      fr:{one:"{n} texte", other:"{n} textes"}, en:{one:"{n} text", other:"{n} texts"},
+      es:{one:"{n} texto", other:"{n} textos"}, it:{one:"{n} testo", other:"{n} testi"},
+      de:{one:"{n} Text", other:"{n} Texte"}, zh:{other:"{n} 个文本"},
+      ru:{one:"{n} текст", few:"{n} текста", many:"{n} текстов"}
+    },
+    order_n: {
+      fr:{one:"{n} suite", other:"{n} suites"}, en:{one:"{n} sequence", other:"{n} sequences"},
+      es:{one:"{n} secuencia", other:"{n} secuencias"}, it:{one:"{n} sequenza", other:"{n} sequenze"},
+      de:{one:"{n} Reihenfolge", other:"{n} Reihenfolgen"}, zh:{other:"{n} 个序列"},
+      ru:{one:"{n} последовательность", few:"{n} последовательности", many:"{n} последовательностей"}
     },
     iv_day: {
       fr:{one:"1 jour", other:"{n} jours"}, en:{one:"1 day", other:"{n} days"},

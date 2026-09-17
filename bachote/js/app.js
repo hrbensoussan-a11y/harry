@@ -51,6 +51,98 @@
     speakOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="m17 8 4 6M21 8l-4 6"/></svg>'
   };
 
+  /* ============================================================
+     TYPES DE PAQUET & MODES — catalogue partagé
+     Chaque « mode » est une expérience d'étude ; chaque « type » (kind)
+     de paquet propose ses modes. La grille du deck-screen est générée
+     à partir de KIND_MODES, donc l'ajout d'un type ne casse rien.
+     ============================================================ */
+  var MODES = {
+    review:    { name: "mode_review_name",    desc: "mode_review_desc",    cls: "mode-review", badge: true, svg: '<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>' },
+    flash:     { name: "mode_flash_name",     desc: "mode_flash_desc",     svg: '<rect x="6" y="7" width="14" height="11" rx="2"/><path d="M4 9v9a2 2 0 0 0 2 2h10"/><path d="M10 12.5h6"/>' },
+    match:     { name: "mode_match_name",     desc: "mode_match_desc",     svg: '<circle cx="7" cy="8" r="2.6"/><circle cx="17" cy="16" r="2.6"/><path d="M9.4 9.3 14.6 14.7"/>' },
+    mcq:       { name: "mode_mcq_name",       desc: "mode_mcq_desc",       svg: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9.5h8M8 14.5h5"/><path d="M14.5 15.5l1.6 1.6 2.4-2.8" stroke="var(--green)"/>' },
+    write:     { name: "mode_write_name",     desc: "mode_write_desc",     svg: '<path d="M15.5 5.5 18.5 8.5"/><path d="M5 19l1-4L16.5 4.5a1.5 1.5 0 0 1 2.1 0l.9.9a1.5 1.5 0 0 1 0 2.1L9 18l-4 1Z"/>' },
+    truefalse: { name: "mode_tf_name",        desc: "mode_tf_desc",        svg: '<path d="M4 8h9M4 8l2.5-2.5M4 8l2.5 2.5"/><path d="M20 16h-9M20 16l-2.5-2.5M20 16l-2.5 2.5"/>' },
+    sheet:     { name: "mode_sheet_name",     desc: "mode_sheet_desc",     svg: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>' },
+    cloze:     { name: "mode_cloze_name",     desc: "mode_cloze_desc",     svg: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h4M8 13h2"/><rect x="12.5" y="12" width="4.5" height="2.2" rx="0.5" fill="currentColor" stroke="none" opacity=".55"/>' },
+    clozereview:{ name: "mode_clozerev_name", desc: "mode_clozerev_desc",  cls: "mode-review", badge: true, svg: '<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>' },
+    recit:     { name: "mode_recit_name",     desc: "mode_recit_desc",     svg: '<path d="M12 20s-6.5-4.2-8.6-8C2 9 3.4 5.5 6.4 5.5c1.9 0 3 1.2 3.6 2.3.6-1.1 1.7-2.3 3.6-2.3 3 0 4.4 3.5 3 6.5C18.5 15.8 12 20 12 20Z"/>' },
+    recittest: { name: "mode_recittest_name", desc: "mode_recittest_desc", cls: "mode-review", svg: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12.3l2.3 2.3 4.7-5"/>' },
+    order:     { name: "mode_order_name",     desc: "mode_order_desc",     svg: '<path d="M4 7h9M4 12h9M4 17h9"/><path d="M18 6v12M18 6l-1.6 1.8M18 6l1.6 1.8M18 18l-1.6-1.8M18 18l1.6-1.8"/>' },
+    qa:        { name: "mode_qa_name",        desc: "mode_qa_desc",        svg: '<path d="M5 5h14v10H9l-4 4V5Z"/><path d="M9.6 8.6a2.4 2.4 0 1 1 3 2.3c-.6.2-1 .7-1 1.3"/><circle cx="11.6" cy="14" r=".7" fill="currentColor" stroke="none"/>' },
+    qareview:  { name: "mode_qarev_name",     desc: "mode_qarev_desc",     cls: "mode-review", badge: true, svg: '<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>' }
+  };
+
+  var KIND_MODES = {
+    def:   ["review", "flash", "match", "mcq", "write", "truefalse", "sheet"],
+    cloze: ["cloze", "clozereview"],
+    recit: ["recit", "recittest"],
+    order: ["order"],
+    qa:    ["qa", "qareview"]
+  };
+
+  var KIND_LIST = ["def", "cloze", "recit", "order", "qa"];
+  var KIND_META = {
+    def:   { name: "type_def_name",   desc: "type_def_desc",   svg: '<rect x="4" y="5" width="16" height="12" rx="2"/><path d="M8 20h8"/><path d="M8 9h8M8 13h5"/>' },
+    cloze: { name: "type_cloze_name", desc: "type_cloze_desc", svg: MODES.cloze.svg },
+    recit: { name: "type_recit_name", desc: "type_recit_desc", svg: MODES.recit.svg },
+    order: { name: "type_order_name", desc: "type_order_desc", svg: MODES.order.svg },
+    qa:    { name: "type_qa_name",    desc: "type_qa_desc",    svg: MODES.qa.svg }
+  };
+  function deckKind(deck) { return (deck && KIND_MODES[deck.kind]) ? deck.kind : "def"; }
+
+  /* Construit la grille de modes du deck-screen selon le type du paquet. */
+  function renderModeGrid(deck) {
+    var grid = $("#modeGrid");
+    grid.innerHTML = "";
+    var due = deck ? S.dueCount(deck) : 0;
+    (KIND_MODES[deckKind(deck)]).forEach(function (mid) {
+      var m = MODES[mid];
+      var b = el("button", "mode-card" + (m.cls ? " " + m.cls : ""));
+      b.type = "button";
+      b.setAttribute("data-mode", mid);
+      var em = el("span", "mode-emoji");
+      em.innerHTML = '<svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true">' + m.svg + '</svg>';
+      b.appendChild(em);
+      b.appendChild(el("span", "mode-name", t(m.name)));
+      b.appendChild(el("span", "mode-desc", t(m.desc)));
+      if (m.badge && due > 0) {
+        var bg = el("span", "mode-badge", String(due));
+        if (mid === "review") bg.id = "modeReviewBadge"; // repère stable (compat)
+        b.appendChild(bg);
+      }
+      grid.appendChild(b);
+    });
+  }
+
+  /* Petit badge « type de paquet » (icône + nom) posé sur un élément. */
+  function paintKindBadge(node, kind) {
+    var meta = KIND_META[kind] || KIND_META.def;
+    node.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + meta.svg + '</svg>';
+    node.appendChild(el("span", null, t(meta.name)));
+    node.hidden = false;
+  }
+
+  /* Écran « quel type de fiche ? » (ouvert par « + Nouveau paquet »). */
+  function renderTypePicker() {
+    var grid = $("#typeGrid");
+    grid.innerHTML = "";
+    KIND_LIST.forEach(function (k) {
+      var meta = KIND_META[k];
+      var b = el("button", "type-tile");
+      b.type = "button";
+      var ic = el("span", "type-ic");
+      ic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + meta.svg + '</svg>';
+      b.appendChild(ic);
+      b.appendChild(el("span", "type-name", t(meta.name)));
+      b.appendChild(el("span", "type-desc", t(meta.desc)));
+      b.addEventListener("click", function () { go("#/create/" + k); });
+      grid.appendChild(b);
+    });
+    screen("pick");
+  }
+
   /* ---------- raccourcis DOM ---------- */
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
@@ -63,7 +155,7 @@
   function show(node) { node.hidden = false; }
   function hide(node) { node.hidden = true; }
 
-  var SCREENS = ["home", "deck", "edit", "study", "result", "timer", "activity"];
+  var SCREENS = ["home", "deck", "edit", "study", "result", "timer", "activity", "pick"];
   function screen(name) {
     SCREENS.forEach(function (s) {
       var n = $("#screen-" + s);
@@ -302,8 +394,15 @@
       b.appendChild(st);
     }
 
-    var tag = el("span", "tag tag-" + (deck.subject || "autre"), subjLabel(deck.subject));
-    b.appendChild(tag);
+    var tags = el("div", "deck-tags");
+    tags.appendChild(el("span", "tag tag-" + (deck.subject || "autre"), subjLabel(deck.subject)));
+    var dk = deckKind(deck);
+    if (dk !== "def") {
+      var kb = el("span", "kind-badge kind-badge-sm");
+      paintKindBadge(kb, dk);
+      tags.appendChild(kb);
+    }
+    b.appendChild(tags);
     b.appendChild(el("h3", "deck-name", deck.name));
 
     var due = S.dueCount(deck);
@@ -606,7 +705,12 @@
       prog.learn + " " + t("in_progress_word") + " · " +
       prog.fresh + " " + tn("lbl_fresh", prog.fresh);
 
-    $("#modeReviewBadge").textContent = due ? String(due) : "";
+    // Badge de type (masqué pour les définitions, le type par défaut).
+    var kind = deckKind(d);
+    if (kind === "def") $("#deckKindBadge").hidden = true;
+    else paintKindBadge($("#deckKindBadge"), kind);
+
+    renderModeGrid(d);
     $("#cardCount").textContent = tn("n_cards", d.cards.length);
 
     var list = $("#cardList");
@@ -615,8 +719,13 @@
     d.cards.forEach(function (c) {
       var li = el("li");
       li.setAttribute("data-level", S.level(c));
-      li.appendChild(el("span", "cl-term", c.t));
-      li.appendChild(el("span", "cl-def", c.d));
+      var disp = cardDisplay(kind, c);
+      if (disp.full) {
+        li.appendChild(el("span", "cl-full", disp.term));
+      } else {
+        li.appendChild(el("span", "cl-term", disp.term));
+        li.appendChild(el("span", "cl-def", disp.def));
+      }
       if (canSpeak) {
         var sp = el("button", "cl-speak");
         sp.type = "button";
@@ -624,7 +733,7 @@
         sp.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>';
         sp.addEventListener("click", function (e) {
           e.stopPropagation();
-          speakText(c.t + ". " + c.d);
+          speakText(disp.speak != null ? disp.speak : (disp.term + ". " + (disp.def || "")));
         });
         li.appendChild(sp);
       }
@@ -634,19 +743,35 @@
     screen("deck");
   }
 
+  /* Retire les marqueurs [[ ]] d'un texte à trous → texte lisible. */
+  function stripCloze(s) { return String(s || "").replace(/\[\[(.*?)\]\]/g, "$1"); }
+
+  /* Aperçu d'une carte dans la liste du deck-screen, selon le type. */
+  function cardDisplay(kind, c) {
+    if (kind === "cloze") return { full: true, term: stripCloze(c.t), speak: stripCloze(c.t) };
+    if (kind === "recit") return { term: c.t, def: String(c.d || "").split("\n")[0], speak: c.d };
+    if (kind === "order") {
+      var items = String(c.d || "").split("\n").filter(function (x) { return x.trim(); });
+      return { term: c.t, def: items.join("  →  "), speak: c.t + ". " + items.join(", ") };
+    }
+    return { term: c.t, def: c.d, speak: c.t + ". " + c.d }; // def / qa
+  }
+
   /* ============================================================
      ÉDITEUR
      ============================================================ */
-  var editState = { id: null, rows: [] };
+  var editState = { id: null, kind: "def" };
 
   function editRow(term, def) {
+    var qa = editState.kind === "qa";
     var li = el("li");
-    var t = el("input", "inp");
-    t.type = "text"; t.value = term || ""; t.placeholder = tr("ph_term");
-    t.maxLength = 300;
-    var dd = el("input", "inp");
-    dd.type = "text"; dd.value = def || ""; dd.placeholder = tr("ph_def");
-    dd.maxLength = 900;
+    var tt = el("input", "inp");
+    tt.type = "text"; tt.value = term || ""; tt.placeholder = tr(qa ? "ph_question" : "ph_term");
+    tt.maxLength = 300;
+    var dd = el(qa ? "textarea" : "input", "inp" + (qa ? " inp-qa" : ""));
+    if (!qa) dd.type = "text";
+    dd.value = def || ""; dd.placeholder = tr(qa ? "ph_answer" : "ph_def");
+    dd.maxLength = qa ? 2000 : 900;
     var del = el("button", "row-del", "✕");
     del.type = "button";
     del.title = tr("row_del_title");
@@ -654,13 +779,16 @@
       li.remove();
       refreshEditCount();
     });
-    li.appendChild(t); li.appendChild(dd); li.appendChild(del);
+    li.appendChild(tt); li.appendChild(dd); li.appendChild(del);
     return li;
   }
 
   function refreshEditCount() {
-    var n = $$("#editList li").length;
-    $("#editCount").textContent = tn("n_cards", n);
+    var k = editState.kind;
+    if (k === "cloze") $("#clozeCount").textContent = tn("cloze_n", $$("#clozeBlocks .cloze-block").length);
+    else if (k === "recit") $("#recitCount").textContent = tn("recit_n", $$("#recitBlocks .recit-block").length);
+    else if (k === "order") $("#orderCount").textContent = tn("order_n", $$("#orderBlocks .order-block").length);
+    else $("#editCount").textContent = tn("n_cards", $$("#editList li").length);
   }
 
   function renderSubjectPills(selected) {
@@ -680,31 +808,71 @@
     });
   }
 
-  function renderEdit(id, initialSubject, openScan) {
-    editState.id = id || null;
-    var list = $("#editList");
-    list.innerHTML = "";
+  /* Affiche l'éditeur correspondant au type et masque les autres. */
+  function showKindEditor(kind) {
+    $("#defEditor").hidden = !(kind === "def" || kind === "qa");
+    $("#clozeEditor").hidden = kind !== "cloze";
+    $("#recitEditor").hidden = kind !== "recit";
+    $("#orderEditor").hidden = kind !== "order";
+    // Le scan (photo → texte) reste réservé aux définitions.
+    if ($("#scanBox")) $("#scanBox").hidden = kind !== "def";
+    // Placeholder de la saisie « coller » adapté aux questions.
+    var pa = $("#pasteArea");
+    if (pa) pa.placeholder = kind === "qa" ? tr("qa_paste_ph") : tr("paste_ph_def");
+  }
 
+  function renderEdit(id, initialSubject, kind, openScan) {
+    var d = null;
     if (id) {
-      var d = S.getDeck(id);
+      d = S.getDeck(id);
       if (!d) { go("#/"); return; }
-      $("#editHeading").textContent = tr("edit_heading_edit");
-      $("#deckNameInput").value = d.name;
-      renderSubjectPills(d.subject);
-      d.cards.forEach(function (c) { list.appendChild(editRow(c.t, c.d)); });
-      $("#pasteBox").open = false;
-    } else {
-      $("#editHeading").textContent = tr("edit_heading_new");
-      $("#deckNameInput").value = "";
-      renderSubjectPills(initialSubject || "autre");
-      for (var i = 0; i < 3; i++) list.appendChild(editRow("", ""));
-      $("#pasteBox").open = true;
+      kind = deckKind(d);
+    }
+    editState.id = id || null;
+    editState.kind = (KIND_MODES[kind]) ? kind : "def";
+    var k = editState.kind;
+
+    $("#editHeading").textContent = tr(id ? "edit_heading_edit" : "edit_heading_new");
+    $("#deckNameInput").value = d ? d.name : "";
+    renderSubjectPills(d ? d.subject : (initialSubject || "autre"));
+    if (k === "def") $("#editKindBadge").hidden = true;
+    else paintKindBadge($("#editKindBadge"), k);
+    showKindEditor(k);
+
+    // Réinitialise chaque conteneur (on ne remplit que celui du type courant).
+    $("#editList").innerHTML = "";
+    $("#clozeBlocks").innerHTML = "";
+    $("#recitBlocks").innerHTML = "";
+    $("#orderBlocks").innerHTML = "";
+
+    if (k === "def" || k === "qa") {
+      if (d) d.cards.forEach(function (c) { $("#editList").appendChild(editRow(c.t, c.d)); });
+      else for (var i = 0; i < 3; i++) $("#editList").appendChild(editRow("", ""));
+      if ($("#pasteBox")) $("#pasteBox").open = !d;
+      $("#pasteArea").value = "";
+      $("#pastePreview").textContent = "";
+      $("#pastePreview").className = "paste-preview";
+      resetScanPanel(openScan);
+    } else if (k === "cloze") {
+      if (d) d.cards.forEach(function (c) { addClozeBlock(c.t); });
+      else addClozeBlock("");
+    } else if (k === "recit") {
+      if (d) d.cards.forEach(function (c) { addRecitBlock(c.t, c.d); });
+      else addRecitBlock("", "");
+    } else if (k === "order") {
+      if (d) d.cards.forEach(function (c) { addOrderBlock(c.t, c.d); });
+      else addOrderBlock("", "");
     }
 
-    $("#pasteArea").value = "";
-    $("#pastePreview").textContent = "";
-    $("#pastePreview").className = "paste-preview";
-    // Réinitialise le panneau scan
+    refreshEditCount();
+    screen("edit");
+    if (openScan && k === "def" && $("#scanBox")) {
+      $("#scanBox").open = true; $("#pasteBox").open = false;
+      $("#scanBox").scrollIntoView({ block: "center" });
+    }
+  }
+
+  function resetScanPanel(openScan) {
     if ($("#scanText")) $("#scanText").value = "";
     if ($("#scanPhotos")) {
       $$("#scanPhotos img").forEach(function (im) { try { URL.revokeObjectURL(im.src); } catch (e) {} });
@@ -713,10 +881,136 @@
     if ($("#scanStatus")) { $("#scanStatus").hidden = true; $("#scanStatus").textContent = ""; }
     if ($("#scanPreview")) $("#scanPreview").textContent = "";
     if ($("#scanBox")) $("#scanBox").open = !!openScan;
-    if (openScan && $("#pasteBox")) $("#pasteBox").open = false;
+  }
+
+  /* ---------- éditeur TEXTE À TROUS ---------- */
+  // Découpe le texte brut en jetons (mots / espaces), en repérant les [[trous]]
+  // même collés à d'autres caractères (ex. « L'[[ADN]] »).
+  function clozeTokens(raw) {
+    var toks = [];
+    String(raw || "").split(/(\[\[[^\]]+\]\])/).forEach(function (part) {
+      if (!part) return;
+      var bm = part.match(/^\[\[([^\]]+)\]\]$/);
+      if (bm) { toks.push({ w: true, word: bm[1], blank: true }); return; }
+      part.split(/(\s+)/).forEach(function (seg) {
+        if (!seg) return;
+        if (/^\s+$/.test(seg)) toks.push({ w: false, ws: seg });
+        else toks.push({ w: true, word: seg, blank: false });
+      });
+    });
+    return toks;
+  }
+  function tokensToRaw(toks) {
+    return toks.map(function (x) {
+      if (!x.w) return x.ws;
+      return x.blank ? "[[" + x.word + "]]" : x.word;
+    }).join("");
+  }
+  var CLOZE_BLANKABLE = /[\wÀ-ÖØ-öø-ÿ0-9]/;
+
+  function renderClozePreview(block) {
+    var src = $(".cloze-src", block), prev = $(".cloze-prev", block);
+    var toks = clozeTokens(src.value);
+    prev.innerHTML = "";
+    if (!src.value.trim()) { prev.appendChild(el("span", "cloze-empty", tr("cloze_prev_empty"))); return; }
+    toks.forEach(function (x, idx) {
+      if (!x.w) { prev.appendChild(document.createTextNode(x.ws)); return; }
+      var w = el("span", "cloze-word" + (x.blank ? " is-blank" : ""), x.word);
+      w.setAttribute("data-idx", idx);
+      prev.appendChild(w);
+    });
+  }
+
+  function addClozeBlock(raw) {
+    var block = el("div", "cloze-block");
+    var src = el("textarea", "inp inp-area cloze-src");
+    src.rows = 4; src.value = raw ? String(raw) : ""; src.placeholder = tr("cloze_src_ph");
+    var hint = el("p", "cloze-prev-hint", tr("cloze_click_hint"));
+    var prev = el("div", "cloze-prev");
+    var del = el("button", "btn btn-ghost btn-sm block-del", tr("cloze_del"));
+    del.type = "button";
+    del.addEventListener("click", function () { block.remove(); refreshEditCount(); });
+    block.appendChild(src); block.appendChild(hint); block.appendChild(prev); block.appendChild(del);
+    src.addEventListener("input", function () { renderClozePreview(block); });
+    prev.addEventListener("click", function (e) {
+      var w = e.target.closest(".cloze-word"); if (!w) return;
+      var idx = +w.getAttribute("data-idx");
+      var toks = clozeTokens(src.value);
+      if (!toks[idx] || !toks[idx].w) return;
+      if (!toks[idx].blank && !CLOZE_BLANKABLE.test(toks[idx].word)) return; // pas de trou sur la ponctuation
+      toks[idx].blank = !toks[idx].blank;
+      src.value = tokensToRaw(toks);
+      renderClozePreview(block);
+    });
+    $("#clozeBlocks").appendChild(block);
+    renderClozePreview(block);
     refreshEditCount();
-    screen("edit");
-    if (openScan && $("#scanBox")) $("#scanBox").scrollIntoView({ block: "center" });
+    return block;
+  }
+
+  /* ---------- éditeur APPRENDRE PAR CŒUR ---------- */
+  function addRecitBlock(title, text) {
+    var block = el("div", "recit-block");
+    var ti = el("input", "inp");
+    ti.type = "text"; ti.value = title || ""; ti.placeholder = tr("recit_title_ph"); ti.maxLength = 120;
+    var ta = el("textarea", "inp inp-area recit-src");
+    ta.rows = 6; ta.value = text || ""; ta.placeholder = tr("recit_text_ph");
+    var del = el("button", "btn btn-ghost btn-sm block-del", tr("recit_del"));
+    del.type = "button";
+    del.addEventListener("click", function () { block.remove(); refreshEditCount(); });
+    block.appendChild(ti); block.appendChild(ta); block.appendChild(del);
+    $("#recitBlocks").appendChild(block);
+    refreshEditCount();
+    return block;
+  }
+
+  /* ---------- éditeur REMETTRE DANS L'ORDRE ---------- */
+  function addOrderBlock(title, itemsText) {
+    var block = el("div", "order-block");
+    var ti = el("input", "inp");
+    ti.type = "text"; ti.value = title || ""; ti.placeholder = tr("order_title_ph"); ti.maxLength = 120;
+    var ta = el("textarea", "inp inp-area order-src");
+    ta.rows = 5; ta.value = itemsText || ""; ta.placeholder = tr("order_items_ph");
+    var del = el("button", "btn btn-ghost btn-sm block-del", tr("order_del"));
+    del.type = "button";
+    del.addEventListener("click", function () { block.remove(); refreshEditCount(); });
+    block.appendChild(ti); block.appendChild(ta); block.appendChild(del);
+    $("#orderBlocks").appendChild(block);
+    refreshEditCount();
+    return block;
+  }
+
+  /* ---------- collecte des items selon le type ----------
+     Renvoie un tableau de paires [t, d] prêtes pour createDeck/updateDeck. */
+  function collectItems() {
+    var k = editState.kind, out = [];
+    if (k === "def" || k === "qa") {
+      $$("#editList li").forEach(function (li) {
+        var ins = $$("input, textarea", li);
+        var term = (ins[0].value || "").trim(), def = (ins[1].value || "").trim();
+        if (term && def) out.push([term, def]);
+      });
+    } else if (k === "cloze") {
+      $$("#clozeBlocks .cloze-block").forEach(function (b) {
+        var raw = ($(".cloze-src", b).value || "").trim();
+        if (raw && /\[\[[^\]]+\]\]/.test(raw)) out.push([raw, ""]); // au moins un trou
+      });
+    } else if (k === "recit") {
+      $$("#recitBlocks .recit-block").forEach(function (b, i) {
+        var ins = $$("input, textarea", b);
+        var text = (ins[1].value || "").trim();
+        var title = (ins[0].value || "").trim() || (tr("recit_default_title") + " " + (i + 1));
+        if (text) out.push([title, text]);
+      });
+    } else if (k === "order") {
+      $$("#orderBlocks .order-block").forEach(function (b, i) {
+        var ins = $$("input, textarea", b);
+        var items = (ins[1].value || "").split("\n").map(function (x) { return x.trim(); }).filter(Boolean);
+        var title = (ins[0].value || "").trim() || (tr("order_default_title") + " " + (i + 1));
+        if (items.length >= 2) out.push([title, items.join("\n")]);
+      });
+    }
+    return out;
   }
 
   /* ============================================================
@@ -831,23 +1125,13 @@
     screen("timer");
   }
 
-  function collectRows() {
-    var out = [];
-    $$("#editList li").forEach(function (li) {
-      var ins = $$("input", li);
-      var t = ins[0].value.trim(), d = ins[1].value.trim();
-      if (t && d) out.push([t, d]);
-    });
-    return out;
-  }
-
   /* Import partagé (collage ET scan) : texte → lignes de cartes dans l'éditeur. */
   function importTextToRows(text, forcedSep, clearSel, previewSel, boxSel) {
     var r = S.parsePaste(text, forcedSep || null);
     if (!r.pairs.length) { toast(tr("t_no_card")); return; }
     var list = $("#editList");
     $$("#editList li").forEach(function (li) {
-      var ins = $$("input", li);
+      var ins = $$("input, textarea", li);
       if (!ins[0].value.trim() && !ins[1].value.trim()) li.remove();
     });
     r.pairs.forEach(function (p) { list.appendChild(editRow(p[0], p[1])); });
@@ -962,16 +1246,21 @@
 
     initScan();
 
+    $("#addClozeBtn").addEventListener("click", function () { var b = addClozeBlock(""); $(".cloze-src", b).focus(); });
+    $("#addRecitBtn").addEventListener("click", function () { var b = addRecitBlock("", ""); $("input", b).focus(); });
+    $("#addOrderBtn").addEventListener("click", function () { var b = addOrderBlock("", ""); $("input", b).focus(); });
+
     $("#saveDeckBtn").addEventListener("click", function () {
       var name = $("#deckNameInput").value.trim();
       var subject = $("#deckSubjectInput").value || "autre";
-      var pairs = collectRows();
+      var pairs = collectItems();
       if (!name) { toast(tr("t_need_name")); $("#deckNameInput").focus(); return; }
-      if (!pairs.length) { toast(tr("t_need_card")); return; }
+      if (!pairs.length) { toast(tr(needMsg(editState.kind))); return; }
 
       if (editState.id) {
         var d = S.getDeck(editState.id);
-        // On conserve la progression des cartes dont le terme n'a pas changé.
+        // On conserve la progression des items dont le premier champ (terme /
+        // titre / question / passage) n'a pas changé.
         var byTerm = {};
         d.cards.forEach(function (c) { byTerm[c.t] = c; });
         var cards = pairs.map(function (p) {
@@ -983,12 +1272,21 @@
         toast(tr("t_saved"));
         go("#/d/" + editState.id);
       } else {
-        var nd = S.createDeck(name, subject, pairs);
+        var nd = S.createDeck(name, subject, pairs, editState.kind);
         Sfx.play("done");
         toast(tr("t_created"));
         go("#/d/" + nd.id);
       }
     });
+  }
+
+  /* Message d'erreur « rien à enregistrer » adapté au type. */
+  function needMsg(kind) {
+    if (kind === "cloze") return "t_need_cloze";
+    if (kind === "recit") return "t_need_recit";
+    if (kind === "order") return "t_need_order";
+    if (kind === "qa") return "t_need_qa";
+    return "t_need_card";
   }
 
   /* ============================================================
@@ -997,7 +1295,7 @@
   var sess = null;
 
   function paneOnly(name) {
-    ["flash", "mcq", "write", "match", "tf", "sheet"].forEach(function (p) {
+    ["flash", "mcq", "write", "match", "tf", "sheet", "cloze", "recit", "order", "qa"].forEach(function (p) {
       $("#pane-" + p).hidden = (p !== name);
     });
   }
@@ -1014,7 +1312,8 @@
     var deck = deckId === "all" ? null : S.getDeck(deckId);
     var items;
 
-    if (mode === "review") {
+    var isReview = (mode === "review" || mode === "clozereview" || mode === "qareview");
+    if (isReview) {
       items = deck ? S.dueCards(deck).slice() : S.globalQueue().map(function (q) { return q.card; });
       if (!items.length) {
         toast(tr("t_nothing_due"));
@@ -1042,6 +1341,7 @@
 
     sess = {
       mode: mode,
+      kind: deck ? deckKind(deck) : "def",
       deckId: deckId,
       deckName: deck ? deck.name : tr("all_cards"),
       queue: items,
@@ -1065,6 +1365,11 @@
     else if (mode === "match") startMatch();
     else if (mode === "truefalse") startTF();
     else if (mode === "sheet") startSheet();
+    else if (mode === "cloze" || mode === "clozereview") startCloze();
+    else if (mode === "recit") startRecit();
+    else if (mode === "recittest") startRecitTest();
+    else if (mode === "order") startOrder();
+    else if (mode === "qa" || mode === "qareview") startQa();
   }
 
   function endStudy() {
@@ -1074,8 +1379,10 @@
     var total = sess.mode === "match" ? sess.total : sess.right + sess.wrong;
     var pct = total ? Math.round((sess.right / total) * 100) : 0;
 
+    var flashLike = (sess.mode === "flash" || sess.mode === "recit");
     var emoji, title;
     if (sess.mode === "flash") { emoji = "📚"; title = tr("done_flash"); }
+    else if (sess.mode === "recit") { emoji = "💗"; title = tr("done_recit"); }
     else if (sess.mode === "review") { emoji = "🧠"; title = tr("done_review"); }
     else if (pct >= 90) { emoji = "🏆"; title = tr("res_excellent"); }
     else if (pct >= 70) { emoji = "👏"; title = tr("res_good"); }
@@ -1094,8 +1401,8 @@
       s.appendChild(el("span", null, l));
       stats.appendChild(s);
     }
-    if (sess.mode === "flash") {
-      stat(sess.total, tr("cards_seen"));
+    if (flashLike) {
+      stat(sess.total, tr(sess.mode === "recit" ? "texts_seen" : "cards_seen"));
     } else if (sess.mode === "review") {
       stat(sess.total, tr("cards_reviewed"));
       stat(sess.right, tr("known"));
@@ -1106,7 +1413,7 @@
       stat(pct + "%", tr("success_rate"));
     }
     stat(secs < 60 ? secs + " " + tr("unit_sec") : Math.floor(secs / 60) + " " + tr("unit_min") + " " + (secs % 60) + " " + tr("unit_sec"), tr("work_time"));
-    if (sess.mode !== "flash") {
+    if (!flashLike) {
       var earnedXP = sess.right * 10 + sess.wrong * 3;
       if (earnedXP > 0) stat("+" + earnedXP, tr("xp_gain"));
     }
@@ -1119,9 +1426,10 @@
       sess.missed.forEach(function (c) {
         if (seen[c.id]) return;
         seen[c.id] = 1;
+        var disp = cardDisplay(sess.kind, c);
         var li = el("li");
-        li.appendChild(el("b", null, c.t));
-        li.appendChild(el("span", null, c.d));
+        li.appendChild(el("b", null, disp.term));
+        li.appendChild(el("span", null, disp.def || ""));
         missedList.appendChild(li);
       });
     } else {
@@ -1536,6 +1844,325 @@
   }
 
   /* ============================================================
+     TEXTE À TROUS
+     ============================================================ */
+  function startCloze() { paneOnly("cloze"); renderCloze(); }
+
+  function renderCloze() {
+    if (sess.i >= sess.queue.length) { endStudy(); return; }
+    var c = sess.queue[sess.i];
+    var box = $("#clozeText");
+    box.innerHTML = "";
+    sess.clozeInputs = [];
+    clozeTokens(c.t).forEach(function (x) {
+      if (!x.w) { box.appendChild(document.createTextNode(x.ws)); return; }
+      if (x.blank) {
+        var inp = el("input", "cloze-in");
+        inp.type = "text"; inp.autocomplete = "off"; inp.autocapitalize = "off";
+        inp.spellcheck = false;
+        inp.setAttribute("aria-label", tr("cloze_blank"));
+        inp.size = Math.max(4, x.word.length);
+        inp.setAttribute("data-answer", x.word);
+        sess.clozeInputs.push(inp);
+        box.appendChild(inp);
+      } else {
+        box.appendChild(el("span", "cloze-plain", x.word));
+      }
+    });
+    $("#clozeCheck").hidden = false;
+    $("#clozeNext").hidden = true;
+    $("#clozeScore").hidden = true;
+    $("#clozeSpeak").hidden = !speakReady();
+    if (sess.clozeInputs[0]) sess.clozeInputs[0].focus();
+    studyProgress();
+  }
+
+  function checkCloze() {
+    if (!sess || !sess.clozeInputs) return;
+    var c = sess.queue[sess.i], right = 0, tot = sess.clozeInputs.length;
+    sess.clozeInputs.forEach(function (inp) {
+      var ok = norm(inp.value) === norm(inp.getAttribute("data-answer")) && inp.value.trim();
+      inp.classList.add(ok ? "ok" : "bad");
+      inp.disabled = true;
+      if (ok) right++;
+      else { inp.value = inp.getAttribute("data-answer"); } // révèle la bonne réponse
+    });
+    var ratio = tot ? right / tot : 0;
+    var passed = ratio >= 0.6;
+    S.grade(c, passed ? (ratio >= 0.99 ? 5 : 4) : 1);
+    S.award(passed);
+    if (passed) { sess.right++; Sfx.play("good"); }
+    else {
+      sess.wrong++; sess.missed.push(c);
+      sess.queue.push(c); sess.total = sess.queue.length; // à refaire dans la session
+      Sfx.play("bad");
+    }
+    var sc = $("#clozeScore");
+    sc.hidden = false;
+    sc.textContent = right + " / " + tot + " · " + tr(passed ? "cloze_good" : "cloze_retry");
+    sc.className = "cloze-score " + (passed ? "ok" : "bad");
+    $("#clozeCheck").hidden = true;
+    $("#clozeNext").hidden = false;
+    $("#clozeNext").focus();
+  }
+
+  function initCloze() {
+    $("#clozeCheck").addEventListener("click", checkCloze);
+    $("#clozeNext").addEventListener("click", function () { if (!sess) return; sess.i++; renderCloze(); });
+    $("#clozeSpeak").addEventListener("click", function () {
+      if (sess && sess.queue[sess.i]) speakText(stripCloze(sess.queue[sess.i].t));
+    });
+  }
+
+  /* ============================================================
+     APPRENDRE PAR CŒUR
+     ============================================================ */
+  var RECIT_LEVELS = [0, 25, 50, 75, 100];
+
+  // Masquage pseudo-aléatoire mais STABLE (même mot caché au même niveau).
+  function recitHidden(i, level) {
+    if (level <= 0) return false;
+    if (level >= 100) return true;
+    var h = ((i + 1) * 1103515245 + 12345) >>> 0;
+    return (h % 100) < level;
+  }
+
+  function startRecit() { sess.recitMode = "learn"; sess.recitLevel = 0; paneOnly("recit"); renderRecitLearn(); }
+
+  function renderRecitLearn() {
+    if (sess.i >= sess.queue.length) { endStudy(); return; }
+    var c = sess.queue[sess.i];
+    $("#recitTitle").textContent = c.t;
+    var box = $("#recitText");
+    box.innerHTML = "";
+    var wi = 0;
+    String(c.d || "").split("\n").forEach(function (line) {
+      var lineEl = el("div", "recit-line");
+      if (!line.trim()) { lineEl.innerHTML = "&nbsp;"; box.appendChild(lineEl); return; }
+      line.split(/(\s+)/).forEach(function (part) {
+        if (/^\s+$/.test(part)) { lineEl.appendChild(document.createTextNode(part)); return; }
+        if (!part) return;
+        var idx = wi++;
+        if (recitHidden(idx, sess.recitLevel)) {
+          var w = el("span", "recit-w hidden", part.replace(/\S/g, "•"));
+          w.setAttribute("data-word", part);
+          w.addEventListener("click", function () { w.textContent = part; w.classList.remove("hidden"); w.classList.add("shown"); });
+          lineEl.appendChild(w);
+        } else {
+          lineEl.appendChild(el("span", "recit-w", part));
+        }
+      });
+      box.appendChild(lineEl);
+    });
+    // Contrôles : boutons de niveau de masquage.
+    $("#recitLevels").hidden = false;
+    var lb = $("#recitLevelBtns");
+    lb.innerHTML = "";
+    RECIT_LEVELS.forEach(function (lv) {
+      var b = el("button", "recit-lvl" + (lv === sess.recitLevel ? " active" : ""), lv === 0 ? tr("recit_lvl_none") : lv + "%");
+      b.type = "button";
+      b.addEventListener("click", function () { sess.recitLevel = lv; renderRecitLearn(); });
+      lb.appendChild(b);
+    });
+    $("#recitReveal").hidden = true;
+    $("#recitGrade").hidden = true;
+    $("#recitActions").hidden = false;
+    $("#recitNext").hidden = false;
+    $("#recitSpeak").hidden = !speakReady();
+    studyProgress();
+  }
+
+  function startRecitTest() { sess.recitMode = "test"; paneOnly("recit"); renderRecitTest(); }
+
+  function renderRecitTest() {
+    if (sess.i >= sess.queue.length) { endStudy(); return; }
+    var c = sess.queue[sess.i];
+    sess.recitLines = String(c.d || "").split("\n").filter(function (l) { return l.trim(); });
+    sess.recitShown = 0;
+    $("#recitTitle").textContent = c.t;
+    $("#recitLevels").hidden = true;
+    $("#recitGrade").hidden = true;
+    $("#recitActions").hidden = false;
+    $("#recitNext").hidden = true;
+    $("#recitReveal").hidden = false;
+    $("#recitSpeak").hidden = !speakReady();
+    drawRecitTest();
+    studyProgress();
+  }
+
+  function drawRecitTest() {
+    var box = $("#recitText");
+    box.innerHTML = "";
+    sess.recitLines.forEach(function (line, i) {
+      var lineEl = el("div", "recit-line");
+      if (i < sess.recitShown) lineEl.textContent = line;
+      else { lineEl.textContent = "• • •"; lineEl.classList.add("masked"); }
+      box.appendChild(lineEl);
+    });
+    if (sess.recitShown >= sess.recitLines.length) {
+      $("#recitReveal").hidden = true;
+      $("#recitGrade").hidden = false;
+    }
+  }
+
+  function gradeRecit(knew) {
+    if (!sess) return;
+    var c = sess.queue[sess.i];
+    S.grade(c, knew ? 4 : 1);
+    S.award(knew);
+    if (knew) { sess.right++; Sfx.play("good"); }
+    else { sess.wrong++; sess.missed.push(c); sess.queue.push(c); sess.total = sess.queue.length; Sfx.play("bad"); }
+    sess.i++;
+    renderRecitTest();
+  }
+
+  function initRecit() {
+    $("#recitNext").addEventListener("click", function () {
+      if (!sess) return;
+      if (sess.recitMode === "learn") S.award(true); // le texte a été travaillé
+      sess.i++;
+      renderRecitLearn();
+    });
+    $("#recitReveal").addEventListener("click", function () {
+      if (!sess) return;
+      sess.recitShown = Math.min(sess.recitLines.length, sess.recitShown + 1);
+      Sfx.play("flip");
+      drawRecitTest();
+    });
+    $("#recitKnew").addEventListener("click", function () { gradeRecit(true); });
+    $("#recitAgain").addEventListener("click", function () { gradeRecit(false); });
+    $("#recitSpeak").addEventListener("click", function () {
+      if (sess && sess.queue[sess.i]) speakText(sess.queue[sess.i].d);
+    });
+  }
+
+  /* ============================================================
+     REMETTRE DANS L'ORDRE
+     ============================================================ */
+  function startOrder() { paneOnly("order"); renderOrder(); }
+
+  function orderItems(c) {
+    return String(c.d || "").split("\n").map(function (x) { return x.trim(); }).filter(Boolean);
+  }
+
+  function renderOrder() {
+    if (sess.i >= sess.queue.length) { endStudy(); return; }
+    var c = sess.queue[sess.i];
+    $("#orderTitle").textContent = c.t;
+    sess.orderCorrect = orderItems(c);
+    // Mélange jusqu'à obtenir un ordre différent de la solution (si possible).
+    var cur = shuffle(sess.orderCorrect.slice());
+    if (sess.orderCorrect.length > 1) {
+      var tries = 0;
+      while (cur.join("") === sess.orderCorrect.join("") && tries++ < 8) cur = shuffle(sess.orderCorrect.slice());
+    }
+    sess.orderCur = cur;
+    drawOrder(false);
+    $("#orderCheck").hidden = false;
+    $("#orderNext").hidden = true;
+    $("#orderScore").hidden = true;
+    studyProgress();
+  }
+
+  function drawOrder(checked) {
+    var list = $("#orderList");
+    list.innerHTML = "";
+    sess.orderCur.forEach(function (item, i) {
+      var li = el("li", "order-item");
+      if (checked) li.classList.add(item === sess.orderCorrect[i] ? "ok" : "bad");
+      li.appendChild(el("span", "order-num", String(i + 1)));
+      li.appendChild(el("span", "order-text", item));
+      if (!checked) {
+        var ctrl = el("span", "order-ctrl");
+        var up = el("button", "order-move", "▲"); up.type = "button"; up.title = tr("order_up"); up.disabled = i === 0;
+        var dn = el("button", "order-move", "▼"); dn.type = "button"; dn.title = tr("order_down"); dn.disabled = i === sess.orderCur.length - 1;
+        up.addEventListener("click", function () { moveOrder(i, -1); });
+        dn.addEventListener("click", function () { moveOrder(i, 1); });
+        ctrl.appendChild(up); ctrl.appendChild(dn);
+        li.appendChild(ctrl);
+      }
+      list.appendChild(li);
+    });
+  }
+
+  function moveOrder(i, dir) {
+    var j = i + dir;
+    if (j < 0 || j >= sess.orderCur.length) return;
+    var tmp = sess.orderCur[i]; sess.orderCur[i] = sess.orderCur[j]; sess.orderCur[j] = tmp;
+    Sfx.play("click");
+    drawOrder(false);
+  }
+
+  function checkOrder() {
+    if (!sess) return;
+    var c = sess.queue[sess.i];
+    var ok = sess.orderCur.every(function (item, i) { return item === sess.orderCorrect[i]; });
+    drawOrder(true);
+    S.grade(c, ok ? 5 : 1);
+    S.award(ok);
+    var sc = $("#orderScore");
+    sc.hidden = false;
+    if (ok) { sess.right++; sc.textContent = tr("order_correct"); sc.className = "cloze-score ok"; Sfx.play("good"); }
+    else {
+      sess.wrong++; sess.missed.push(c); sess.queue.push(c); sess.total = sess.queue.length;
+      sc.textContent = tr("order_wrong") + " " + sess.orderCorrect.join("  →  ");
+      sc.className = "cloze-score bad"; Sfx.play("bad");
+    }
+    $("#orderCheck").hidden = true;
+    $("#orderNext").hidden = false;
+    $("#orderNext").focus();
+  }
+
+  function initOrder() {
+    $("#orderCheck").addEventListener("click", checkOrder);
+    $("#orderNext").addEventListener("click", function () { if (!sess) return; sess.i++; renderOrder(); });
+  }
+
+  /* ============================================================
+     QUESTIONS DE COURS (interro auto-évaluée)
+     ============================================================ */
+  function startQa() { paneOnly("qa"); renderQa(); }
+
+  function renderQa() {
+    if (sess.i >= sess.queue.length) { endStudy(); return; }
+    var c = sess.queue[sess.i];
+    $("#qaQuestion").textContent = c.t;
+    $("#qaAnswerText").textContent = c.d;
+    $("#qaAnswer").hidden = true;
+    $("#qaShow").hidden = false;
+    $("#qaGrade").hidden = true;
+    $("#qaSpeak").hidden = !speakReady();
+    studyProgress();
+  }
+
+  function gradeQa(knew) {
+    if (!sess) return;
+    var c = sess.queue[sess.i];
+    S.grade(c, knew ? 4 : 1);
+    S.award(knew);
+    if (knew) { sess.right++; Sfx.play("good"); }
+    else { sess.wrong++; sess.missed.push(c); sess.queue.push(c); sess.total = sess.queue.length; Sfx.play("bad"); }
+    sess.i++;
+    renderQa();
+  }
+
+  function initQa() {
+    $("#qaShow").addEventListener("click", function () {
+      $("#qaAnswer").hidden = false;
+      $("#qaShow").hidden = true;
+      $("#qaGrade").hidden = false;
+      Sfx.play("flip");
+    });
+    $("#qaKnew").addEventListener("click", function () { gradeQa(true); });
+    $("#qaAgain").addEventListener("click", function () { gradeQa(false); });
+    $("#qaSpeak").addEventListener("click", function () {
+      if (!sess || !sess.queue[sess.i]) return;
+      var c = sess.queue[sess.i];
+      speakText($("#qaAnswer").hidden ? c.t : (c.t + ". " + c.d));
+    });
+  }
+
+  /* ============================================================
      CLAVIER
      ============================================================ */
   function initKeys() {
@@ -1625,7 +2252,7 @@
       go("#/");
       return;
     }
-    var d = S.createDeck(parsed.name, parsed.subject, parsed.pairs);
+    var d = S.createDeck(parsed.name, parsed.subject, parsed.pairs, parsed.kind);
     Sfx.play("done");
     toast(tr("t_imported"));
     go("#/d/" + d.id);
@@ -1790,8 +2417,13 @@
 
     if (parts[0] === "" || parts[0] === undefined) { renderHome(); return; }
     if (parts[0] === "d" && parts[1]) { renderDeck(parts[1]); return; }
-    if (parts[0] === "new") { renderEdit(null, parts[1] || null); return; }
-    if (parts[0] === "scan") { renderEdit(null, null, true); return; }
+    if (parts[0] === "new") {
+      if (parts[1]) renderEdit(null, parts[1], "def"); // tuile de matière → définitions
+      else renderTypePicker();                          // « + Nouveau paquet » → choix du type
+      return;
+    }
+    if (parts[0] === "create" && parts[1]) { renderEdit(null, null, parts[1]); return; }
+    if (parts[0] === "scan") { renderEdit(null, null, "def", true); return; }
     if (parts[0] === "timer") { renderTimer(); return; }
     if (parts[0] === "activity") { renderActivity(); return; }
     if (parts[0] === "edit" && parts[1]) { renderEdit(parts[1]); return; }
@@ -1813,6 +2445,10 @@
     initWrite();
     initTF();
     initSheet();
+    initCloze();
+    initRecit();
+    initOrder();
+    initQa();
     initKeys();
 
     $("#newDeckBtn").addEventListener("click", function () { go("#/new"); });
@@ -1835,10 +2471,10 @@
       b.addEventListener("click", function () { go(b.getAttribute("data-nav")); });
     });
 
-    $$("#modeGrid .mode-card").forEach(function (b) {
-      b.addEventListener("click", function () {
-        go("#/study/" + currentDeckId + "/" + b.getAttribute("data-mode"));
-      });
+    // Grille de modes générée dynamiquement → délégation du clic.
+    $("#modeGrid").addEventListener("click", function (e) {
+      var card = e.target.closest(".mode-card");
+      if (card && currentDeckId) go("#/study/" + currentDeckId + "/" + card.getAttribute("data-mode"));
     });
 
     $("#editDeckBtn").addEventListener("click", function () { go("#/edit/" + currentDeckId); });
@@ -1879,7 +2515,8 @@
         checkAnswer: checkAnswer, norm: norm,
         Speak: window.Speak, speakReady: speakReady,
         exportBackup: exportBackup, importBackup: importBackup,
-        renderActivity: renderActivity
+        renderActivity: renderActivity,
+        deckKind: deckKind, KIND_MODES: KIND_MODES
       };
     }
   }

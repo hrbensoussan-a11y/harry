@@ -80,12 +80,19 @@
     return c;
   }
 
-  /* ---------- paquets ---------- */
-  function createDeck(name, subject, pairs) {
+  /* ---------- paquets ----------
+     kind = type de paquet : "def" (mot→définition, défaut) | "cloze" (texte à
+     trous) | "recit" (par cœur) | "order" (remettre dans l'ordre) | "qa"
+     (questions de cours). Tous partagent le même modèle de carte {t,d,…SM-2}. */
+  var KINDS = ["def", "cloze", "recit", "order", "qa"];
+  function normKind(k) { return KINDS.indexOf(k) >= 0 ? k : "def"; }
+
+  function createDeck(name, subject, pairs, kind) {
     var d = {
       id: uid("d"),
       name: String(name || "Sans titre").trim().slice(0, 70) || "Sans titre",
       subject: subject || "autre",
+      kind: normKind(kind),
       fav: false,
       created: Date.now(),
       updated: Date.now(),
@@ -98,7 +105,10 @@
 
   function getDeck(id) {
     var d = state.decks[id];
-    if (d && d.cards) d.cards.forEach(healCard);
+    if (d) {
+      d.kind = normKind(d.kind); // rétro-compat : anciens paquets → "def"
+      if (d.cards) d.cards.forEach(healCard);
+    }
     return d || null;
   }
 
@@ -392,7 +402,8 @@
   }
 
   function encodeDeck(deck) {
-    var payload = [deck.name, deck.subject, deck.cards.map(function (c) { return [c.t, c.d]; })];
+    // 4e élément = kind (les anciens liens sans kind se décodent en "def").
+    var payload = [deck.name, deck.subject, deck.cards.map(function (c) { return [c.t, c.d]; }), deck.kind || "def"];
     return b64enc(JSON.stringify(payload));
   }
 
@@ -402,9 +413,9 @@
       if (!Array.isArray(p) || !Array.isArray(p[2])) return null;
       var pairs = p[2]
         .filter(function (x) { return Array.isArray(x) && String(x[0] || "").trim(); })
-        .map(function (x) { return [String(x[0]).slice(0, 300), String(x[1] || "").slice(0, 900)]; });
+        .map(function (x) { return [String(x[0]).slice(0, 4000), String(x[1] || "").slice(0, 4000)]; });
       if (!pairs.length) return null;
-      return { name: String(p[0] || "Paquet partagé").slice(0, 70), subject: String(p[1] || "autre"), pairs: pairs };
+      return { name: String(p[0] || "Paquet partagé").slice(0, 70), subject: String(p[1] || "autre"), pairs: pairs, kind: normKind(p[3]) };
     } catch (e) {
       return null;
     }
@@ -484,7 +495,7 @@
   /* ---------- export ---------- */
   function exportDeck(deck) {
     return JSON.stringify({
-      bachote: 1, name: deck.name, subject: deck.subject,
+      bachote: 1, name: deck.name, subject: deck.subject, kind: deck.kind || "def",
       cards: deck.cards.map(function (c) { return { t: c.t, d: c.d }; })
     }, null, 2);
   }
@@ -539,6 +550,7 @@
         id: uid("d"),
         name: String(d.name || "Import").trim().slice(0, 70) || "Import",
         subject: d.subject || "autre",
+        kind: normKind(d.kind),
         fav: false,
         created: Date.now(),
         updated: Date.now(),

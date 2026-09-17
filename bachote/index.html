@@ -144,6 +144,16 @@
     </div>
   </section>
 
+  <!-- ══════════ CHOIX DU TYPE DE PAQUET ══════════ -->
+  <section class="screen" id="screen-pick" hidden>
+    <div class="wrap wrap-narrow">
+      <button class="back-link" type="button" data-nav="#/" data-i18n="back_all">← Tous les paquets</button>
+      <h1 class="edit-title" data-i18n="pick_title">Quel type de fiche ?</h1>
+      <p class="sec-note" data-i18n="pick_sub">Choisis la façon dont tu veux étudier. Chaque type a sa propre manière de réviser.</p>
+      <div class="type-grid" id="typeGrid"></div>
+    </div>
+  </section>
+
   <!-- ══════════ PAQUET ══════════ -->
   <section class="screen" id="screen-deck" hidden>
     <div class="wrap">
@@ -151,7 +161,10 @@
 
       <div class="deck-head">
         <div class="deck-head-main">
-          <span class="tag" id="deckTag">Matière</span>
+          <div class="deck-tags">
+            <span class="tag" id="deckTag">Matière</span>
+            <span class="kind-badge" id="deckKindBadge" hidden></span>
+          </div>
           <h1 class="deck-title" id="deckTitle">Paquet</h1>
           <p class="deck-meta" id="deckMeta">0 carte</p>
         </div>
@@ -168,44 +181,8 @@
       </div>
 
       <h2 class="sec-title sec-title-tight" data-i18n="how_work">Comment veux-tu travailler ?</h2>
-      <div class="mode-grid" id="modeGrid">
-        <button class="mode-card mode-review" data-mode="review" type="button">
-          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg></span>
-          <span class="mode-name" data-i18n="mode_review_name">Révision intelligente</span>
-          <span class="mode-desc" data-i18n="mode_review_desc">L'algorithme choisit quoi te montrer et quand. Le plus efficace.</span>
-          <span class="mode-badge" id="modeReviewBadge"></span>
-        </button>
-        <button class="mode-card" data-mode="flash" type="button">
-          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="7" width="14" height="11" rx="2"/><path d="M4 9v9a2 2 0 0 0 2 2h10"/><path d="M10 12.5h6"/></svg></span>
-          <span class="mode-name" data-i18n="mode_flash_name">Flashcards</span>
-          <span class="mode-desc" data-i18n="mode_flash_desc">Tu retournes la carte, tu vérifies. Simple et rapide.</span>
-        </button>
-        <button class="mode-card" data-mode="match" type="button">
-          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="8" r="2.6"/><circle cx="17" cy="16" r="2.6"/><path d="M9.4 9.3 14.6 14.7"/></svg></span>
-          <span class="mode-name" data-i18n="mode_match_name">Associer</span>
-          <span class="mode-desc" data-i18n="mode_match_desc">Relie chaque mot à sa définition, le plus vite possible.</span>
-        </button>
-        <button class="mode-card" data-mode="mcq" type="button">
-          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9.5h8M8 14.5h5"/><path d="M14.5 15.5l1.6 1.6 2.4-2.8" stroke="var(--green)"/></svg></span>
-          <span class="mode-name" data-i18n="mode_mcq_name">QCM</span>
-          <span class="mode-desc" data-i18n="mode_mcq_desc">Quatre propositions, une bonne réponse.</span>
-        </button>
-        <button class="mode-card" data-mode="write" type="button">
-          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 5.5 18.5 8.5"/><path d="M5 19l1-4L16.5 4.5a1.5 1.5 0 0 1 2.1 0l.9.9a1.5 1.5 0 0 1 0 2.1L9 18l-4 1Z"/></svg></span>
-          <span class="mode-name" data-i18n="mode_write_name">Écrire</span>
-          <span class="mode-desc" data-i18n="mode_write_desc">Retrouve le mot à partir de la définition. Le plus exigeant.</span>
-        </button>
-        <button class="mode-card" data-mode="truefalse" type="button">
-          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h9M4 8l2.5-2.5M4 8l2.5 2.5"/><path d="M20 16h-9M20 16l-2.5-2.5M20 16l-2.5 2.5"/></svg></span>
-          <span class="mode-name" data-i18n="mode_tf_name">Vrai ou faux</span>
-          <span class="mode-desc" data-i18n="mode_tf_desc">La définition correspond-elle au mot ? Réponds le plus vite possible.</span>
-        </button>
-        <button class="mode-card" data-mode="sheet" type="button">
-          <span class="mode-emoji"><svg class="i-mode" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
-          <span class="mode-name" data-i18n="mode_sheet_name">Fiche</span>
-          <span class="mode-desc" data-i18n="mode_sheet_desc">Lis tout d'un coup, comme une fiche de révision. Masque les définitions pour t'interroger.</span>
-        </button>
-      </div>
+      <!-- Grille de modes générée selon le type de paquet (renderModeGrid). -->
+      <div class="mode-grid" id="modeGrid"></div>
 
       <div class="sec-head">
         <h2 class="sec-title" data-i18n="cards_title">Les cartes</h2>
@@ -219,7 +196,10 @@
   <section class="screen" id="screen-edit" hidden>
     <div class="wrap wrap-narrow">
       <button class="back-link" type="button" id="editBack" data-i18n="editor_cancel">← Annuler</button>
-      <h1 class="edit-title" id="editHeading">Nouveau paquet</h1>
+      <div class="edit-head">
+        <h1 class="edit-title" id="editHeading">Nouveau paquet</h1>
+        <span class="kind-badge" id="editKindBadge" hidden></span>
+      </div>
 
       <div class="field">
         <label class="lbl" for="deckNameInput" data-i18n="deck_name_label">Nom du paquet</label>
@@ -232,6 +212,8 @@
         <input type="hidden" id="deckSubjectInput">
       </div>
 
+      <!-- Éditeur DÉFINITIONS / QUESTIONS (rangées) -->
+      <div id="defEditor">
       <details class="paste-box" id="pasteBox">
         <summary class="paste-summary">
           <span class="paste-title" data-i18n="paste_title">⚡ Coller mon cours d'un coup</span>
@@ -281,6 +263,40 @@
 
       <ul class="edit-list" id="editList"></ul>
       <button class="btn btn-ghost btn-wide" id="addCardBtn" type="button" data-i18n="add_card">+ Ajouter une carte</button>
+      </div><!-- /defEditor -->
+
+      <!-- Éditeur TEXTE À TROUS -->
+      <div id="clozeEditor" hidden>
+        <div class="sec-head">
+          <h2 class="sec-title" data-i18n="cloze_edit_title">Passages</h2>
+          <span class="muted-count" id="clozeCount"></span>
+        </div>
+        <p class="sec-note" data-i18n="cloze_edit_help">Colle un passage de ton cours, puis clique les mots à cacher. À la révision, tu les retrouveras dans leur contexte.</p>
+        <div id="clozeBlocks"></div>
+        <button class="btn btn-ghost btn-wide" id="addClozeBtn" type="button" data-i18n="cloze_add">+ Ajouter un passage</button>
+      </div>
+
+      <!-- Éditeur APPRENDRE PAR CŒUR -->
+      <div id="recitEditor" hidden>
+        <div class="sec-head">
+          <h2 class="sec-title" data-i18n="recit_edit_title">Textes à apprendre</h2>
+          <span class="muted-count" id="recitCount"></span>
+        </div>
+        <p class="sec-note" data-i18n="recit_edit_help">Un poème, une citation, une définition exacte… Donne un titre et colle le texte tel qu'il doit être su.</p>
+        <div id="recitBlocks"></div>
+        <button class="btn btn-ghost btn-wide" id="addRecitBtn" type="button" data-i18n="recit_add">+ Ajouter un texte</button>
+      </div>
+
+      <!-- Éditeur REMETTRE DANS L'ORDRE -->
+      <div id="orderEditor" hidden>
+        <div class="sec-head">
+          <h2 class="sec-title" data-i18n="order_edit_title">Suites à ordonner</h2>
+          <span class="muted-count" id="orderCount"></span>
+        </div>
+        <p class="sec-note" data-i18n="order_edit_help">Donne un titre, puis écris les éléments dans le bon ordre, un par ligne. À la révision, ils seront mélangés à remettre en place.</p>
+        <div id="orderBlocks"></div>
+        <button class="btn btn-ghost btn-wide" id="addOrderBtn" type="button" data-i18n="order_add">+ Ajouter une suite</button>
+      </div>
 
       <div class="edit-actions">
         <button class="btn btn-primary btn-wide" id="saveDeckBtn" type="button" data-i18n="save_deck">Enregistrer le paquet</button>
@@ -375,6 +391,81 @@
           <span class="sheet-hint" id="sheetHint" hidden data-i18n="sheet_reveal">Touche une ligne pour révéler sa définition.</span>
         </div>
         <ul class="sheet-list" id="sheetList"></ul>
+      </div>
+
+      <!-- Texte à trous -->
+      <div class="pane pane-cloze" id="pane-cloze" hidden>
+        <div class="cloze-card">
+          <div class="cloze-bar">
+            <span class="face-label" data-i18n="cloze_fill">Complète le texte</span>
+            <button class="speak-btn" id="clozeSpeak" type="button" data-i18n-title="speak_hint" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button>
+          </div>
+          <p class="cloze-text" id="clozeText"></p>
+        </div>
+        <div class="cloze-actions">
+          <button class="btn btn-primary" id="clozeCheck" type="button" data-i18n="cloze_check">Vérifier</button>
+          <button class="btn btn-primary" id="clozeNext" type="button" hidden data-i18n="next">Suivant →</button>
+        </div>
+        <p class="cloze-score" id="clozeScore" hidden></p>
+      </div>
+
+      <!-- Apprendre par cœur -->
+      <div class="pane pane-recit" id="pane-recit" hidden>
+        <div class="recit-card">
+          <div class="cloze-bar">
+            <span class="recit-title" id="recitTitle"></span>
+            <button class="speak-btn" id="recitSpeak" type="button" data-i18n-title="speak_hint" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button>
+          </div>
+          <div class="recit-text" id="recitText"></div>
+        </div>
+        <div class="recit-levels" id="recitLevels" hidden>
+          <span class="recit-lvl-label" data-i18n="recit_hide">Masquer :</span>
+          <div class="recit-lvl-btns" id="recitLevelBtns"></div>
+        </div>
+        <div class="recit-actions" id="recitActions">
+          <button class="btn btn-ghost" id="recitReveal" type="button" hidden data-i18n="recit_reveal">Révéler la ligne</button>
+          <button class="btn btn-primary" id="recitNext" type="button" data-i18n="next">Suivant →</button>
+        </div>
+        <div class="grade-row grade-row-simple" id="recitGrade" hidden>
+          <button class="btn tf-btn tf-false" id="recitAgain" type="button"><span data-i18n="recit_again">À revoir</span></button>
+          <button class="btn tf-btn tf-true" id="recitKnew" type="button"><span data-i18n="recit_knew">Je le savais</span></button>
+        </div>
+      </div>
+
+      <!-- Remettre dans l'ordre -->
+      <div class="pane pane-order" id="pane-order" hidden>
+        <div class="prompt-card">
+          <span class="face-label" data-i18n="order_do">Remets dans le bon ordre</span>
+          <p class="prompt-text" id="orderTitle"></p>
+        </div>
+        <ul class="order-list" id="orderList"></ul>
+        <div class="cloze-actions">
+          <button class="btn btn-primary" id="orderCheck" type="button" data-i18n="cloze_check">Vérifier</button>
+          <button class="btn btn-primary" id="orderNext" type="button" hidden data-i18n="next">Suivant →</button>
+        </div>
+        <p class="cloze-score" id="orderScore" hidden></p>
+      </div>
+
+      <!-- Questions de cours -->
+      <div class="pane pane-qa" id="pane-qa" hidden>
+        <div class="qa-card">
+          <div class="cloze-bar">
+            <span class="face-label" data-i18n="qa_question">Question</span>
+            <button class="speak-btn" id="qaSpeak" type="button" data-i18n-title="speak_hint" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button>
+          </div>
+          <p class="qa-question" id="qaQuestion"></p>
+          <div class="qa-answer" id="qaAnswer" hidden>
+            <span class="face-label" data-i18n="qa_answer">Réponse</span>
+            <p class="qa-answer-text" id="qaAnswerText"></p>
+          </div>
+        </div>
+        <div class="cloze-actions">
+          <button class="btn btn-primary" id="qaShow" type="button" data-i18n="qa_show">Voir la réponse</button>
+        </div>
+        <div class="grade-row grade-row-simple" id="qaGrade" hidden>
+          <button class="btn tf-btn tf-false" id="qaAgain" type="button"><span data-i18n="recit_again">À revoir</span></button>
+          <button class="btn tf-btn tf-true" id="qaKnew" type="button"><span data-i18n="recit_knew">Je le savais</span></button>
+        </div>
       </div>
     </div>
   </section>

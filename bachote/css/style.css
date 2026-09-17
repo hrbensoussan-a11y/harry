@@ -1186,3 +1186,121 @@ kbd {
   .hm-cell { width: 13px; height: 13px; }
   .backup-actions .btn { flex: 1 1 auto; }
 }
+
+/* ══════════════ Types de paquet — sélecteur & badges ══════════════ */
+.type-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); margin-top: 6px; }
+.type-tile {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  text-align: left; font: inherit; color: inherit; cursor: pointer;
+  background: var(--card); border: var(--bd); border-radius: var(--r);
+  box-shadow: var(--sh); padding: 16px; transition: transform .13s, box-shadow .13s;
+}
+.type-tile:hover { transform: translate(-2px,-2px); box-shadow: var(--sh-lg); }
+.type-tile:active { transform: translate(1px,1px); box-shadow: none; }
+.type-ic { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: var(--paper-2); color: var(--ink); }
+.type-ic svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.type-name { font-family: var(--f-display); font-weight: 700; font-size: 1.08rem; }
+.type-desc { font-size: .9rem; color: var(--ink-2); line-height: 1.4; }
+
+.deck-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.kind-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--f-mono); font-size: .72rem; font-weight: 700;
+  padding: 3px 9px 3px 7px; border-radius: 999px;
+  background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--rule);
+}
+.kind-badge svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.kind-badge-sm { font-size: .66rem; padding: 2px 7px 2px 5px; }
+.kind-badge-sm svg { width: 12px; height: 12px; }
+.edit-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cl-full { font-size: .93rem; color: var(--ink); line-height: 1.5; }
+
+/* ══════════════ Éditeurs par type ══════════════ */
+.inp-qa { min-height: 60px; resize: vertical; font-family: var(--f-body); line-height: 1.5; }
+.cloze-block, .recit-block, .order-block {
+  background: var(--card); border: var(--bd-thin); border-radius: var(--r-sm);
+  padding: 14px; margin-bottom: 12px;
+}
+.cloze-block .inp, .recit-block .inp, .order-block .inp { margin-bottom: 10px; }
+.cloze-prev-hint { font-size: .8rem; color: var(--ink-3); margin: 0 0 6px; }
+.cloze-prev {
+  background: var(--paper-2); border: 1px dashed var(--rule); border-radius: var(--r-sm);
+  padding: 12px; line-height: 2; min-height: 44px; white-space: pre-wrap; margin-bottom: 10px;
+}
+.cloze-empty { color: var(--ink-3); font-style: italic; }
+.cloze-word { cursor: pointer; padding: 1px 2px; border-radius: 4px; border-bottom: 2px solid transparent; }
+.cloze-word:hover { background: var(--paper); }
+.cloze-word.is-blank { background: var(--yellow-2); border-bottom-color: var(--ink); font-weight: 600; }
+.block-del { margin-top: 2px; color: var(--ink-2); }
+
+/* ══════════════ Étude — Texte à trous ══════════════ */
+.cloze-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+.cloze-card, .recit-card, .qa-card {
+  background: var(--card); border: var(--bd); border-radius: var(--r);
+  box-shadow: var(--sh-lg); padding: 24px 22px; margin-bottom: 18px;
+}
+.cloze-text { font-size: clamp(1.05rem, 2.6vw, 1.25rem); line-height: 2.2; margin: 0; white-space: pre-wrap; }
+.cloze-plain { }
+.cloze-in {
+  display: inline-block; font: inherit; font-size: .95em; text-align: center;
+  min-width: 70px; padding: 1px 6px; margin: 0 2px;
+  background: var(--paper-2); color: var(--ink);
+  border: none; border-bottom: 2px solid var(--ink); border-radius: 4px 4px 0 0;
+}
+.cloze-in:focus { outline: none; background: var(--yellow-2); }
+.cloze-in.ok { background: var(--green-soft); border-bottom-color: var(--green); color: var(--ink); font-weight: 600; }
+.cloze-in.bad { background: var(--red-soft); border-bottom-color: var(--red); font-weight: 600; }
+.cloze-actions, .recit-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.cloze-score { text-align: center; font-weight: 600; margin: 14px 0 0; padding: 10px; border-radius: var(--r-sm); }
+.cloze-score.ok { background: var(--green-soft); }
+.cloze-score.bad { background: var(--red-soft); }
+
+/* ══════════════ Étude — Apprendre par cœur ══════════════ */
+.recit-title { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; }
+.recit-text { font-size: clamp(1.05rem, 2.6vw, 1.24rem); line-height: 1.9; }
+.recit-line { min-height: 1.4em; }
+.recit-line.masked { color: var(--ink-3); letter-spacing: .12em; }
+.recit-w { padding: 0 1px; }
+.recit-w.hidden { color: var(--ink-3); background: var(--paper-2); border-radius: 4px; cursor: pointer; letter-spacing: .05em; }
+.recit-w.shown { background: var(--yellow-2); border-radius: 4px; }
+.recit-levels { display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+.recit-lvl-label { font-size: .85rem; color: var(--ink-2); }
+.recit-lvl-btns { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.recit-lvl {
+  font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer;
+  padding: 5px 11px; border-radius: 999px; background: var(--card);
+  border: var(--bd-thin); color: var(--ink);
+}
+.recit-lvl.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.recit-actions { margin-top: 4px; }
+
+/* ══════════════ Étude — Remettre dans l'ordre ══════════════ */
+.order-list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.order-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: var(--bd); border-radius: var(--r-sm);
+  box-shadow: var(--sh); padding: 12px 14px;
+}
+.order-item.ok { border-color: var(--green); box-shadow: 3px 3px 0 var(--green); background: var(--green-soft); }
+.order-item.bad { border-color: var(--red); box-shadow: 3px 3px 0 var(--red); background: var(--red-soft); }
+.order-num { font-family: var(--f-mono); font-weight: 700; color: var(--ink-3); min-width: 1.4em; text-align: center; }
+.order-text { flex: 1; font-weight: 500; }
+.order-ctrl { display: inline-flex; flex-direction: column; gap: 2px; }
+.order-move {
+  width: 30px; height: 22px; display: grid; place-items: center; cursor: pointer;
+  border: var(--bd-thin); border-radius: 6px; background: var(--paper-2); color: var(--ink);
+  font-size: .7rem; line-height: 1;
+}
+.order-move:disabled { opacity: .3; cursor: default; }
+.order-move:not(:disabled):hover { background: var(--ink); color: var(--paper); }
+
+/* ══════════════ Étude — Questions de cours ══════════════ */
+.qa-question { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.2rem, 3.4vw, 1.6rem); line-height: 1.3; margin: 6px 0 0; }
+.qa-answer { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--rule); text-align: left; }
+.qa-answer-text { font-size: clamp(1rem, 2.6vw, 1.14rem); line-height: 1.6; margin: 6px 0 0; white-space: pre-wrap; }
+
+@media (max-width: 620px) {
+  .type-grid { grid-template-columns: 1fr; }
+  .cloze-text, .recit-text { line-height: 2; }
+  .recit-levels { gap: 6px; }
+}
