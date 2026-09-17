@@ -27,8 +27,8 @@
     lang_toggle:  { fr:"Changer de langue", en:"Change language", es:"Cambiar de idioma", it:"Cambia lingua", de:"Sprache ändern", zh:"切换语言", ru:"Сменить язык" },
 
     // Accueil
-    hero_l1:  { fr:"Colle ton cours.", en:"Paste your notes.", es:"Pega tus apuntes.", it:"Incolla i tuoi appunti.", de:"Text einfügen.", zh:"粘贴你的课堂笔记。", ru:"Вставь свой конспект." },
-    hero_l2:  { fr:"On fabrique tes fiches.", en:"We make your cards.", es:"Creamos tus fichas.", it:"Creiamo le tue carte.", de:"Wir machen deine Karten.", zh:"我们帮你做卡片。", ru:"Мы сделаем карточки." },
+    hero_l1:  { fr:"Ton cours.", en:"Your notes.", es:"Tus apuntes.", it:"I tuoi appunti.", de:"Dein Stoff.", zh:"你的课程。", ru:"Твой конспект." },
+    hero_l2:  { fr:"Mille façons de le réviser.", en:"So many ways to study.", es:"Mil formas de repasarlo.", it:"Mille modi per ripassarlo.", de:"Tausend Wege, ihn zu lernen.", zh:"多种复习方式。", ru:"Тысяча способов повторить." },
     hero_sub: { fr:"Flashcards, texte à trous, par cœur, remise en ordre, quiz… Plein de façons de réviser. Gratuit, sans compte, tes fiches restent sur ton appareil.",
                 en:"Flashcards, fill-in-the-blanks, learn by heart, ordering, quizzes… Lots of ways to study. Free, no account, your cards stay on your device.",
                 es:"Tarjetas, rellenar huecos, de memoria, ordenar, cuestionarios… Muchas formas de repasar. Gratis, sin cuenta, tus fichas se quedan en tu dispositivo.",
