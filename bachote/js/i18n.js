@@ -260,6 +260,8 @@
     tool_scan_desc: { fr:"Prends ton cours en photo, on en fait des cartes.", en:"Snap a photo of your notes, we turn it into cards.", es:"Haz una foto de tus apuntes y las convertimos en fichas.", it:"Fotografa i tuoi appunti, li trasformiamo in carte.", de:"Fotografiere deine Notizen, wir machen Karten daraus.", zh:"给你的笔记拍张照，我们把它变成卡片。", ru:"Сфотографируй конспект — сделаем из него карточки." },
     tool_timer_name: { fr:"Minuteur d'étude", en:"Study timer", es:"Temporizador de estudio", it:"Timer di studio", de:"Lern-Timer", zh:"学习计时器", ru:"Таймер учёбы" },
     tool_timer_desc: { fr:"Cycles travail / pause pour rester concentré.", en:"Work / break cycles to stay focused.", es:"Ciclos de trabajo / descanso para concentrarte.", it:"Cicli lavoro / pausa per restare concentrato.", de:"Arbeits-/Pausenzyklen, um konzentriert zu bleiben.", zh:"工作 / 休息循环，保持专注。", ru:"Циклы работа / пауза, чтобы не терять фокус." },
+    tool_activity_name: { fr:"Activité", en:"Activity", es:"Actividad", it:"Attività", de:"Aktivität", zh:"活跃度", ru:"Активность" },
+    tool_activity_desc: { fr:"Ta régularité, jour après jour.", en:"Your consistency, day by day.", es:"Tu constancia, día a día.", it:"La tua costanza, giorno dopo giorno.", de:"Deine Regelmäßigkeit, Tag für Tag.", zh:"你的坚持，一天天积累。", ru:"Твоя регулярность, день за днём." },
     nav_home: { fr:"← Accueil", en:"← Home", es:"← Inicio", it:"← Home", de:"← Startseite", zh:"← 主页", ru:"← Главная" },
 
     // Scan
@@ -300,6 +302,56 @@
 
     level_up: { fr:"Niveau {n} atteint ! 🎉", en:"Level {n} reached! 🎉", es:"¡Nivel {n} alcanzado! 🎉", it:"Livello {n} raggiunto! 🎉", de:"Level {n} erreicht! 🎉", zh:"达到 {n} 级！🎉", ru:"Уровень {n} достигнут! 🎉" },
     flip_kbd: { fr:"Espace", en:"Space", es:"Espacio", it:"Spazio", de:"Leertaste", zh:"空格", ru:"Пробел" },
+
+    // Lecture à voix haute
+    speak_toggle: { fr:"Activer / couper la lecture à voix haute", en:"Turn read-aloud on / off", es:"Activar / desactivar la lectura en voz alta", it:"Attiva / disattiva la lettura ad alta voce", de:"Vorlesen an / aus", zh:"开启 / 关闭朗读", ru:"Озвучивание вкл. / выкл." },
+    speak_hint: { fr:"Écouter", en:"Listen", es:"Escuchar", it:"Ascolta", de:"Anhören", zh:"朗读", ru:"Прослушать" },
+
+    // Sauvegarde (export / import)
+    backup_title: { fr:"Sauvegarde de tes fiches", en:"Back up your cards", es:"Copia de seguridad de tus fichas", it:"Backup delle tue carte", de:"Deine Karten sichern", zh:"备份你的卡片", ru:"Резервная копия карточек" },
+    backup_desc: { fr:"Tes fiches vivent dans ce navigateur. Exporte-les dans un fichier pour ne rien perdre, ou pour les retrouver sur un autre appareil.",
+                   en:"Your cards live in this browser. Export them to a file so you never lose them, or to move them to another device.",
+                   es:"Tus fichas viven en este navegador. Expórtalas a un archivo para no perder nada, o para llevarlas a otro dispositivo.",
+                   it:"Le tue carte vivono in questo browser. Esportale in un file per non perdere nulla, o per ritrovarle su un altro dispositivo.",
+                   de:"Deine Karten leben in diesem Browser. Exportiere sie in eine Datei, damit du nichts verlierst oder sie auf ein anderes Gerät holst.",
+                   zh:"你的卡片只存在这个浏览器里。把它们导出成文件，就不会丢失，也能带到其他设备。",
+                   ru:"Твои карточки хранятся в этом браузере. Экспортируй их в файл, чтобы ничего не потерять или перенести на другое устройство." },
+    backup_export: { fr:"Exporter mes fiches", en:"Export my cards", es:"Exportar mis fichas", it:"Esporta le mie carte", de:"Karten exportieren", zh:"导出我的卡片", ru:"Экспортировать карточки" },
+    backup_import: { fr:"Importer un fichier", en:"Import a file", es:"Importar un archivo", it:"Importa un file", de:"Datei importieren", zh:"导入文件", ru:"Импортировать файл" },
+    backup_copy_hint: { fr:"Le téléchargement est bloqué ici. Copie ce texte et colle-le dans un fichier .json pour le garder.",
+                        en:"Downloading is blocked here. Copy this text and paste it into a .json file to keep it.",
+                        es:"La descarga está bloqueada aquí. Copia este texto y pégalo en un archivo .json para guardarlo.",
+                        it:"Il download è bloccato qui. Copia questo testo e incollalo in un file .json per conservarlo.",
+                        de:"Der Download ist hier blockiert. Kopiere diesen Text und füge ihn in eine .json-Datei ein, um ihn zu behalten.",
+                        zh:"此处无法下载。请复制这段文本，粘贴到一个 .json 文件中保存。",
+                        ru:"Здесь скачивание заблокировано. Скопируй этот текст и вставь его в файл .json, чтобы сохранить." },
+    backup_copy: { fr:"Copier", en:"Copy", es:"Copiar", it:"Copia", de:"Kopieren", zh:"复制", ru:"Копировать" },
+    backup_exported: { fr:"Fichier de sauvegarde téléchargé ✓", en:"Backup file downloaded ✓", es:"Archivo de copia descargado ✓", it:"File di backup scaricato ✓", de:"Sicherungsdatei heruntergeladen ✓", zh:"备份文件已下载 ✓", ru:"Файл резервной копии скачан ✓" },
+    backup_copied: { fr:"Copié ✓", en:"Copied ✓", es:"Copiado ✓", it:"Copiato ✓", de:"Kopiert ✓", zh:"已复制 ✓", ru:"Скопировано ✓" },
+    backup_bad_file: { fr:"Fichier illisible : ce n'est pas une sauvegarde Bachote.", en:"Unreadable file: this isn't a Bachote backup.", es:"Archivo ilegible: no es una copia de Bachote.", it:"File illeggibile: non è un backup di Bachote.", de:"Datei unlesbar: das ist keine Bachote-Sicherung.", zh:"无法读取该文件：这不是 Bachote 备份。", ru:"Файл не читается: это не резервная копия Bachote." },
+    backup_nothing: { fr:"Aucune fiche à importer dans ce fichier.", en:"No cards to import in this file.", es:"No hay fichas que importar en este archivo.", it:"Nessuna carta da importare in questo file.", de:"Keine Karten zum Importieren in dieser Datei.", zh:"此文件中没有可导入的卡片。", ru:"В этом файле нет карточек для импорта." },
+    backup_added: { fr:"Ajouté :", en:"Added:", es:"Añadido:", it:"Aggiunto:", de:"Hinzugefügt:", zh:"已添加：", ru:"Добавлено:" },
+
+    // Activité (carte de chaleur)
+    activity_intro: { fr:"Chaque case est un jour. Plus tu révises, plus elle est foncée. Reviens un peu chaque jour pour garder ta série.",
+                      en:"Each square is a day. The more you review, the darker it gets. Come back a little every day to keep your streak.",
+                      es:"Cada casilla es un día. Cuanto más repasas, más oscura se vuelve. Vuelve un poco cada día para mantener tu racha.",
+                      it:"Ogni casella è un giorno. Più ripassi, più diventa scura. Torna ogni giorno per mantenere la tua serie.",
+                      de:"Jedes Kästchen ist ein Tag. Je mehr du wiederholst, desto dunkler wird es. Komm jeden Tag kurz zurück, um deine Serie zu halten.",
+                      zh:"每个方块代表一天。复习得越多，颜色越深。每天回来一点，保持你的连续记录。",
+                      ru:"Каждый квадрат — это день. Чем больше повторяешь, тем он темнее. Заходи понемногу каждый день, чтобы сохранить серию." },
+    activity_days: { fr:"jours actifs", en:"active days", es:"días activos", it:"giorni attivi", de:"aktive Tage", zh:"活跃天数", ru:"активных дней" },
+    activity_best: { fr:"meilleur jour", en:"best day", es:"mejor día", it:"giorno migliore", de:"bester Tag", zh:"最佳一天", ru:"лучший день" },
+    activity_less: { fr:"Moins", en:"Less", es:"Menos", it:"Meno", de:"Weniger", zh:"较少", ru:"Меньше" },
+    activity_more: { fr:"Plus", en:"More", es:"Más", it:"Più", de:"Mehr", zh:"较多", ru:"Больше" },
+    activity_empty: { fr:"Rien encore. Lance une révision ou une session de minuteur : ton premier jour s'allumera ici.",
+                      en:"Nothing yet. Start a review or a timer session: your first day will light up here.",
+                      es:"Aún nada. Empieza un repaso o una sesión de temporizador: tu primer día se encenderá aquí.",
+                      it:"Ancora niente. Avvia un ripasso o una sessione col timer: il tuo primo giorno si accenderà qui.",
+                      de:"Noch nichts. Starte eine Wiederholung oder eine Timer-Session: dein erster Tag leuchtet hier auf.",
+                      zh:"还没有记录。开始一次复习或一个计时器节：你的第一天会在这里亮起。",
+                      ru:"Пока пусто. Начни повторение или сессию таймера — твой первый день загорится здесь." },
+
     iv_min: { fr:"< 1 min", en:"< 1 min", es:"< 1 min", it:"< 1 min", de:"< 1 Min.", zh:"< 1 分钟", ru:"< 1 мин" }
   };
 

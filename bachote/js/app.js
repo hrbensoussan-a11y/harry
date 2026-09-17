@@ -10,6 +10,23 @@
   /* Langue courante (mémorisée), avec repli sur le français. */
   function curLang() { var l = S.setting("lang"); return LC.indexOf(l) >= 0 ? l : "fr"; }
   function t(k) { return window.tRaw(curLang(), k); }
+
+  /* Lecture à voix haute : disponible (API + voix) ; active (dispo + réglage). */
+  function speakSupported() { return !!(window.Speak && window.Speak.available()); }
+  function speakReady() { return speakSupported() && S.setting("speak") !== false; }
+  /* Lit un texte dans la langue de l'interface, si tout est prêt. */
+  function speakText(txt) {
+    if (speakReady() && txt && window.Speak) window.Speak.say(txt, curLang());
+  }
+  /* Met à jour l'affichage des boutons haut-parleur sans relancer la navigation
+     (important : ne casse pas une session d'étude en cours). */
+  function refreshSpeakButtons() {
+    var canSpeak = speakReady();
+    var sf = $("#speakFront"), sb = $("#speakBack");
+    if (sf) sf.hidden = !canSpeak;
+    if (sb) sb.hidden = !canSpeak;
+    if (visibleScreen() === "deck" && currentDeckId) renderDeck(currentDeckId);
+  }
   var tr = t; // alias sûr là où une variable locale « t » masquerait la fonction
   function sepName(sep) {
     if (sep === "\t") return tr("sep_word_tab");
@@ -29,7 +46,9 @@
     soundOn:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a8 8 0 0 1 0 12"/></svg>',
     soundOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>',
     sun:      '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>',
-    moon:     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>'
+    moon:     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>',
+    speakOn:  '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M17 8a4 4 0 0 1 0 6M19.5 6a7 7 0 0 1 0 10"/></svg>',
+    speakOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="m17 8 4 6M21 8l-4 6"/></svg>'
   };
 
   /* ---------- raccourcis DOM ---------- */
@@ -44,7 +63,7 @@
   function show(node) { node.hidden = false; }
   function hide(node) { node.hidden = true; }
 
-  var SCREENS = ["home", "deck", "edit", "study", "result", "timer"];
+  var SCREENS = ["home", "deck", "edit", "study", "result", "timer", "activity"];
   function screen(name) {
     SCREENS.forEach(function (s) {
       var n = $("#screen-" + s);
@@ -232,6 +251,27 @@
       paintSound();
       Sfx.play("click");
     });
+
+    // Lecture à voix haute : le bouton n'apparaît que si l'appareil sait parler.
+    var speakBtn = $("#speakBtn");
+    if (speakSupported()) {
+      speakBtn.hidden = false;
+      var paintSpeak = function () {
+        var on = S.setting("speak") !== false;
+        $("#speakIcon").innerHTML = on ? IC.speakOn : IC.speakOff;
+        speakBtn.setAttribute("aria-pressed", String(on));
+      };
+      paintSpeak();
+      speakBtn.addEventListener("click", function () {
+        S.setting("speak", S.setting("speak") === false);
+        if (window.Speak) window.Speak.stop();
+        paintSpeak();
+        Sfx.play("click");
+        refreshSpeakButtons(); // met à jour les haut-parleurs de l'écran courant
+      });
+    } else {
+      speakBtn.hidden = true;
+    }
   }
 
   /* ============================================================
@@ -535,6 +575,9 @@
 
     renderProgress();
     renderSubjectTiles();
+    // La sauvegarde n'a de sens qu'une fois au moins un paquet créé.
+    $("#backupBlock").hidden = empty;
+    $("#backupFallback").hidden = true;
     screen("home");
   }
 
@@ -568,11 +611,23 @@
 
     var list = $("#cardList");
     list.innerHTML = "";
+    var canSpeak = speakReady();
     d.cards.forEach(function (c) {
       var li = el("li");
       li.setAttribute("data-level", S.level(c));
       li.appendChild(el("span", "cl-term", c.t));
       li.appendChild(el("span", "cl-def", c.d));
+      if (canSpeak) {
+        var sp = el("button", "cl-speak");
+        sp.type = "button";
+        sp.title = t("speak_hint");
+        sp.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>';
+        sp.addEventListener("click", function (e) {
+          e.stopPropagation();
+          speakText(c.t + ". " + c.d);
+        });
+        li.appendChild(sp);
+      }
       list.appendChild(li);
     });
 
@@ -1106,6 +1161,9 @@
     $("#flip").classList.remove("flipped");
     $("#flashFront").textContent = c.t;
     $("#flashBack").textContent = c.d;
+    var canSpeak = speakReady();
+    $("#speakFront").hidden = !canSpeak;
+    $("#speakBack").hidden = !canSpeak;
     if (sess.mode === "review") {
       $("#gradeRow").hidden = true;
       $("#gHard").textContent = S.previewInterval(c, 3, curLang());
@@ -1125,6 +1183,16 @@
 
   function initFlash() {
     $("#flip").addEventListener("click", flipCard);
+
+    // Haut-parleurs : lisent le terme / la définition sans retourner la carte.
+    $("#speakFront").addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (sess && sess.queue[sess.i]) speakText(sess.queue[sess.i].t);
+    });
+    $("#speakBack").addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (sess && sess.queue[sess.i]) speakText(sess.queue[sess.i].d);
+    });
 
     $$("#gradeRow .btn-grade").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -1564,6 +1632,143 @@
   }
 
   /* ============================================================
+     SAUVEGARDE — exporter / importer toutes les fiches (fichier .json)
+     ============================================================ */
+  function exportBackup() {
+    var json = S.exportAll();
+    var name = "bachote-" + new Date().toISOString().slice(0, 10) + ".json";
+    var ok = false;
+    try {
+      var blob = new Blob([json], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+      ok = true;
+    } catch (e) { ok = false; }
+    Sfx.play("click");
+    if (ok) {
+      toast(t("backup_exported"));
+      $("#backupFallback").hidden = true;
+    } else {
+      // Téléchargement bloqué (aperçu / bac à sable) : on affiche le texte à copier.
+      $("#backupText").value = json;
+      $("#backupFallback").hidden = false;
+      $("#backupFallback").scrollIntoView({ block: "center" });
+    }
+  }
+
+  function importBackup(file) {
+    if (!file) return;
+    var r = new FileReader();
+    r.onload = function () {
+      var obj;
+      try { obj = JSON.parse(String(r.result || "")); }
+      catch (e) { toast(t("backup_bad_file")); Sfx.play("bad"); return; }
+      var res;
+      try { res = S.importAll(obj); }
+      catch (e) { toast(t("backup_bad_file")); Sfx.play("bad"); return; }
+      if (!res || !res.decks) { toast(t("backup_nothing")); Sfx.play("bad"); return; }
+      Sfx.play("done");
+      toast(t("backup_added") + " " + res.decks + " " + tn("lbl_decks", res.decks) +
+            ", " + res.cards + " " + tn("lbl_cards", res.cards));
+      renderHome();
+    };
+    r.onerror = function () { toast(t("backup_bad_file")); Sfx.play("bad"); };
+    r.readAsText(file);
+  }
+
+  function initBackup() {
+    $("#exportBtn").addEventListener("click", exportBackup);
+    $("#importBtn").addEventListener("click", function () { $("#importFile").click(); });
+    $("#importFile").addEventListener("change", function () {
+      var f = this.files && this.files[0];
+      importBackup(f);
+      this.value = ""; // permet de réimporter le même fichier
+    });
+    $("#backupCopy").addEventListener("click", function () {
+      var ta = $("#backupText");
+      ta.select();
+      var done = false;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).then(function () {
+          toast(t("backup_copied")); Sfx.play("good");
+        }).catch(function () { try { document.execCommand("copy"); toast(t("backup_copied")); } catch (e) {} });
+        done = true;
+      }
+      if (!done) { try { document.execCommand("copy"); toast(t("backup_copied")); Sfx.play("good"); } catch (e) {} }
+    });
+  }
+
+  /* ============================================================
+     ACTIVITÉ — carte de chaleur des jours d'étude (façon calendrier)
+     ============================================================ */
+  var HM_WEEKS = 26; // ≈ 6 mois d'historique
+
+  function heatBucket(n) {
+    if (!n) return 0;
+    if (n < 5) return 1;
+    if (n < 15) return 2;
+    if (n < 30) return 3;
+    return 4;
+  }
+
+  function renderActivity() {
+    var sum = S.activitySummary();
+    var hist = sum.history || {};
+
+    // Bandeau : série en cours, jours actifs, meilleur jour.
+    var stats = $("#activityStats");
+    stats.innerHTML = "";
+    [
+      [sum.streak, tn("lbl_streak", sum.streak)],
+      [sum.total, t("activity_days")],
+      [sum.best, t("activity_best")]
+    ].forEach(function (p) {
+      var s = el("div", "stat");
+      s.appendChild(el("b", null, String(p[0])));
+      s.appendChild(el("span", null, p[1]));
+      stats.appendChild(s);
+    });
+
+    $("#activityEmpty").hidden = sum.total > 0;
+
+    // Grille : HM_WEEKS colonnes (semaines) × 7 lignes (lundi → dimanche),
+    // la dernière colonne se terminant sur la semaine courante.
+    var box = $("#heatmap");
+    box.innerHTML = "";
+    var today = new Date();
+    today.setHours(12, 0, 0, 0); // midi : évite les surprises de changement d'heure
+    var todayKey = S.dayStamp(today.getTime());
+    var dowMon = (today.getDay() + 6) % 7;              // 0 = lundi
+    var startOffset = (HM_WEEKS - 1) * 7 + dowMon;      // recule au lundi de la 1re semaine
+    var cursor = new Date(today);
+    cursor.setDate(cursor.getDate() - startOffset);
+
+    for (var col = 0; col < HM_WEEKS; col++) {
+      var colEl = el("div", "hm-col");
+      for (var row = 0; row < 7; row++) {
+        var key = S.dayStamp(cursor.getTime());
+        var future = cursor.getTime() > today.getTime();
+        var n = hist[key] | 0;
+        var cell = el("span", future ? "hm-cell hm-future" : "hm-cell l" + heatBucket(n));
+        if (key === todayKey) cell.classList.add("hm-today");
+        cell.title = future ? "" : (key + " · " + n + " " + tn("lbl_cards", n));
+        colEl.appendChild(cell);
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      box.appendChild(colEl);
+    }
+
+    screen("activity");
+    var scroll = $(".heatmap-scroll");
+    if (scroll) scroll.scrollLeft = scroll.scrollWidth; // montre la période récente
+  }
+
+  /* ============================================================
      ROUTEUR
      ============================================================ */
   function go(hash) {
@@ -1588,6 +1793,7 @@
     if (parts[0] === "new") { renderEdit(null, parts[1] || null); return; }
     if (parts[0] === "scan") { renderEdit(null, null, true); return; }
     if (parts[0] === "timer") { renderTimer(); return; }
+    if (parts[0] === "activity") { renderActivity(); return; }
     if (parts[0] === "edit" && parts[1]) { renderEdit(parts[1]); return; }
     if (parts[0] === "study" && parts[1] && parts[2]) { startStudy(parts[1], parts[2]); return; }
     if (parts[0] === "review") { startStudy("all", "review"); return; }
@@ -1613,8 +1819,11 @@
     $("#dueStart").addEventListener("click", function () { go("#/review"); });
     $("#goalBtn").addEventListener("click", cycleGoal);
     initTimer();
+    initBackup();
     $("#toolScan").addEventListener("click", function () { go("#/scan"); });
     $("#toolTimer").addEventListener("click", function () { go("#/timer"); });
+    $("#toolActivity").addEventListener("click", function () { go("#/activity"); });
+    $("#activityBack").addEventListener("click", function () { go("#/"); });
     $("#toolCards").addEventListener("click", function () {
       var h = $("#decksHead"); var g = $("#deckGrid");
       var target = (h && !h.hidden) ? h : (g || null);
@@ -1667,7 +1876,10 @@
     if (location.search.indexOf("debug") >= 0) {
       window.__bc = {
         Store: S, go: go, getSess: function () { return sess; },
-        checkAnswer: checkAnswer, norm: norm
+        checkAnswer: checkAnswer, norm: norm,
+        Speak: window.Speak, speakReady: speakReady,
+        exportBackup: exportBackup, importBackup: importBackup,
+        renderActivity: renderActivity
       };
     }
   }

@@ -14,7 +14,7 @@
       v: 1,
       decks: {},
       settings: { sound: true, theme: null, lang: null, dailyGoal: 20 },
-      stats: { streak: 0, lastDay: null, reviews: 0, xp: 0, today: { day: null, cards: 0 }, badges: [], focus: 0 }
+      stats: { streak: 0, lastDay: null, reviews: 0, xp: 0, today: { day: null, cards: 0 }, badges: [], focus: 0, history: {} }
     };
   }
 
@@ -249,6 +249,27 @@
     state.stats.lastDay = today;
   }
 
+  /* Journal d'activité par jour : alimente la vue Activité (carte de chaleur).
+     Une unité = une carte étudiée ou une session de concentration terminée. */
+  function bumpHistory(n) {
+    if (!state.stats.history || typeof state.stats.history !== "object") state.stats.history = {};
+    var d = dayStamp();
+    state.stats.history[d] = (state.stats.history[d] | 0) + (n || 1);
+  }
+
+  /* Résumé de l'activité, calculé depuis le journal : jours actifs, meilleur
+     jour, et série courante (jours consécutifs se terminant aujourd'hui/hier). */
+  function activitySummary() {
+    var h = (state.stats.history && typeof state.stats.history === "object") ? state.stats.history : {};
+    var active = Object.keys(h).filter(function (k) { return (h[k] | 0) > 0; });
+    var best = 0;
+    active.forEach(function (k) { if ((h[k] | 0) > best) best = h[k] | 0; });
+    var streak = 0, cur = Date.now();
+    if (!h[dayStamp(cur)]) cur -= DAY; // la série tient encore si hier était actif
+    while (h[dayStamp(cur)]) { streak += 1; cur -= DAY; }
+    return { total: active.length, best: best, streak: streak, history: h };
+  }
+
   /* ============================================================
      PROGRESSION — XP, niveaux, objectif quotidien, badges
      ============================================================ */
@@ -274,6 +295,7 @@
   function award(correct) {
     state.stats.xp = (state.stats.xp || 0) + (correct ? 10 : 3);
     ensureToday().cards += 1;
+    bumpHistory(1);
     save();
   }
 
@@ -282,6 +304,7 @@
     state.stats.focus = (state.stats.focus || 0) + 1;
     state.stats.xp = (state.stats.xp || 0) + 25;
     touchStreak();
+    bumpHistory(1);
     save();
     return state.stats.focus;
   }
@@ -466,6 +489,81 @@
     }, null, 2);
   }
 
+  /* Sauvegarde complète : tous les paquets (avec leur progression SM-2) et
+     les statistiques. Sert de « fichier de secours » et de transfert d'appareil. */
+  function exportAll() {
+    return JSON.stringify({
+      bachote: 1,
+      kind: "full",
+      version: state.v || 1,
+      exported: new Date().toISOString(),
+      decks: allDecks(),
+      stats: state.stats
+    }, null, 2);
+  }
+
+  /* Importe une sauvegarde — complète (exportAll) OU un seul paquet (exportDeck)
+     — SANS rien écraser : chaque paquet importé reçoit un nouvel identifiant.
+     Fusionne aussi le journal d'activité (au maximum par jour). Lève une erreur
+     si le format est inconnu. Renvoie { decks, cards } (ce qui a été ajouté). */
+  function importAll(obj) {
+    if (!obj || typeof obj !== "object") throw new Error("format");
+
+    var incoming;
+    if (Array.isArray(obj.decks)) {
+      incoming = obj.decks;
+    } else if (obj.decks && typeof obj.decks === "object") {
+      incoming = Object.keys(obj.decks).map(function (k) { return obj.decks[k]; });
+    } else if (Array.isArray(obj.cards)) {
+      incoming = [obj]; // export d'un seul paquet
+    } else {
+      throw new Error("format");
+    }
+
+    var addedDecks = 0, addedCards = 0;
+    incoming.forEach(function (d) {
+      if (!d || !Array.isArray(d.cards)) return;
+      var cards = d.cards.map(function (c) {
+        var card = newCard(c.t, c.d);
+        // Conserve la progression si elle est présente (sauvegarde complète).
+        if (typeof c.ef === "number" && isFinite(c.ef)) card.ef = c.ef;
+        if (typeof c.iv === "number" && isFinite(c.iv)) card.iv = c.iv;
+        if (typeof c.reps === "number" && isFinite(c.reps)) card.reps = c.reps;
+        if (typeof c.due === "number" && isFinite(c.due)) card.due = c.due;
+        if (typeof c.lapses === "number" && isFinite(c.lapses)) card.lapses = c.lapses;
+        return card;
+      }).filter(function (c) { return c.t || c.d; });
+      if (!cards.length) return;
+
+      var nd = {
+        id: uid("d"),
+        name: String(d.name || "Import").trim().slice(0, 70) || "Import",
+        subject: d.subject || "autre",
+        fav: false,
+        created: Date.now(),
+        updated: Date.now(),
+        cards: cards
+      };
+      state.decks[nd.id] = nd;
+      addedDecks += 1;
+      addedCards += cards.length;
+    });
+
+    // Fusion du journal d'activité : on garde le maximum par jour pour ne pas
+    // gonfler artificiellement en cas de réimport, tout en récupérant les jours
+    // actifs d'un autre appareil.
+    if (obj.stats && obj.stats.history && typeof obj.stats.history === "object") {
+      if (!state.stats.history || typeof state.stats.history !== "object") state.stats.history = {};
+      Object.keys(obj.stats.history).forEach(function (day) {
+        var v = obj.stats.history[day] | 0;
+        if (v > (state.stats.history[day] | 0)) state.stats.history[day] = v;
+      });
+    }
+
+    save();
+    return { decks: addedDecks, cards: addedCards };
+  }
+
   load();
 
   window.Store = {
@@ -499,6 +597,10 @@
     decodeDeck: decodeDeck,
     parsePaste: parsePaste,
     sepLabel: sepLabel,
-    exportDeck: exportDeck
+    exportDeck: exportDeck,
+    exportAll: exportAll,
+    importAll: importAll,
+    activitySummary: activitySummary,
+    dayStamp: dayStamp
   };
 })();

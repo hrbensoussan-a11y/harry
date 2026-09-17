@@ -32,6 +32,7 @@
       <div class="lang-menu" id="langMenu" role="menu" hidden></div>
     </div>
     <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" data-i18n-title="sound_toggle"><span class="i-ic" id="soundIcon"></span></button>
+    <button class="icon-btn" id="speakBtn" type="button" aria-pressed="true" data-i18n-title="speak_toggle" hidden><span class="i-ic" id="speakIcon"></span></button>
     <button class="icon-btn" id="themeBtn" type="button" data-i18n-title="theme_toggle"><span class="i-ic" id="themeIcon"></span></button>
   </div>
 </header>
@@ -62,6 +63,11 @@
           <span class="tool-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/></svg></span>
           <span class="tool-name" data-i18n="tool_timer_name">Minuteur d'étude</span>
           <span class="tool-desc" data-i18n="tool_timer_desc">Cycles travail / pause pour rester concentré.</span>
+        </button>
+        <button class="tool-tile" id="toolActivity" type="button">
+          <span class="tool-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><rect x="6.5" y="12" width="2.6" height="2.6" rx="0.5" fill="currentColor" stroke="none"/><rect x="11" y="12" width="2.6" height="2.6" rx="0.5" fill="currentColor" stroke="none"/><rect x="15.5" y="12" width="2.6" height="2.6" rx="0.5" fill="currentColor" stroke="none" opacity=".5"/></svg></span>
+          <span class="tool-name" data-i18n="tool_activity_name">Activité</span>
+          <span class="tool-desc" data-i18n="tool_activity_desc">Ta régularité, jour après jour.</span>
         </button>
       </div>
 
@@ -113,6 +119,27 @@
       </div>
       <p class="sec-note" id="subjectNote" data-i18n="subject_note">Choisis une matière et remplis-la avec tes propres mots — ou colle ton cours.</p>
       <div class="subject-grid" id="subjectGrid"></div>
+
+      <!-- Sauvegarde : exporter / importer ses fiches -->
+      <div class="backup-block" id="backupBlock" hidden>
+        <div class="backup-head">
+          <span class="backup-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v11M8 10l4 4 4-4"/><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/></svg></span>
+          <div>
+            <h2 class="sec-title sec-title-tight" data-i18n="backup_title">Sauvegarde de tes fiches</h2>
+            <p class="sec-note sec-note-tight" data-i18n="backup_desc">Tes fiches vivent dans ce navigateur. Exporte-les dans un fichier pour ne rien perdre, ou pour les retrouver sur un autre appareil.</p>
+          </div>
+        </div>
+        <div class="backup-actions">
+          <button class="btn btn-ghost" id="exportBtn" type="button" data-i18n="backup_export">Exporter mes fiches</button>
+          <button class="btn btn-ghost" id="importBtn" type="button" data-i18n="backup_import">Importer un fichier</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+        </div>
+        <div class="backup-fallback" id="backupFallback" hidden>
+          <p class="sec-note sec-note-tight" data-i18n="backup_copy_hint">Le téléchargement est bloqué ici. Copie ce texte et colle-le dans un fichier <code>.json</code> pour le garder.</p>
+          <textarea class="backup-text" id="backupText" readonly spellcheck="false"></textarea>
+          <button class="btn btn-ghost btn-sm" id="backupCopy" type="button" data-i18n="backup_copy">Copier</button>
+        </div>
+      </div>
 
     </div>
   </section>
@@ -276,11 +303,13 @@
           <div class="flip-in" id="flipIn">
             <div class="flip-face flip-front">
               <span class="face-label" data-i18n="face_term">Terme</span>
+              <button class="speak-btn" id="speakFront" type="button" data-i18n-title="speak_hint" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button>
               <p class="face-text" id="flashFront"></p>
               <span class="face-hint"><span data-i18n="flip_hint_a">Appuie sur la carte ou </span><kbd data-i18n="flip_kbd">Espace</kbd><span data-i18n="flip_hint_b"> pour retourner</span></span>
             </div>
             <div class="flip-face flip-back">
               <span class="face-label" data-i18n="face_def">Définition</span>
+              <button class="speak-btn" id="speakBack" type="button" data-i18n-title="speak_hint" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button>
               <p class="face-text face-text-def" id="flashBack"></p>
             </div>
           </div>
@@ -396,6 +425,36 @@
     </div>
   </section>
 
+  <!-- ══════════ ACTIVITÉ ══════════ -->
+  <section class="screen" id="screen-activity" hidden>
+    <div class="wrap wrap-narrow">
+      <button class="back-link" type="button" id="activityBack" data-i18n="nav_home">← Accueil</button>
+      <h1 class="edit-title" data-i18n="tool_activity_name">Activité</h1>
+      <p class="sec-note" data-i18n="activity_intro">Chaque case est un jour. Plus tu révises, plus elle est foncée. Reviens un peu chaque jour pour garder ta série.</p>
+
+      <div class="activity-stats" id="activityStats"></div>
+
+      <div class="heatmap-card">
+        <div class="heatmap-scroll">
+          <div class="heatmap" id="heatmap" aria-hidden="true"></div>
+        </div>
+        <div class="heatmap-legend">
+          <span data-i18n="activity_less">Moins</span>
+          <span class="hm-cell l0"></span>
+          <span class="hm-cell l1"></span>
+          <span class="hm-cell l2"></span>
+          <span class="hm-cell l3"></span>
+          <span class="hm-cell l4"></span>
+          <span data-i18n="activity_more">Plus</span>
+        </div>
+      </div>
+
+      <div class="activity-empty" id="activityEmpty" hidden>
+        <p class="sec-note" data-i18n="activity_empty">Rien encore. Lance une révision ou une session de minuteur : ton premier jour s'allumera ici.</p>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer class="foot">
@@ -411,6 +470,7 @@
 <script src="js/i18n.js"></script>
 <script src="js/store.js"></script>
 <script src="js/sound.js"></script>
+<script src="js/speak.js"></script>
 <script src="js/samples.js"></script>
 <script src="js/scan.js"></script>
 <script src="js/app.js"></script>

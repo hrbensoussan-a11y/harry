@@ -1104,3 +1104,85 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .scan-status.busy::before { animation: none; }
 }
+
+/* ══════════════ Lecture à voix haute — boutons haut-parleur ══════════════ */
+.speak-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 3;
+  width: 34px; height: 34px; display: grid; place-items: center;
+  border: var(--bd-thin); border-radius: 9px; cursor: pointer;
+  background: var(--paper-2); color: var(--ink);
+  transition: transform .13s, box-shadow .13s, background .13s;
+}
+.speak-btn:hover { transform: translate(-1px,-1px); box-shadow: 2px 2px 0 var(--ink); }
+.speak-btn:active { transform: translate(1px,1px); box-shadow: none; }
+.speak-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.flip-back .speak-btn { background: var(--card); }
+
+/* Haut-parleur dans la liste des cartes d'un paquet */
+.cl-speak {
+  flex: none; align-self: center;
+  width: 30px; height: 30px; display: grid; place-items: center;
+  border: none; border-radius: 8px; cursor: pointer;
+  background: transparent; color: var(--ink-3);
+  transition: background .15s, color .15s;
+}
+.cl-speak:hover { background: var(--paper-2); color: var(--ink); }
+.cl-speak svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ══════════════ Sauvegarde (export / import) ══════════════ */
+.sec-note-tight { margin: 2px 0 0; }
+.backup-block {
+  margin-top: 30px; padding: 18px;
+  background: var(--card); border: var(--bd); border-radius: var(--r);
+  box-shadow: var(--sh);
+}
+.backup-head { display: flex; gap: 13px; align-items: flex-start; }
+.backup-ic {
+  flex: none; width: 40px; height: 40px; display: grid; place-items: center;
+  border-radius: 10px; background: var(--paper-2); color: var(--ink);
+}
+.backup-ic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.backup-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+.backup-fallback { margin-top: 15px; }
+.backup-text {
+  width: 100%; min-height: 128px; margin: 8px 0; resize: vertical;
+  font-family: var(--f-mono); font-size: .78rem; line-height: 1.5;
+  color: var(--ink); background: var(--paper-2);
+  border: var(--bd-thin); border-radius: var(--r-sm); padding: 10px;
+}
+
+/* ══════════════ Activité — carte de chaleur ══════════════ */
+.activity-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin: 4px 0 20px;
+}
+.heatmap-card {
+  background: var(--card); border: var(--bd); border-radius: var(--r);
+  box-shadow: var(--sh); padding: 18px 16px;
+}
+.heatmap-scroll { overflow-x: auto; padding-bottom: 6px; }
+.heatmap { display: flex; gap: 4px; min-width: max-content; }
+.hm-col { display: flex; flex-direction: column; gap: 4px; }
+.hm-cell {
+  width: 15px; height: 15px; border-radius: 3px;
+  background: var(--paper-2); border: 1px solid var(--rule-soft);
+}
+.hm-cell.l0 { background: var(--paper-2); }
+.hm-cell.l1 { background: color-mix(in srgb, var(--green) 28%, var(--paper-2)); border-color: transparent; }
+.hm-cell.l2 { background: color-mix(in srgb, var(--green) 52%, var(--paper-2)); border-color: transparent; }
+.hm-cell.l3 { background: color-mix(in srgb, var(--green) 76%, var(--paper-2)); border-color: transparent; }
+.hm-cell.l4 { background: var(--green); border-color: transparent; }
+.hm-future { background: transparent; border-style: dashed; opacity: .5; }
+.hm-today { outline: 2px solid var(--ink); outline-offset: 1px; }
+.heatmap-legend {
+  display: flex; align-items: center; gap: 6px; justify-content: flex-end;
+  margin-top: 12px; font-size: .76rem; color: var(--ink-3);
+}
+.heatmap-legend .hm-cell { width: 13px; height: 13px; }
+.activity-empty { margin-top: 16px; }
+
+@media (max-width: 620px) {
+  .activity-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .hm-cell { width: 13px; height: 13px; }
+  .backup-actions .btn { flex: 1 1 auto; }
+}
