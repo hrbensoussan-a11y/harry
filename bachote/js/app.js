@@ -274,6 +274,7 @@
   function relabelEditor() {
     $("#editHeading").textContent = t(editState.id ? "edit_heading_edit" : "edit_heading_new");
     renderSubjectPills($("#deckSubjectInput").value);
+    if (editState.kind && editState.kind !== "def") paintKindBadge($("#editKindBadge"), editState.kind);
   }
 
   function setLang(code) {
@@ -285,6 +286,8 @@
     if (scr === "home") renderHome();
     else if (scr === "deck") renderDeck(currentDeckId);
     else if (scr === "edit") relabelEditor();
+    else if (scr === "pick") renderTypePicker();
+    else if (scr === "activity") renderActivity();
     // étude / résultat : les libellés statiques suffisent, on ne coupe pas la session
   }
 
@@ -1887,7 +1890,8 @@
       if (ok) right++;
       else { inp.value = inp.getAttribute("data-answer"); } // révèle la bonne réponse
     });
-    var ratio = tot ? right / tot : 0;
+    // Passage sans trou (cas défensif) : rien à vérifier, on ne bloque pas la session.
+    var ratio = tot ? right / tot : 1;
     var passed = ratio >= 0.6;
     S.grade(c, passed ? (ratio >= 0.99 ? 5 : 4) : 1);
     S.award(passed);
@@ -1911,6 +1915,13 @@
     $("#clozeNext").addEventListener("click", function () { if (!sess) return; sess.i++; renderCloze(); });
     $("#clozeSpeak").addEventListener("click", function () {
       if (sess && sess.queue[sess.i]) speakText(stripCloze(sess.queue[sess.i].t));
+    });
+    // Entrée dans un trou : vérifie, puis (une fois vérifié) passe au suivant.
+    $("#clozeText").addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      if (!$("#clozeCheck").hidden) checkCloze();
+      else if (!$("#clozeNext").hidden) { sess.i++; renderCloze(); }
     });
   }
 
@@ -2206,6 +2217,19 @@
       if (sess.mode === "truefalse") {
         if (e.key === "ArrowLeft" || e.key.toLowerCase() === "v") { e.preventDefault(); if (!$("#tfTrue").disabled) $("#tfTrue").click(); }
         else if (e.key === "ArrowRight" || e.key.toLowerCase() === "f") { e.preventDefault(); if (!$("#tfFalse").disabled) $("#tfFalse").click(); }
+      }
+
+      // Questions de cours : Espace/Entrée révèle la réponse.
+      if (sess.mode === "qa" || sess.mode === "qareview") {
+        if ((e.key === " " || e.key === "Enter") && !$("#qaShow").hidden) { e.preventDefault(); $("#qaShow").click(); }
+      }
+
+      // Par cœur (test) : Espace/Entrée révèle la ligne suivante ; en mode apprendre, passe au suivant.
+      if (sess.mode === "recittest") {
+        if ((e.key === " " || e.key === "Enter") && !$("#recitReveal").hidden) { e.preventDefault(); $("#recitReveal").click(); }
+      }
+      if (sess.mode === "recit") {
+        if ((e.key === " " || e.key === "Enter") && !$("#recitNext").hidden) { e.preventDefault(); $("#recitNext").click(); }
       }
     });
   }

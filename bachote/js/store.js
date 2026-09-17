@@ -212,14 +212,19 @@
 
   function dueCount(deck) { return dueCards(deck).length; }
 
+  /* La révision globale (accueil) est l'expérience flashcards : elle ne mélange
+     que les paquets de définitions, qui s'affichent naturellement en recto/verso.
+     Les autres types (texte à trous, par cœur, ordre, questions) se révisent
+     depuis leur propre page, avec leur propre mode. */
   function allDueCount() {
-    return allDecks().reduce(function (n, d) { return n + dueCount(d); }, 0);
+    return allDecks().reduce(function (n, d) { return n + (d.kind === "def" ? dueCount(d) : 0); }, 0);
   }
 
-  /* Toutes les cartes à réviser, tous paquets confondus. */
+  /* Toutes les cartes de définitions à réviser, tous paquets « def » confondus. */
   function globalQueue() {
     var out = [];
     allDecks().forEach(function (d) {
+      if (d.kind !== "def") return;
       dueCards(d).forEach(function (c) { out.push({ card: c, deckId: d.id, deckName: d.name }); });
     });
     out.sort(function (a, b) { return a.card.due - b.card.due; });
